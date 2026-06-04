@@ -1,0 +1,44 @@
+# Strapi specific
+.tmp/
+.cache/
+build/
+.strapi-updater.json
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data.db
+
+# Uploaded files
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Environment
+.env
+.env.production
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Exports and scripts output
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+scripts/*.json
+
+# Ghost migration files (temporary, already migrated)
+ghost-images/
+images-backup.tar.gz
+*.ghost.*.json
+aikyamjobs_*.csv
+migration-processed.json
+ghost-recent-50.json
