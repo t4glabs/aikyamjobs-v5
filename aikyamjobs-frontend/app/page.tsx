@@ -236,7 +236,7 @@ export default async function Home() {
                         </div>
                         {(job.attributes.closingDate || job.attributes.deadline) && (
                           <p className="text-xs text-red-600 font-mono font-semibold">
-                            ⏰ Closes: {new Date(job.attributes.closingDate || job.attributes.deadline).toLocaleDateString('en-US', {
+                            ⏰ Closes: {new Date((job.attributes.closingDate || job.attributes.deadline)!).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric'
                             })}

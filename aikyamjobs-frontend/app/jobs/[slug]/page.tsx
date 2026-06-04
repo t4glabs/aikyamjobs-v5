@@ -219,7 +219,7 @@ export default async function JobDetailPage({
                   <div>
                     <h4 className="font-mono font-semibold text-gray-900 mb-1">Application Deadline</h4>
                     <p className="text-gray-700">
-                      {new Date(job.attributes.closingDate || job.attributes.deadline).toLocaleDateString('en-US', {
+                      {new Date((job.attributes.closingDate || job.attributes.deadline)!).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric'
