@@ -1,0 +1,118 @@
+{
+  "kind": "collectionType",
+  "collectionName": "jobs",
+  "info": {
+    "singularName": "job",
+    "pluralName": "jobs",
+    "displayName": "Job",
+    "description": "Job listings"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "description": {
+      "type": "richtext",
+      "required": true
+    },
+    "location": {
+      "type": "string"
+    },
+    "jobType": {
+      "type": "enumeration",
+      "enum": ["full-time", "part-time", "contract", "internship", "remote"],
+      "default": "full-time"
+    },
+    "experienceLevel": {
+      "type": "enumeration",
+      "enum": ["entry", "mid", "senior", "lead"],
+      "default": "mid"
+    },
+    "salary": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "json"
+    },
+    "impactArea": {
+      "type": "string"
+    },
+    "applicationUrl": {
+      "type": "string"
+    },
+    "applicationEmail": {
+      "type": "email"
+    },
+    "deadline": {
+      "type": "date"
+    },
+    "closingDate": {
+      "type": "datetime"
+    },
+    "publishDate": {
+      "type": "datetime"
+    },
+    "author": {
+      "type": "string"
+    },
+    "curatedBy": {
+      "type": "string"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "featureImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "excerpt": {
+      "type": "text"
+    },
+    "htmlContent": {
+      "type": "text"
+    },
+    "plaintextContent": {
+      "type": "text"
+    },
+    "metaTitle": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "metaDescription": {
+      "type": "text",
+      "maxLength": 160
+    },
+    "keywords": {
+      "type": "json"
+    },
+    "socialImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "company": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::company.company",
+      "inversedBy": "jobs"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category",
+      "inversedBy": "jobs"
+    }
+  }
+}

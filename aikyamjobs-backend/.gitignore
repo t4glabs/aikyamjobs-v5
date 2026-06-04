@@ -29,11 +29,8 @@ package-lock.json
 .DS_Store
 
 # Exports and scripts output
-*.json
-!package.json
-!package-lock.json
-!tsconfig.json
 scripts/*.json
+!src/**/schema.json
 
 # Ghost migration files (temporary, already migrated)
 ghost-images/

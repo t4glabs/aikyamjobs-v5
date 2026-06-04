@@ -1,0 +1,157 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_settings",
+  "info": {
+    "singularName": "site-setting",
+    "pluralName": "site-settings",
+    "displayName": "Site Settings",
+    "description": "Global site configuration and homepage customization"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "siteName": {
+      "type": "string",
+      "default": "Aikyam Jobs"
+    },
+    "siteDescription": {
+      "type": "text"
+    },
+    "heroTitle": {
+      "type": "string",
+      "default": "Discover your dream job in public interest technology"
+    },
+    "heroSubtitle": {
+      "type": "text",
+      "default": "Browse opportunities to solve pressing problems with your tech and design skills"
+    },
+    "jobsSectionTitle": {
+      "type": "string",
+      "default": "Latest Opportunities"
+    },
+    "jobsLayoutType": {
+      "type": "enumeration",
+      "enum": ["grid", "list"],
+      "default": "grid"
+    },
+    "jobsGridColumns": {
+      "type": "integer",
+      "default": 3,
+      "min": 1,
+      "max": 4
+    },
+    "companiesSectionTitle": {
+      "type": "string",
+      "default": "Featured Companies"
+    },
+    "companiesLayoutType": {
+      "type": "enumeration",
+      "enum": ["grid", "list"],
+      "default": "grid"
+    },
+    "companiesGridColumns": {
+      "type": "integer",
+      "default": 3,
+      "min": 1,
+      "max": 4
+    },
+    "blogsSectionTitle": {
+      "type": "string",
+      "default": "Latest from our Blog"
+    },
+    "blogsLayoutType": {
+      "type": "enumeration",
+      "enum": ["grid", "list"],
+      "default": "grid"
+    },
+    "blogsGridColumns": {
+      "type": "integer",
+      "default": 3,
+      "min": 1,
+      "max": 4
+    },
+    "showJobsOnHomepage": {
+      "type": "boolean",
+      "default": true
+    },
+    "showCompaniesOnHomepage": {
+      "type": "boolean",
+      "default": true
+    },
+    "showBlogsOnHomepage": {
+      "type": "boolean",
+      "default": true
+    },
+    "homepageJobsLimit": {
+      "type": "integer",
+      "default": 12
+    },
+    "homepageCompaniesLimit": {
+      "type": "integer",
+      "default": 6
+    },
+    "homepageBlogsLimit": {
+      "type": "integer",
+      "default": 6
+    },
+    "homepageTagsLimit": {
+      "type": "integer",
+      "default": 10,
+      "min": 5,
+      "max": 30
+    },
+    "primaryColor": {
+      "type": "string",
+      "default": "#2563eb"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "socialLinks": {
+      "type": "json"
+    },
+    "contactEmail": {
+      "type": "email"
+    },
+    "metaTitle": {
+      "type": "string"
+    },
+    "metaDescription": {
+      "type": "text"
+    },
+    "metaKeywords": {
+      "type": "text"
+    },
+    "ogTitle": {
+      "type": "string"
+    },
+    "ogDescription": {
+      "type": "text"
+    },
+    "ogImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "twitterCard": {
+      "type": "enumeration",
+      "enum": ["summary", "summary_large_image"],
+      "default": "summary_large_image"
+    },
+    "twitterSite": {
+      "type": "string"
+    },
+    "favicon": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subscribers",
+  "info": {
+    "singularName": "subscriber",
+    "pluralName": "subscribers",
+    "displayName": "Subscriber",
+    "description": "Email subscribers for job alerts"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "json"
+    },
+    "locations": {
+      "type": "json"
+    },
+    "impactAreas": {
+      "type": "json"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}
