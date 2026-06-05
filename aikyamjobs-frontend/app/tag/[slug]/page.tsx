@@ -21,8 +21,6 @@ export default async function TagPage({
 
     // If category doesn't exist at all, show 404
     if (!category) {
-      console.log(`Category not found: ${slug}`);
-      console.log(`Available categories: ${categoriesResponse.data.map(c => c.attributes.slug).join(', ')}`);
       notFound();
     }
 
@@ -222,7 +220,6 @@ export default async function TagPage({
     </div>
   );
   } catch (error) {
-    console.error('Error in TagPage:', error);
     notFound();
   }
 }

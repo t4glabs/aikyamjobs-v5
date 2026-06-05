@@ -30,7 +30,6 @@ export default async function BlogsPage({
     pagination = blogsResponse.meta.pagination;
   } catch (error) {
     // Blogs API not accessible yet - permissions need to be configured
-    console.log('Blogs API not yet configured. Please set permissions in Strapi admin.');
   }
 
   const categoryOptions = [

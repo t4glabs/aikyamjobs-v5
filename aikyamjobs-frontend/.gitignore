@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ghost export/import data files (large, not needed in repo)
+*.ghost.*.json
+ghost-recent-*.json
