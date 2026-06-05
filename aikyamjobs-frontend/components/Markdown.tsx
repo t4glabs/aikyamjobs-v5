@@ -20,7 +20,7 @@ export default function Markdown({ content, className = '' }: MarkdownProps) {
           ),
           // eslint-disable-next-line @next/next/no-img-element
           img: ({ node, src, alt, ...props }) => (
-            <img src={getStrapiMediaUrl(src)} alt={alt || ''} {...props} />
+            <img src={getStrapiMediaUrl(typeof src === 'string' ? src : undefined)} alt={alt || ''} {...props} />
           ),
         }}
       >
