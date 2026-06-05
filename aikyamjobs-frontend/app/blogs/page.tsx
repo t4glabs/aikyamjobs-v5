@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getBlogs } from "@/lib/api";
+import { getBlogs, getStrapiMediaUrl } from "@/lib/api";
 import { Blog, StrapiResponse } from "@/lib/types";
 import Image from "next/image";
 
@@ -123,7 +123,7 @@ export default async function BlogsPage({
                   {blog.attributes.featuredImage?.data && (
                     <div className="relative h-48 bg-gray-100">
                       <Image
-                        src={`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${blog.attributes.featuredImage.data.attributes.url}`}
+                        src={getStrapiMediaUrl(blog.attributes.featuredImage.data.attributes.url)}
                         alt={blog.attributes.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"

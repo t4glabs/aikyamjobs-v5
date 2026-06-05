@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { getSiteSettings } from "@/lib/api";
+import { getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,18 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const settingsResponse = await getSiteSettings().catch(() => null);
   const settings = settingsResponse?.data?.attributes;
 
-  const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-
   const title = settings?.metaTitle || settings?.siteName || "aikyam jobs - Public Interest Technology Jobs";
   const description = settings?.metaDescription || settings?.siteDescription || "Find your dream job in public interest technology. Discover opportunities to make an impact with your tech and design skills.";
 
-  const ogImageUrl = settings?.ogImage?.data?.attributes?.url
-    ? `${API_URL}${settings.ogImage.data.attributes.url}`
-    : undefined;
-
-  const faviconUrl = settings?.favicon?.data?.attributes?.url
-    ? `${API_URL}${settings.favicon.data.attributes.url}`
-    : undefined;
+  const ogImageUrl = getStrapiMediaUrl(settings?.ogImage?.data?.attributes?.url) || undefined;
+  const faviconUrl = getStrapiMediaUrl(settings?.favicon?.data?.attributes?.url) || undefined;
 
   return {
     title,

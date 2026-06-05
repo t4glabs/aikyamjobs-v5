@@ -1,14 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getSiteSettings } from "@/lib/api";
+import { getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 
 export default async function Navbar() {
   const settingsResponse = await getSiteSettings().catch(() => null);
   const settings = settingsResponse?.data?.attributes;
 
-  const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-  const hasLogo = settings?.logo?.data?.attributes?.url;
-  const logoUrl = hasLogo ? `${API_URL}${settings.logo.data.attributes.url}` : null;
+  const logoUrl = getStrapiMediaUrl(settings?.logo?.data?.attributes?.url) || null;
   const siteName = settings?.siteName || 'aikyam jobs';
 
   return (

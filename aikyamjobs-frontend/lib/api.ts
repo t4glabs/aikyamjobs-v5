@@ -1,5 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
+export function getStrapiMediaUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  // Already an absolute non-localhost URL — return as-is
+  if (url.startsWith('http') && !url.includes('localhost')) return url;
+  // Strip any hardcoded localhost origin so we can re-prefix correctly
+  const path = url.replace(/^https?:\/\/localhost:\d+/, '');
+  return `${API_URL}${path}`;
+}
+
 export async function fetchAPI(path: string, options: RequestInit = {}) {
   const defaultOptions: RequestInit = {
     headers: {

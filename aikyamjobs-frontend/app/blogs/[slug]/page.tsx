@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBlog } from "@/lib/api";
+import { getBlog, getStrapiMediaUrl } from "@/lib/api";
 import { Blog, StrapiResponse } from "@/lib/types";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
@@ -98,7 +98,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         {blog.attributes.featuredImage?.data && (
           <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden mb-6">
             <Image
-              src={`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${blog.attributes.featuredImage.data.attributes.url}`}
+              src={getStrapiMediaUrl(blog.attributes.featuredImage.data.attributes.url)}
               alt={blog.attributes.title}
               fill
               className="object-cover"

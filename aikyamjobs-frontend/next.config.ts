@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '1338',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'beta.aikyamjobs.org',
+        pathname: '/uploads/**',
+      },
+      {
         protocol: 'https',
         hostname: '**',
       },
