@@ -1,12 +1,15 @@
-const API_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+// Public URL — baked in at build time, used for image URLs in client components
+const PUBLIC_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+// Internal URL — runtime env var (no NEXT_PUBLIC_), server-side API calls bypass nginx
+// Set STRAPI_INTERNAL_URL=http://127.0.0.1:1338 in .env.local on the VPS
+const INTERNAL_URL = process.env.STRAPI_INTERNAL_URL || PUBLIC_URL;
 
 export function getStrapiMediaUrl(url: string | null | undefined): string {
   if (!url) return '';
-  // Already an absolute non-localhost URL — return as-is
   if (url.startsWith('http') && !url.includes('localhost')) return url;
-  // Strip any hardcoded localhost origin so we can re-prefix correctly
   const path = url.replace(/^https?:\/\/localhost:\d+/, '');
-  return `${API_URL}${path}`;
+  return `${PUBLIC_URL}${path}`;
 }
 
 export async function fetchAPI(path: string, options: RequestInit = {}) {
@@ -21,7 +24,7 @@ export async function fetchAPI(path: string, options: RequestInit = {}) {
     ...options,
   };
 
-  const url = `${API_URL}/api${path}`;
+  const url = `${INTERNAL_URL}/api${path}`;
   const response = await fetch(url, mergedOptions);
 
   if (!response.ok) {
