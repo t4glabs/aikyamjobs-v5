@@ -22,6 +22,11 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
 
   const blog = blogResponse.data[0];
 
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || '';
+  const content = strapiUrl
+    ? (blog.attributes.content || '').replace(/https?:\/\/localhost:\d+\/uploads\//g, `${strapiUrl}/uploads/`)
+    : (blog.attributes.content || '');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <article className="container mx-auto px-4 py-8 max-w-4xl">
@@ -110,7 +115,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         <div className="bg-white rounded-lg p-8">
           <div className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {blog.attributes.content}
+              {content}
             </ReactMarkdown>
           </div>
         </div>

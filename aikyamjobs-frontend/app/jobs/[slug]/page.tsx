@@ -56,6 +56,11 @@ export default async function JobDetailPage({
   const job = jobResponse.data[0];
   const company = job.attributes.company?.data;
 
+  const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || '';
+  const description = strapiUrl
+    ? (job.attributes.description || '').replace(/https?:\/\/localhost:\d+\/uploads\//g, `${strapiUrl}/uploads/`)
+    : (job.attributes.description || '');
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back Button */}
@@ -114,7 +119,7 @@ export default async function JobDetailPage({
 
               {/* Render content as Markdown (converted from Ghost HTML) */}
               <Markdown
-                content={job.attributes.description}
+                content={description}
                 className="prose max-w-none mb-8 text-gray-800 leading-relaxed"
               />
 
