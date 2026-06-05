@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import { getCompanies } from "@/lib/api";
 import { Company, StrapiResponse } from "@/lib/types";

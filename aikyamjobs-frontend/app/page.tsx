@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import { getJobs, getCategories, getBlogs, getSiteSettings } from "@/lib/api";
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
