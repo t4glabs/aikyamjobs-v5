@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
-import { getJob } from "@/lib/api";
+import { getJob, getStrapiMediaUrl } from "@/lib/api";
 import { Job, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
@@ -35,10 +35,16 @@ export async function generateMetadata({
     'aikyam jobs'
   ].filter(Boolean);
 
+  const ogImage = getStrapiMediaUrl(
+    job.attributes.ogImage?.data?.attributes?.url ||
+    company?.attributes.featureImage?.data?.attributes?.url
+  ) || undefined;
+
   return generateSEOMetadata({
     title,
     description,
     keywords,
+    ogImage,
     canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://aikyamjobs.org'}/jobs/${slug}`,
   });
 }

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
-import { getJobs, getCategories, getBlogs, getSiteSettings } from "@/lib/api";
+import { getJobs, getCategories, getBlogs, getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
 
 export default async function Home() {
@@ -195,9 +195,18 @@ export default async function Home() {
                           {job.attributes.title}
                         </h3>
                         {job.attributes.company?.data && (
-                          <p className="text-gray-700 font-medium mb-3">
-                            {job.attributes.company.data.attributes.name}
-                          </p>
+                          <div className="flex items-center gap-2 mb-3">
+                            {job.attributes.company.data.attributes.logo?.data && (
+                              <img
+                                src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
+                                alt={job.attributes.company.data.attributes.name}
+                                className="w-8 h-8 object-contain rounded border border-gray-100 flex-shrink-0"
+                              />
+                            )}
+                            <p className="text-gray-700 font-medium">
+                              {job.attributes.company.data.attributes.name}
+                            </p>
+                          </div>
                         )}
                         <div className="flex flex-wrap gap-2 mb-3">
                           <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-mono text-xs">

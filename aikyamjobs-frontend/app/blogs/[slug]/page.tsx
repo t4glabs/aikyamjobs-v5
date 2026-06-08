@@ -7,6 +7,27 @@ import { Blog, StrapiResponse } from "@/lib/types";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { generateSEOMetadata } from "@/components/SEO";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  let blogResponse: StrapiResponse<Blog[]>;
+  try {
+    blogResponse = await getBlog(slug);
+  } catch {
+    return {};
+  }
+  if (!blogResponse.data || blogResponse.data.length === 0) return {};
+  const blog = blogResponse.data[0];
+  const ogImage = getStrapiMediaUrl(blog.attributes.featuredImage?.data?.attributes?.url) || undefined;
+  return generateSEOMetadata({
+    title: blog.attributes.title,
+    description: blog.attributes.excerpt || blog.attributes.title,
+    ogImage,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://aikyamjobs.org'}/blogs/${slug}`,
+  });
+}
 
 export default async function BlogPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
