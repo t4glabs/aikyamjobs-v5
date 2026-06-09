@@ -16,7 +16,7 @@ export default async function Navbar() {
   const logoUrl = getStrapiMediaUrl(settings?.logo?.data?.attributes?.url) || null;
   const siteName = settings?.siteName || 'Aikyam Jobs';
   const brandColor = settings?.primaryColor || '#111827';
-  const navLinks = settings?.navLinks?.length ? settings.navLinks : DEFAULT_NAV_LINKS;
+  const navLinks: Array<{ label: string; url: string; external?: boolean }> = settings?.navLinks?.length ? settings.navLinks : DEFAULT_NAV_LINKS;
 
   return (
     <nav className="bg-white border-b border-gray-100">
