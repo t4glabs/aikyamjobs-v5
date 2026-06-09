@@ -144,11 +144,8 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         </div>
 
         {/* Back Link */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/blogs"
-            className="btn-brand inline-block px-6 py-3 rounded-lg font-semibold"
-          >
+        <div className="mt-8">
+          <Link href="/blogs" className="link-brand text-sm">
             ← Back to all articles
           </Link>
         </div>
