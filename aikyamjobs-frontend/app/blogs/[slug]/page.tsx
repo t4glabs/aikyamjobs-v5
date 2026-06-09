@@ -67,7 +67,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {blog.attributes.category && (
               <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                {blog.attributes.category}
+                {blog.attributes.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
               </span>
             )}
             {blog.attributes.featured && (

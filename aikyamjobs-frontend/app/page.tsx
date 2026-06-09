@@ -291,7 +291,7 @@ export default async function Home() {
                     <div className="flex items-center gap-2 mb-3">
                       {blog.attributes.category && (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          {blog.attributes.category}
+                          {blog.attributes.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                         </span>
                       )}
                       {blog.attributes.featured && (
