@@ -386,6 +386,11 @@ export interface ApiBlogBlog extends Schema.CollectionType {
     externalLink: Attribute.String;
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featuredImage: Attribute.Media<'images'>;
+    internalTags: Attribute.Relation<
+      'api::blog.blog',
+      'manyToMany',
+      'api::internal-tag.internal-tag'
+    >;
     publishDate: Attribute.Date;
     publishedAt: Attribute.DateTime;
     readTime: Attribute.Integer;
@@ -461,6 +466,11 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featureImage: Attribute.Media<'images'>;
     industry: Attribute.String;
+    internalTags: Attribute.Relation<
+      'api::company.company',
+      'manyToMany',
+      'api::internal-tag.internal-tag'
+    >;
     jobs: Attribute.Relation<
       'api::company.company',
       'oneToMany',
@@ -490,6 +500,38 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
     > &
       Attribute.Private;
     website: Attribute.String;
+  };
+}
+
+export interface ApiInternalTagInternalTag extends Schema.CollectionType {
+  collectionName: 'internal_tags';
+  info: {
+    description: 'Editorial labels for internal use only \u2014 never exposed to the frontend';
+    displayName: 'Internal Tag';
+    pluralName: 'internal-tags';
+    singularName: 'internal-tag';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    color: Attribute.String;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::internal-tag.internal-tag',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    description: Attribute.Text;
+    name: Attribute.String & Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::internal-tag.internal-tag',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
   };
 }
 
@@ -533,6 +575,11 @@ export interface ApiJobJob extends Schema.CollectionType {
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featureImage: Attribute.Media<'images'>;
     impactArea: Attribute.String;
+    internalTags: Attribute.Relation<
+      'api::job.job',
+      'manyToMany',
+      'api::internal-tag.internal-tag'
+    >;
     jobType: Attribute.Enumeration<
       ['full-time', 'part-time', 'contract', 'internship']
     > &
@@ -1210,6 +1257,7 @@ declare module '@strapi/types' {
       'api::blog.blog': ApiBlogBlog;
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
+      'api::internal-tag.internal-tag': ApiInternalTagInternalTag;
       'api::job.job': ApiJobJob;
       'api::page.page': ApiPagePage;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;

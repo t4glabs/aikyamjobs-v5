@@ -103,6 +103,11 @@
       "relation": "manyToMany",
       "target": "api::category.category",
       "inversedBy": "jobs"
+    },
+    "internalTags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::internal-tag.internal-tag"
     }
   }
 }

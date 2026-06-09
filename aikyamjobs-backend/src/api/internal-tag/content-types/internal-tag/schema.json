@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "internal_tags",
+  "info": {
+    "singularName": "internal-tag",
+    "pluralName": "internal-tags",
+    "displayName": "Internal Tag",
+    "description": "Editorial labels for internal use only — never exposed to the frontend"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "color": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

@@ -111,7 +111,7 @@ export default function SubscribePage() {
             </form>
 
             <p className="text-sm text-gray-500 mt-4">
-              By subscribing, you agree to receive job alerts and updates from Aikyam Jobs.
+              By subscribing, you agree to receive job alerts and updates from aikyam jobs.
               You can unsubscribe at any time.
             </p>
           </div>
