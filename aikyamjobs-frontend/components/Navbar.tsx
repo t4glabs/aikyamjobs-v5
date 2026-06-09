@@ -7,54 +7,41 @@ export default async function Navbar() {
   const settings = settingsResponse?.data?.attributes;
 
   const logoUrl = getStrapiMediaUrl(settings?.logo?.data?.attributes?.url) || null;
-  const siteName = settings?.siteName || 'aikyam jobs';
+  const siteName = settings?.siteName || 'Aikyam Jobs';
+  const brandColor = settings?.primaryColor || '#111827';
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className="bg-white border-b border-gray-100">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              {logoUrl ? (
-                <div className="h-10 relative">
-                  <Image
-                    src={logoUrl}
-                    alt={siteName}
-                    width={160}
-                    height={40}
-                    className="object-contain h-10 w-auto"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <span className="text-xl font-bold text-gray-900">
-                  {siteName}
-                </span>
-              )}
-            </Link>
-          </div>
-          <div className="flex items-center space-x-6">
-            <Link
-              href="/jobs"
-              className="text-gray-700 hover:text-blue-600 font-medium transition"
-            >
+        <div className="flex items-center justify-between h-14">
+          <Link href="/" className="flex items-center">
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={siteName}
+                width={140}
+                height={32}
+                className="object-contain h-8 w-auto"
+                unoptimized
+              />
+            ) : (
+              <span className="font-semibold text-gray-900 tracking-tight">{siteName}</span>
+            )}
+          </Link>
+          <div className="flex items-center gap-7">
+            <Link href="/jobs" className="text-sm text-gray-600 hover:text-gray-900 transition">
               Jobs
             </Link>
-            <Link
-              href="/companies"
-              className="text-gray-700 hover:text-blue-600 font-medium transition"
-            >
+            <Link href="/companies" className="text-sm text-gray-600 hover:text-gray-900 transition">
               Companies
             </Link>
-            <Link
-              href="/blogs"
-              className="text-gray-700 hover:text-blue-600 font-medium transition"
-            >
+            <Link href="/blogs" className="text-sm text-gray-600 hover:text-gray-900 transition">
               Blog
             </Link>
             <Link
               href="/subscribe"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+              className="text-sm px-4 py-1.5 rounded-full font-medium transition hover:opacity-80"
+              style={{ border: `1.5px solid ${brandColor}`, color: brandColor }}
             >
               Subscribe
             </Link>

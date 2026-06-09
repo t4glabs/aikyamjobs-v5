@@ -50,15 +50,19 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settingsResponse = await getSiteSettings().catch(() => null);
+  const primaryColor = settingsResponse?.data?.attributes?.primaryColor || '#111827';
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={{ '--brand': primaryColor } as React.CSSProperties}
     >
       <body className="min-h-full flex flex-col">
         <Navbar />

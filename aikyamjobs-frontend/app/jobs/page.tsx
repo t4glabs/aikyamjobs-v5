@@ -30,52 +30,48 @@ export default async function JobsPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">All Jobs</h1>
-          <p className="text-gray-600 mt-2">
-            {pagination?.total || 0} opportunities available
-          </p>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <form method="get" className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input
-              type="text"
-              name="search"
-              defaultValue={search}
-              placeholder="Search by title or skill..."
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-600"
-            />
-            <input
-              type="text"
-              name="location"
-              defaultValue={location}
-              placeholder="Location"
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-600"
-            />
-            <select
-              name="jobType"
-              defaultValue={jobType}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900"
-            >
-              <option value="">All Job Types</option>
-              <option value="full-time">Full Time</option>
-              <option value="part-time">Part Time</option>
-              <option value="contract">Contract</option>
-              <option value="internship">Internship</option>
-            </select>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
-            >
-              Apply Filters
-            </button>
-          </form>
+      {/* Header + Filters */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4 py-5">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-shrink-0">
+              <h1 className="text-xl font-semibold text-gray-900">All Jobs</h1>
+              <p className="text-sm text-gray-400 mt-0.5">{pagination?.total || 0} opportunities</p>
+            </div>
+            <form method="get" className="flex flex-col md:flex-row gap-2 flex-1 md:justify-end">
+              <input
+                type="text"
+                name="search"
+                defaultValue={search}
+                placeholder="Search title or skill..."
+                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 placeholder:text-gray-400 w-full md:w-48"
+              />
+              <input
+                type="text"
+                name="location"
+                defaultValue={location}
+                placeholder="Location"
+                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 placeholder:text-gray-400 w-full md:w-36"
+              />
+              <select
+                name="jobType"
+                defaultValue={jobType}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 w-full md:w-36"
+              >
+                <option value="">All types</option>
+                <option value="full-time">Full Time</option>
+                <option value="part-time">Part Time</option>
+                <option value="contract">Contract</option>
+                <option value="internship">Internship</option>
+              </select>
+              <button
+                type="submit"
+                className="px-4 py-1.5 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition"
+              >
+                Filter
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -171,25 +167,27 @@ export default async function JobsPage({
 
             {/* Pagination */}
             {pagination && pagination.pageCount > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
-                {page > 1 && (
+              <div className="flex items-center justify-center gap-8 mt-10 text-sm">
+                {page > 1 ? (
                   <Link
                     href={`/jobs?${new URLSearchParams({ ...params as any, page: (page - 1).toString() })}`}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="text-gray-600 hover:text-gray-900 transition"
                   >
-                    Previous
+                    ← Previous
                   </Link>
+                ) : (
+                  <span className="text-gray-300">← Previous</span>
                 )}
-                <span className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                  Page {page} of {pagination.pageCount}
-                </span>
-                {page < pagination.pageCount && (
+                <span className="text-gray-400">{page} of {pagination.pageCount}</span>
+                {page < pagination.pageCount ? (
                   <Link
                     href={`/jobs?${new URLSearchParams({ ...params as any, page: (page + 1).toString() })}`}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="text-gray-600 hover:text-gray-900 transition"
                   >
-                    Next
+                    Next →
                   </Link>
+                ) : (
+                  <span className="text-gray-300">Next →</span>
                 )}
               </div>
             )}
