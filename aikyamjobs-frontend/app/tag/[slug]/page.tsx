@@ -80,11 +80,11 @@ export default async function TagPage({
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-            <Link href="/" className="hover:text-blue-600">
+            <Link href="/" className="hover:text-brand">
               Home
             </Link>
             <span>→</span>
-            <Link href="/jobs" className="hover:text-blue-600">
+            <Link href="/jobs" className="hover:text-brand">
               Jobs
             </Link>
             <span>→</span>
@@ -108,7 +108,7 @@ export default async function TagPage({
             </p>
             <Link
               href="/jobs"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              className="link-brand font-semibold"
             >
               Browse all jobs →
             </Link>
@@ -208,7 +208,7 @@ export default async function TagPage({
                 href={`/tag/${cat.attributes.slug}`}
                 className={`px-4 py-2 rounded-full font-mono text-sm transition ${
                   cat.id === category.id
-                    ? 'bg-blue-600 text-white'
+                    ? 'btn-brand'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -219,7 +219,7 @@ export default async function TagPage({
           <div className="mt-4 text-center">
             <Link
               href="/jobs"
-              className="text-blue-600 hover:text-blue-700 font-mono text-sm"
+              className="link-brand font-mono text-sm"
             >
               View all jobs →
             </Link>

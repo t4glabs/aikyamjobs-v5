@@ -43,7 +43,7 @@ export default function SubscribePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
-          <Link href="/" className="text-blue-600 hover:text-blue-700 font-mono text-sm font-medium">
+          <Link href="/" className="link-brand font-mono text-sm font-medium">
             ← Back to home
           </Link>
         </div>
@@ -69,7 +69,7 @@ export default function SubscribePage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-600"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
                   placeholder="Your name"
                 />
               </div>
@@ -84,7 +84,7 @@ export default function SubscribePage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-600"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
                   placeholder="your@email.com"
                 />
               </div>
@@ -92,7 +92,7 @@ export default function SubscribePage() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-mono text-sm font-semibold hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="btn-brand w-full px-6 py-3 rounded-lg font-mono text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {status === "loading" ? "Subscribing..." : "Subscribe"}
               </button>

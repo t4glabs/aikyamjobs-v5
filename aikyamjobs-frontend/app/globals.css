@@ -75,7 +75,11 @@ body {
 }
 
 .prose a {
-  @apply text-blue-600 hover:text-blue-700 underline;
+  color: var(--brand);
+  text-decoration: underline;
+}
+.prose a:hover {
+  opacity: 0.75;
 }
 
 .prose blockquote {
@@ -112,4 +116,26 @@ body {
 
 .prose img {
   @apply max-w-full h-auto rounded-lg my-4;
+}
+
+/* Brand color utilities — driven by --brand CSS variable set in layout.tsx from Strapi site settings */
+.btn-brand {
+  background-color: var(--brand);
+  color: white;
+  transition: opacity 0.15s;
+}
+.btn-brand:hover { opacity: 0.82; }
+
+.link-brand { color: var(--brand); transition: opacity 0.15s; }
+.link-brand:hover { opacity: 0.65; }
+
+/* Registered as Tailwind utility so variant prefixes (group-hover:, hover:) work */
+@utility text-brand {
+  color: var(--brand);
+}
+@utility border-brand {
+  border-color: var(--brand);
+}
+@utility bg-brand-light {
+  background-color: color-mix(in srgb, var(--brand) 10%, white);
 }

@@ -71,7 +71,7 @@ export default async function Home() {
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               <Link
                 href="/jobs"
-                className="px-5 py-2 bg-blue-600 text-white rounded-full font-mono text-sm hover:bg-blue-700 transition"
+                className="btn-brand px-5 py-2 rounded-full font-mono text-sm"
               >
                 All
               </Link>
@@ -114,11 +114,11 @@ export default async function Home() {
                   type="text"
                   name="search"
                   placeholder="Search by skill, location, or impact area"
-                  className="flex-1 px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-500"
+                  className="flex-1 px-5 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
                 />
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-mono text-sm font-semibold hover:bg-blue-700 transition"
+                  className="btn-brand px-8 py-3 rounded-lg font-mono text-sm font-semibold"
                 >
                   Search
                 </button>
@@ -128,7 +128,7 @@ export default async function Home() {
             <div className="text-center">
               <Link
                 href="/subscribe"
-                className="text-blue-600 hover:text-blue-700 font-mono text-sm font-medium"
+                className="link-brand font-mono text-sm font-medium"
               >
                 Subscribe for job alerts, stories & case-studies →
               </Link>
@@ -169,7 +169,7 @@ export default async function Home() {
               </h2>
               <Link
                 href="/jobs"
-                className="text-blue-600 hover:text-blue-700 font-mono text-sm font-medium"
+                className="link-brand font-mono text-sm font-medium"
               >
                 View all →
               </Link>
@@ -273,7 +273,7 @@ export default async function Home() {
               </h2>
               <Link
                 href="/blogs"
-                className="text-blue-600 hover:text-blue-700 font-mono text-sm font-medium"
+                className="link-brand font-mono text-sm font-medium"
               >
                 View all →
               </Link>
@@ -305,7 +305,7 @@ export default async function Home() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition line-clamp-2">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand transition line-clamp-2">
                       {blog.attributes.title}
                     </h3>
                     {blog.attributes.excerpt && (

@@ -24,7 +24,7 @@ export default async function CompanyDetailPage({
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
-          <Link href="/companies" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/companies" className="link-brand font-medium">
             ← Back to all companies
           </Link>
         </div>
@@ -72,7 +72,7 @@ export default async function CompanyDetailPage({
                 href={company.attributes.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition mb-6"
+                className="btn-brand inline-block px-6 py-2 rounded-lg font-semibold mb-6"
               >
                 Visit Website →
               </a>
@@ -95,7 +95,7 @@ export default async function CompanyDetailPage({
               {/* Job listings will be populated when jobs are added */}
               <p className="text-gray-600">
                 View all jobs from {company.attributes.name} on our{" "}
-                <Link href="/jobs" className="text-blue-600 hover:text-blue-700">
+                <Link href="/jobs" className="link-brand">
                   jobs page
                 </Link>
                 .

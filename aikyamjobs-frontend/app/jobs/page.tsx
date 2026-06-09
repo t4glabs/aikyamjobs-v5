@@ -66,7 +66,7 @@ export default async function JobsPage({
               </select>
               <button
                 type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 transition"
+                className="btn-brand px-4 py-1.5 text-sm rounded-lg"
               >
                 Filter
               </button>
@@ -80,7 +80,7 @@ export default async function JobsPage({
         {jobs.length === 0 ? (
           <div className="bg-white rounded-lg p-12 text-center">
             <p className="text-xl text-gray-600">No jobs found matching your criteria.</p>
-            <Link href="/jobs" className="text-blue-600 hover:text-blue-700 mt-4 inline-block">
+            <Link href="/jobs" className="link-brand mt-4 inline-block">
               Clear filters
             </Link>
           </div>

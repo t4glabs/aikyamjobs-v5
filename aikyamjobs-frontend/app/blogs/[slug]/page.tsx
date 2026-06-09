@@ -55,9 +55,9 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
       <article className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm text-gray-600">
-          <Link href="/" className="hover:text-blue-600">Home</Link>
+          <Link href="/" className="hover:text-brand">Home</Link>
           <span className="mx-2">/</span>
-          <Link href="/blogs" className="hover:text-blue-600">Blog</Link>
+          <Link href="/blogs" className="hover:text-brand">Blog</Link>
           <span className="mx-2">/</span>
           <span className="text-gray-900">{blog.attributes.title}</span>
         </nav>
@@ -136,7 +136,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
 
         {/* Content */}
         <div className="bg-white rounded-lg p-8">
-          <div className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg">
+          <div className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {content}
             </ReactMarkdown>
@@ -147,7 +147,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         <div className="mt-8 text-center">
           <Link
             href="/blogs"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+            className="btn-brand inline-block px-6 py-3 rounded-lg font-semibold"
           >
             ← Back to all articles
           </Link>

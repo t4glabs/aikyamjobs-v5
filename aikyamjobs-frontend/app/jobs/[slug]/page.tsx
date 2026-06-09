@@ -75,7 +75,7 @@ export default async function JobDetailPage({
       {/* Back Button */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
-          <Link href="/jobs" className="text-blue-600 hover:text-blue-700 font-mono text-sm font-medium">
+          <Link href="/jobs" className="link-brand font-mono text-sm font-medium">
             ← Back to all jobs
           </Link>
         </div>
@@ -94,7 +94,7 @@ export default async function JobDetailPage({
               {company && (
                 <Link
                   href={`/companies/${company.attributes.slug}`}
-                  className="text-lg text-gray-700 font-semibold hover:text-blue-600 mb-4 inline-block"
+                  className="text-lg text-gray-700 font-semibold hover:text-brand mb-4 inline-block"
                 >
                   {company.attributes.name}
                 </Link>
@@ -178,14 +178,14 @@ export default async function JobDetailPage({
                       href={job.attributes.applicationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full bg-blue-600 text-white text-center px-6 py-3 rounded-lg font-mono text-sm font-semibold hover:bg-blue-700 transition"
+                      className="btn-brand block w-full text-center px-6 py-3 rounded-lg font-mono text-sm font-semibold"
                     >
                       Apply Now →
                     </a>
                   ) : job.attributes.applicationEmail ? (
                     <a
                       href={`mailto:${job.attributes.applicationEmail}`}
-                      className="block w-full bg-blue-600 text-white text-center px-6 py-3 rounded-lg font-mono text-sm font-semibold hover:bg-blue-700 transition"
+                      className="btn-brand block w-full text-center px-6 py-3 rounded-lg font-mono text-sm font-semibold"
                     >
                       Apply via Email →
                     </a>
@@ -260,7 +260,7 @@ export default async function JobDetailPage({
                   <h4 className="font-mono font-semibold text-gray-900 mb-3">About the Company</h4>
                   <Link
                     href={`/companies/${company.attributes.slug}`}
-                    className="flex items-center gap-3 hover:text-blue-600 mb-2"
+                    className="flex items-center gap-3 hover:text-brand mb-2"
                   >
                     {company.attributes.logo?.data && (
                       <img
@@ -282,7 +282,7 @@ export default async function JobDetailPage({
                       href={company.attributes.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-700 font-mono"
+                      className="link-brand text-sm font-mono"
                     >
                       Visit Website →
                     </a>
@@ -305,7 +305,7 @@ export default async function JobDetailPage({
                           className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0 text-brand font-semibold text-xs">
                           {curator.name.charAt(0).toUpperCase()}
                         </div>
                       )}

@@ -534,7 +534,7 @@ export interface ApiJobJob extends Schema.CollectionType {
     featureImage: Attribute.Media<'images'>;
     impactArea: Attribute.String;
     jobType: Attribute.Enumeration<
-      ['full-time', 'part-time', 'contract', 'internship', 'remote']
+      ['full-time', 'part-time', 'contract', 'internship']
     > &
       Attribute.DefaultTo<'full-time'>;
     keywords: Attribute.JSON;

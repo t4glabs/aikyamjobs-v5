@@ -77,7 +77,7 @@ export default async function BlogsPage({
             </select>
             <button
               type="submit"
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+              className="btn-brand px-6 py-2 rounded-lg font-semibold"
             >
               Apply Filters
             </button>
@@ -106,7 +106,7 @@ export default async function BlogsPage({
                 </ol>
               </div>
             ) : (
-              <Link href="/blogs" className="text-blue-600 hover:text-blue-700 mt-4 inline-block">
+              <Link href="/blogs" className="link-brand mt-4 inline-block">
                 Clear filters
               </Link>
             )}
@@ -149,7 +149,7 @@ export default async function BlogsPage({
                         </span>
                       )}
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition">
+                    <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand transition">
                       {blog.attributes.title}
                     </h2>
                     {blog.attributes.excerpt && (
@@ -176,25 +176,27 @@ export default async function BlogsPage({
 
             {/* Pagination */}
             {pagination && pagination.pageCount > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
-                {page > 1 && (
+              <div className="flex items-center justify-center gap-8 mt-10 text-sm">
+                {page > 1 ? (
                   <Link
                     href={`/blogs?${new URLSearchParams({ ...params as any, page: (page - 1).toString() })}`}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="link-brand"
                   >
-                    Previous
+                    ← Previous
                   </Link>
+                ) : (
+                  <span className="text-gray-300">← Previous</span>
                 )}
-                <span className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-                  Page {page} of {pagination.pageCount}
-                </span>
-                {page < pagination.pageCount && (
+                <span className="text-gray-400">{page} of {pagination.pageCount}</span>
+                {page < pagination.pageCount ? (
                   <Link
                     href={`/blogs?${new URLSearchParams({ ...params as any, page: (page + 1).toString() })}`}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="link-brand"
                   >
-                    Next
+                    Next →
                   </Link>
+                ) : (
+                  <span className="text-gray-300">Next →</span>
                 )}
               </div>
             )}
