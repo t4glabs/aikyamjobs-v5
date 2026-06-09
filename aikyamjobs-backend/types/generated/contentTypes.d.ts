@@ -560,6 +560,40 @@ export interface ApiJobJob extends Schema.CollectionType {
   };
 }
 
+export interface ApiPagePage extends Schema.CollectionType {
+  collectionName: 'pages';
+  info: {
+    description: 'Static pages like About, Contact, Privacy Policy';
+    displayName: 'Page';
+    pluralName: 'pages';
+    singularName: 'page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Attribute.RichText & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::page.page', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    excerpt: Attribute.Text;
+    metaDescription: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    metaTitle: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }>;
+    publishedAt: Attribute.DateTime;
+    slug: Attribute.UID<'api::page.page', 'title'> & Attribute.Required;
+    title: Attribute.String & Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<'api::page.page', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
   collectionName: 'site_settings';
   info: {
@@ -607,6 +641,10 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     > &
       Attribute.Private;
     favicon: Attribute.Media<'images'>;
+    footerCreditsLine: Attribute.Text;
+    footerCreditsLinks: Attribute.JSON;
+    footerResourceLinks: Attribute.JSON;
+    footerTagline: Attribute.String;
     heroSubtitle: Attribute.Text &
       Attribute.DefaultTo<'Browse opportunities to solve pressing problems with your tech and design skills'>;
     heroTitle: Attribute.String &
@@ -1173,6 +1211,7 @@ declare module '@strapi/types' {
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
       'api::job.job': ApiJobJob;
+      'api::page.page': ApiPagePage;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::staff.staff': ApiStaffStaff;
       'api::subscriber.subscriber': ApiSubscriberSubscriber;

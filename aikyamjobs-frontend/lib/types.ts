@@ -142,6 +142,23 @@ export interface SiteSettings {
     twitterCard?: 'summary' | 'summary_large_image';
     twitterSite?: string;
     favicon?: any;
+    footerTagline?: string;
+    footerCreditsLine?: string;
+    footerCreditsLinks?: Array<{ label: string; url: string; external?: boolean }>;
+    footerResourceLinks?: Array<{ label: string; url: string }>;
+  };
+}
+
+export interface Page {
+  id: number;
+  attributes: {
+    title: string;
+    slug: string;
+    content: string;
+    excerpt?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+    publishedAt: string;
   };
 }
 

@@ -152,6 +152,18 @@
       "multiple": false,
       "required": false,
       "allowedTypes": ["images"]
+    },
+    "footerTagline": {
+      "type": "string"
+    },
+    "footerCreditsLine": {
+      "type": "text"
+    },
+    "footerCreditsLinks": {
+      "type": "json"
+    },
+    "footerResourceLinks": {
+      "type": "json"
     }
   }
 }

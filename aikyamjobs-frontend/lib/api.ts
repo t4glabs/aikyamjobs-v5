@@ -136,3 +136,7 @@ export async function getBlog(slug: string) {
 export async function getSiteSettings() {
   return fetchAPI('/site-setting?populate=*');
 }
+
+export async function getPage(slug: string) {
+  return fetchAPI(`/pages?filters[slug][$eq]=${slug}`);
+}
