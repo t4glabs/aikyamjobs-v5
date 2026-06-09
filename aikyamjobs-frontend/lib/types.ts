@@ -22,7 +22,7 @@ export interface Job {
     metaTitle?: string;
     metaDescription?: string;
     keywords?: string[];
-    ogImage?: any;
+    featureImage?: any;
     socialImage?: any;
     createdAt: string;
     updatedAt: string;

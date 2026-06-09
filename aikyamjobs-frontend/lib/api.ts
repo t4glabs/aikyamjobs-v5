@@ -43,7 +43,7 @@ export async function getJobs(filters?: {
   page?: number;
   pageSize?: number;
 }) {
-  let query = '/jobs?populate[company][populate]=*&populate[categories]=*&populate[ogImage]=*&populate[socialImage]=*';
+  let query = '/jobs?populate[company][populate]=*&populate[categories]=*&populate[featureImage]=*&populate[socialImage]=*';
 
   if (filters?.search) {
     query += `&filters[title][$containsi]=${encodeURIComponent(filters.search)}`;
@@ -73,7 +73,7 @@ export async function getJobs(filters?: {
 }
 
 export async function getJob(slug: string) {
-  return fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=*&populate[ogImage]=*&populate[socialImage]=*&populate[curatedBy][populate]=*`);
+  return fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=*&populate[featureImage]=*&populate[socialImage]=*&populate[curatedBy][populate]=*`);
 }
 
 export async function getCompanies() {

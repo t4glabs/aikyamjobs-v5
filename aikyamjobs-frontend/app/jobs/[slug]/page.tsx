@@ -36,7 +36,8 @@ export async function generateMetadata({
   ].filter(Boolean);
 
   const ogImage = getStrapiMediaUrl(
-    job.attributes.ogImage?.data?.attributes?.url ||
+    job.attributes.socialImage?.data?.attributes?.url ||
+    job.attributes.featureImage?.data?.attributes?.url ||
     company?.attributes.featureImage?.data?.attributes?.url
   ) || undefined;
 
