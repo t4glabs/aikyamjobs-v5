@@ -143,9 +143,9 @@ export default async function JobsPage({
                         💰 {job.attributes.salary}
                       </p>
                     )}
-                    {job.attributes.impactArea && (
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        <strong>Impact:</strong> {job.attributes.impactArea}
+                    {job.attributes.excerpt && (
+                      <p className="text-sm text-gray-600">
+                        {job.attributes.excerpt.length > 300 ? job.attributes.excerpt.slice(0, 300) + '…' : job.attributes.excerpt}
                       </p>
                     )}
                   </div>

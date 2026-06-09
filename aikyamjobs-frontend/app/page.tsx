@@ -228,9 +228,9 @@ export default async function Home() {
                             </span>
                           )}
                         </div>
-                        {job.attributes.impactArea && (
-                          <p className="text-sm text-gray-600 font-mono line-clamp-2">
-                            <strong>Impact:</strong> {job.attributes.impactArea}
+                        {job.attributes.excerpt && (
+                          <p className="text-sm text-gray-600">
+                            {job.attributes.excerpt.length > 300 ? job.attributes.excerpt.slice(0, 300) + '…' : job.attributes.excerpt}
                           </p>
                         )}
                       </div>
@@ -309,8 +309,8 @@ export default async function Home() {
                       {blog.attributes.title}
                     </h3>
                     {blog.attributes.excerpt && (
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {blog.attributes.excerpt}
+                      <p className="text-gray-600 text-sm mb-3">
+                        {blog.attributes.excerpt.length > 300 ? blog.attributes.excerpt.slice(0, 300) + '…' : blog.attributes.excerpt}
                       </p>
                     )}
                     <div className="flex items-center justify-between text-sm text-gray-500 pt-3 border-t">

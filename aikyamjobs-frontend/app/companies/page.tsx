@@ -4,34 +4,17 @@ import Link from "next/link";
 import { getCompanies } from "@/lib/api";
 import { Company, StrapiResponse } from "@/lib/types";
 
-// Helper to extract plain text from markdown
-function getPlainTextExcerpt(markdown: string, maxLength: number = 150): string {
-  if (!markdown) return '';
-
-  // Remove markdown images ![alt](url)
-  let text = markdown.replace(/!\[.*?\]\(.*?\)/g, '');
-
-  // Remove markdown links [text](url) but keep text
-  text = text.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-
-  // Remove markdown headers (#, ##, etc)
-  text = text.replace(/^#{1,6}\s+/gm, '');
-
-  // Remove markdown bold/italic (**text**, *text*, __text__, _text_)
-  text = text.replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1');
-
-  // Remove code blocks and inline code
-  text = text.replace(/`{1,3}[^`]+`{1,3}/g, '');
-
-  // Remove extra whitespace and newlines
-  text = text.replace(/\s+/g, ' ').trim();
-
-  // Truncate to max length
-  if (text.length > maxLength) {
-    return text.substring(0, maxLength) + '...';
-  }
-
-  return text;
+function truncate(text: string): string {
+  if (!text) return '';
+  const plain = text
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
+    .replace(/`{1,3}[^`]+`{1,3}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return plain.length > 300 ? plain.slice(0, 300) + '…' : plain;
 }
 
 export default async function CompaniesPage() {
@@ -68,9 +51,9 @@ export default async function CompaniesPage() {
                   {company.attributes.industry}
                 </p>
               )}
-              {company.attributes.description && (
-                <p className="text-gray-700 line-clamp-3">
-                  {getPlainTextExcerpt(company.attributes.description, 150)}
+              {(company.attributes.excerpt || company.attributes.description) && (
+                <p className="text-gray-700">
+                  {truncate(company.attributes.excerpt || company.attributes.description || '')}
                 </p>
               )}
             </Link>

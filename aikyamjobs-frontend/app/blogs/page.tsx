@@ -153,8 +153,8 @@ export default async function BlogsPage({
                       {blog.attributes.title}
                     </h2>
                     {blog.attributes.excerpt && (
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                        {blog.attributes.excerpt}
+                      <p className="text-gray-600 text-sm mb-3">
+                        {blog.attributes.excerpt.length > 300 ? blog.attributes.excerpt.slice(0, 300) + '…' : blog.attributes.excerpt}
                       </p>
                     )}
                     <div className="flex items-center justify-between text-sm text-gray-500">
