@@ -68,7 +68,6 @@ export default async function JobsPage({
               <option value="part-time">Part Time</option>
               <option value="contract">Contract</option>
               <option value="internship">Internship</option>
-              <option value="remote">Remote</option>
             </select>
             <button
               type="submit"

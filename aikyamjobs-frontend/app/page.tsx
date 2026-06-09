@@ -76,7 +76,7 @@ export default async function Home() {
                 All
               </Link>
               <Link
-                href="/jobs?jobType=remote"
+                href="/jobs?location=Remote"
                 className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
               >
                 Remote

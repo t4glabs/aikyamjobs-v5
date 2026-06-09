@@ -6,7 +6,7 @@ export interface Job {
     description: string;
     excerpt?: string;
     location: string;
-    jobType: 'full-time' | 'part-time' | 'contract' | 'internship' | 'remote';
+    jobType: 'full-time' | 'part-time' | 'contract' | 'internship';
     experienceLevel: 'entry' | 'mid' | 'senior' | 'lead';
     salary?: string;
     skills?: string[];
