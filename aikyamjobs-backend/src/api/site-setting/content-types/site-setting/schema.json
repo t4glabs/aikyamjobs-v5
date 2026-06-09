@@ -159,10 +159,10 @@
     "footerCreditsLine": {
       "type": "text"
     },
-    "footerCreditsLinks": {
+    "footerResourceLinks": {
       "type": "json"
     },
-    "footerResourceLinks": {
+    "navLinks": {
       "type": "json"
     }
   }

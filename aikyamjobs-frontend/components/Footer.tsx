@@ -8,7 +8,6 @@ export default async function Footer() {
   const siteName = settings?.siteName || 'Aikyam Jobs';
   const tagline = settings?.footerTagline || 'Connecting talent with public interest technology opportunities.';
   const creditsLine = settings?.footerCreditsLine || '';
-  const creditsLinks: Array<{ label: string; url: string; external?: boolean }> = settings?.footerCreditsLinks || [];
   const resourceLinks: Array<{ label: string; url: string }> = settings?.footerResourceLinks || [
     { label: 'About Us', url: '/about' },
     { label: 'Contact', url: '/contact' },
@@ -56,24 +55,9 @@ export default async function Footer() {
         </div>
 
         {/* Credits line */}
-        {(creditsLine || creditsLinks.length > 0) && (
-          <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-500">
-            {creditsLine && <p className="mb-2">{creditsLine}</p>}
-            {creditsLinks.length > 0 && (
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {creditsLinks.map((link, i) => (
-                  <a
-                    key={i}
-                    href={link.url}
-                    target={link.external ? '_blank' : undefined}
-                    rel={link.external ? 'noopener noreferrer' : undefined}
-                    className="text-gray-500 hover:text-gray-300 transition underline underline-offset-2"
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </div>
-            )}
+        {creditsLine && (
+          <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-500 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition [&_a]:text-gray-500 [&_a:hover]:text-gray-300">
+            <p dangerouslySetInnerHTML={{ __html: creditsLine }} />
           </div>
         )}
       </div>

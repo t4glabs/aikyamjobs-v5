@@ -689,7 +689,6 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
       Attribute.Private;
     favicon: Attribute.Media<'images'>;
     footerCreditsLine: Attribute.Text;
-    footerCreditsLinks: Attribute.JSON;
     footerResourceLinks: Attribute.JSON;
     footerTagline: Attribute.String;
     heroSubtitle: Attribute.Text &
@@ -725,6 +724,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     metaDescription: Attribute.Text;
     metaKeywords: Attribute.Text;
     metaTitle: Attribute.String;
+    navLinks: Attribute.JSON;
     ogDescription: Attribute.Text;
     ogImage: Attribute.Media<'images'>;
     ogTitle: Attribute.String;

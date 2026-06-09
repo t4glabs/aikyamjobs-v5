@@ -144,8 +144,8 @@ export interface SiteSettings {
     favicon?: any;
     footerTagline?: string;
     footerCreditsLine?: string;
-    footerCreditsLinks?: Array<{ label: string; url: string; external?: boolean }>;
     footerResourceLinks?: Array<{ label: string; url: string }>;
+    navLinks?: Array<{ label: string; url: string; external?: boolean }>;
   };
 }
 
