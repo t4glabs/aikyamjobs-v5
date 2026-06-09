@@ -4,7 +4,6 @@ export interface Job {
     title: string;
     slug: string;
     description: string;
-    htmlContent?: string;
     excerpt?: string;
     location: string;
     jobType: 'full-time' | 'part-time' | 'contract' | 'internship' | 'remote';
@@ -14,11 +13,11 @@ export interface Job {
     impactArea?: string;
     applicationUrl?: string;
     applicationEmail?: string;
-    deadline?: string;
     closingDate?: string;
     publishDate?: string;
-    author?: string;
-    curatedBy?: string;
+    curatedBy?: {
+      data: Staff | null;
+    };
     featured: boolean;
     metaTitle?: string;
     metaDescription?: string;
@@ -37,13 +36,24 @@ export interface Job {
   };
 }
 
+export interface Staff {
+  id: number;
+  attributes: {
+    name: string;
+    role?: string;
+    bio?: string;
+    location?: string;
+    profileLink?: string;
+    avatar?: any;
+  };
+}
+
 export interface Company {
   id: number;
   attributes: {
     name: string;
     slug: string;
     description?: string;
-    htmlContent?: string;
     excerpt?: string;
     logo?: any;
     featureImage?: any;

@@ -38,12 +38,6 @@
     "excerpt": {
       "type": "text"
     },
-    "htmlContent": {
-      "type": "text"
-    },
-    "plaintextContent": {
-      "type": "text"
-    },
     "website": {
       "type": "string"
     },

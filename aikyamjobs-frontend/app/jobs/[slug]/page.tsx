@@ -228,11 +228,11 @@ export default async function JobDetailPage({
                   </div>
                 )}
 
-                {(job.attributes.deadline || job.attributes.closingDate) && (
+                {job.attributes.closingDate && (
                   <div>
                     <h4 className="font-mono font-semibold text-gray-900 mb-1">Application Deadline</h4>
                     <p className="text-gray-700">
-                      {new Date((job.attributes.closingDate || job.attributes.deadline)!).toLocaleDateString('en-US', {
+                      {new Date(job.attributes.closingDate).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric'
@@ -259,8 +259,15 @@ export default async function JobDetailPage({
                   <h4 className="font-mono font-semibold text-gray-900 mb-3">About the Company</h4>
                   <Link
                     href={`/companies/${company.attributes.slug}`}
-                    className="block hover:text-blue-600 mb-2"
+                    className="flex items-center gap-3 hover:text-blue-600 mb-2"
                   >
+                    {company.attributes.logo?.data && (
+                      <img
+                        src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
+                        alt={company.attributes.name}
+                        className="w-10 h-10 object-contain rounded border border-gray-100 flex-shrink-0"
+                      />
+                    )}
                     <p className="font-semibold text-gray-900">{company.attributes.name}</p>
                   </Link>
                   {company.attributes.location && (
@@ -281,6 +288,34 @@ export default async function JobDetailPage({
                   )}
                 </div>
               )}
+
+              {/* Curated By */}
+              {job.attributes.curatedBy?.data && (() => {
+                const curator = job.attributes.curatedBy!.data!.attributes;
+                const avatarUrl = getStrapiMediaUrl(curator.avatar?.data?.attributes?.url);
+                return (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-xs text-gray-400 font-mono mb-2">Curated by</p>
+                    <div className="flex items-center gap-2">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={curator.name}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-xs">
+                          {curator.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <p className="text-sm font-semibold text-gray-800">{curator.name}</p>
+                    </div>
+                    {curator.bio && (
+                      <p className="text-xs text-gray-500 mt-2 leading-relaxed">{curator.bio}</p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

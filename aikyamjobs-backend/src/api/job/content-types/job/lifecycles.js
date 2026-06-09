@@ -29,11 +29,11 @@ async function checkAndUnpublishExpiredJobs() {
   today.setHours(0, 0, 0, 0); // Start of today
 
   try {
-    // Find all published jobs with a deadline that has passed
+    // Find all published jobs with a closingDate that has passed
     const expiredJobs = await strapi.db.query('api::job.job').findMany({
       where: {
         publishedAt: { $notNull: true }, // Only published jobs
-        deadline: { $lt: today }, // Deadline is before today
+        closingDate: { $lt: today },
       },
     });
 

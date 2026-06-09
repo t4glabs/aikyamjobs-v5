@@ -53,20 +53,16 @@
     "applicationEmail": {
       "type": "email"
     },
-    "deadline": {
-      "type": "date"
-    },
     "closingDate": {
       "type": "datetime"
     },
     "publishDate": {
       "type": "datetime"
     },
-    "author": {
-      "type": "string"
-    },
     "curatedBy": {
-      "type": "string"
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::staff.staff"
     },
     "featured": {
       "type": "boolean",
@@ -78,12 +74,6 @@
       "allowedTypes": ["images"]
     },
     "excerpt": {
-      "type": "text"
-    },
-    "htmlContent": {
-      "type": "text"
-    },
-    "plaintextContent": {
       "type": "text"
     },
     "metaTitle": {

@@ -460,7 +460,6 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
     excerpt: Attribute.Text;
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featureImage: Attribute.Media<'images'>;
-    htmlContent: Attribute.Text;
     industry: Attribute.String;
     jobs: Attribute.Relation<
       'api::company.company',
@@ -478,7 +477,6 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
         maxLength: 60;
       }>;
     name: Attribute.String & Attribute.Required;
-    plaintextContent: Attribute.Text;
     publishDate: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     size: Attribute.String;
@@ -509,7 +507,6 @@ export interface ApiJobJob extends Schema.CollectionType {
   attributes: {
     applicationEmail: Attribute.Email;
     applicationUrl: Attribute.String;
-    author: Attribute.String;
     categories: Attribute.Relation<
       'api::job.job',
       'manyToMany',
@@ -524,15 +521,17 @@ export interface ApiJobJob extends Schema.CollectionType {
     createdAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::job.job', 'oneToOne', 'admin::user'> &
       Attribute.Private;
-    curatedBy: Attribute.String;
-    deadline: Attribute.Date;
+    curatedBy: Attribute.Relation<
+      'api::job.job',
+      'manyToOne',
+      'api::staff.staff'
+    >;
     description: Attribute.RichText & Attribute.Required;
     excerpt: Attribute.Text;
     experienceLevel: Attribute.Enumeration<['entry', 'mid', 'senior', 'lead']> &
       Attribute.DefaultTo<'mid'>;
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featureImage: Attribute.Media<'images'>;
-    htmlContent: Attribute.Text;
     impactArea: Attribute.String;
     jobType: Attribute.Enumeration<
       ['full-time', 'part-time', 'contract', 'internship', 'remote']
@@ -548,7 +547,6 @@ export interface ApiJobJob extends Schema.CollectionType {
       Attribute.SetMinMaxLength<{
         maxLength: 60;
       }>;
-    plaintextContent: Attribute.Text;
     publishDate: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     salary: Attribute.String;
@@ -658,6 +656,41 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     updatedAt: Attribute.DateTime;
     updatedBy: Attribute.Relation<
       'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiStaffStaff extends Schema.CollectionType {
+  collectionName: 'staffs';
+  info: {
+    description: 'Team members who curate job listings';
+    displayName: 'Staff';
+    pluralName: 'staffs';
+    singularName: 'staff';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    avatar: Attribute.Media<'images'>;
+    bio: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::staff.staff',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    location: Attribute.String;
+    name: Attribute.String & Attribute.Required;
+    profileLink: Attribute.String;
+    role: Attribute.String;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::staff.staff',
       'oneToOne',
       'admin::user'
     > &
@@ -1141,6 +1174,7 @@ declare module '@strapi/types' {
       'api::company.company': ApiCompanyCompany;
       'api::job.job': ApiJobJob;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
+      'api::staff.staff': ApiStaffStaff;
       'api::subscriber.subscriber': ApiSubscriberSubscriber;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

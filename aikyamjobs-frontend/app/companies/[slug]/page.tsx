@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
-import { getCompany } from "@/lib/api";
+import { getCompany, getStrapiMediaUrl } from "@/lib/api";
 import { Company, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import Markdown from "@/components/Markdown";
@@ -33,9 +33,18 @@ export default async function CompanyDetailPage({
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              {company.attributes.name}
-            </h1>
+            <div className="flex items-center gap-4 mb-4">
+              {company.attributes.logo?.data && (
+                <img
+                  src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
+                  alt={company.attributes.name}
+                  className="w-16 h-16 object-contain rounded border border-gray-100 flex-shrink-0"
+                />
+              )}
+              <h1 className="text-4xl font-bold text-gray-900">
+                {company.attributes.name}
+              </h1>
+            </div>
 
             <div className="flex flex-wrap gap-4 mb-6">
               {company.attributes.location && (
