@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 
-const DEFAULT_NAV_LINKS = [
+const DEFAULT_NAV_LINKS: Array<{ label: string; url: string; external?: boolean }> = [
   { label: 'Home', url: '/' },
   { label: 'Jobs', url: '/jobs' },
   { label: 'Companies', url: '/companies' },
