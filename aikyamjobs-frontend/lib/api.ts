@@ -76,8 +76,8 @@ export async function getJob(slug: string) {
   return fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=*&populate[featureImage]=*&populate[socialImage]=*&populate[curatedBy][populate]=*`);
 }
 
-export async function getCompanies() {
-  return fetchAPI('/companies?populate=*&sort=name:asc');
+export async function getCompanies(page = 1, pageSize = 24) {
+  return fetchAPI(`/companies?populate[logo]=*&sort=name:asc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`);
 }
 
 export async function getCompany(slug: string) {
