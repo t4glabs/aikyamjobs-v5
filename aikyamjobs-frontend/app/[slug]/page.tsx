@@ -55,19 +55,22 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   } catch {}
 
   // 2. Legacy Ghost URL redirect — remove after old URLs are out of Google's index
-  try {
-    const job = await getJob(slug);
-    if (job.data && job.data.length > 0) {
-      permanentRedirect(`/jobs/${slug}`);
-    }
-  } catch {}
+  // NOTE: permanentRedirect() throws internally, so it must be called OUTSIDE try/catch
+  let redirectTo: string | null = null;
 
   try {
-    const company = await getCompany(slug);
-    if (company?.data && company.data.length > 0) {
-      permanentRedirect(`/companies/${slug}`);
-    }
+    const job = await getJob(slug);
+    if (job.data && job.data.length > 0) redirectTo = `/jobs/${slug}`;
   } catch {}
+
+  if (!redirectTo) {
+    try {
+      const company = await getCompany(slug);
+      if (company?.data && company.data.length > 0) redirectTo = `/companies/${slug}`;
+    } catch {}
+  }
+
+  if (redirectTo) permanentRedirect(redirectTo);
 
   notFound();
 }
