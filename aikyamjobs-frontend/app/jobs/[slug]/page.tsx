@@ -257,11 +257,8 @@ export default async function JobDetailPage({
               {/* Company Info */}
               {company && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-mono font-semibold text-gray-900 mb-3">About the Company</h4>
-                  <Link
-                    href={`/companies/${company.attributes.slug}`}
-                    className="flex items-center gap-3 hover:text-brand mb-2"
-                  >
+                  <h4 className="font-mono font-semibold text-gray-900 mb-3 text-sm">About the Company</h4>
+                  <div className="flex items-center gap-3 mb-2">
                     {company.attributes.logo?.data && (
                       <img
                         src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
@@ -270,23 +267,19 @@ export default async function JobDetailPage({
                       />
                     )}
                     <p className="font-semibold text-gray-900">{company.attributes.name}</p>
-                  </Link>
+                  </div>
                   {company.attributes.location && (
                     <p className="text-sm text-gray-600 mb-2">📍 {company.attributes.location}</p>
                   )}
                   {company.attributes.industry && (
                     <p className="text-sm text-gray-600 mb-3">{company.attributes.industry}</p>
                   )}
-                  {company.attributes.website && (
-                    <a
-                      href={company.attributes.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-brand text-sm font-mono"
-                    >
-                      Visit Website →
-                    </a>
-                  )}
+                  <Link
+                    href={`/companies/${company.attributes.slug}`}
+                    className="link-brand text-sm font-mono"
+                  >
+                    Read More →
+                  </Link>
                 </div>
               )}
 
