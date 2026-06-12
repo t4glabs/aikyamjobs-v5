@@ -5,21 +5,7 @@ import { getJobs, getCategories, getBlogs, getSiteSettings, getStrapiMediaUrl } 
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
 
 export default async function Home() {
-  const [jobsResponse, categoriesResponse, blogsResponse, settingsResponse]: [
-    StrapiResponse<Job[]>,
-    StrapiResponse<Category[]>,
-    StrapiResponse<Blog[]> | null,
-    { data: SiteSettings } | null
-  ] = await Promise.all([
-    getJobs({ pageSize: 12 }),
-    getCategories(),
-    getBlogs({ pageSize: 6 }).catch(() => null),
-    getSiteSettings().catch(() => null),
-  ]);
-
-  const jobs = jobsResponse.data;
-  const allCategories = categoriesResponse.data;
-  const blogs = blogsResponse?.data || [];
+  const settingsResponse: { data: SiteSettings } | null = await getSiteSettings().catch(() => null);
 
   // Default settings if not configured in Strapi
   const settings = settingsResponse?.data?.attributes || {
@@ -37,6 +23,20 @@ export default async function Home() {
     homepageBlogsLimit: 6,
     homepageTagsLimit: 10,
   };
+
+  const [jobsResponse, categoriesResponse, blogsResponse]: [
+    StrapiResponse<Job[]>,
+    StrapiResponse<Category[]>,
+    StrapiResponse<Blog[]> | null
+  ] = await Promise.all([
+    getJobs({ pageSize: settings.homepageJobsLimit }),
+    getCategories(),
+    getBlogs({ pageSize: settings.homepageBlogsLimit }).catch(() => null),
+  ]);
+
+  const jobs = jobsResponse.data;
+  const allCategories = categoriesResponse.data;
+  const blogs = blogsResponse?.data || [];
 
   // Get top N categories by counting jobs in each
   const categoriesWithJobCount = allCategories.map(category => ({
