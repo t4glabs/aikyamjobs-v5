@@ -88,11 +88,15 @@ export default async function JobsPage({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {jobs.map((job) => (
-                <Link
+                <div
                   key={job.id}
-                  href={`/jobs/${job.attributes.slug}`}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition flex flex-col"
+                  className="relative bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition flex flex-col"
                 >
+                  <Link
+                    href={`/jobs/${job.attributes.slug}`}
+                    className="absolute inset-0 rounded-lg z-0"
+                    aria-label={job.attributes.title}
+                  />
                   <div className="flex-1">
                     <div className="flex items-start gap-2 mb-2">
                       <h2 className="text-xl font-bold text-gray-900 flex-1">
@@ -119,13 +123,19 @@ export default async function JobsPage({
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      <Link
+                        href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
+                        className="relative z-10 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full hover:bg-blue-200 transition"
+                      >
                         {job.attributes.jobType}
-                      </span>
+                      </Link>
                       {job.attributes.location && (
-                        <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                        <Link
+                          href={`/jobs?location=${encodeURIComponent(job.attributes.location)}`}
+                          className="relative z-10 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full hover:bg-gray-200 transition"
+                        >
                           📍 {job.attributes.location}
-                        </span>
+                        </Link>
                       )}
                       {job.attributes.experienceLevel && (
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -161,7 +171,7 @@ export default async function JobsPage({
                       )}
                     </div>
                   )}
-                </Link>
+                </div>
               ))}
             </div>
 

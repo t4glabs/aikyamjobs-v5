@@ -184,11 +184,15 @@ export default async function Home() {
             ) : (
               <div className={`grid ${settings.jobsLayoutType === 'grid' ? `grid-cols-1 md:grid-cols-2 lg:grid-cols-${settings.jobsGridColumns}` : 'grid-cols-1'} gap-6`}>
                 {jobs.slice(0, settings.homepageJobsLimit).map((job) => (
-                  <Link
+                  <div
                     key={job.id}
-                    href={`/jobs/${job.attributes.slug}`}
-                    className="block bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition"
+                    className="relative block bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition"
                   >
+                    <Link
+                      href={`/jobs/${job.attributes.slug}`}
+                      className="absolute inset-0 rounded-lg z-0"
+                      aria-label={job.attributes.title}
+                    />
                     <div className="flex flex-col h-full">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -209,13 +213,19 @@ export default async function Home() {
                           </div>
                         )}
                         <div className="flex flex-wrap gap-2 mb-3">
-                          <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-mono text-xs">
+                          <Link
+                            href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
+                            className="relative z-10 px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-mono text-xs hover:bg-blue-100 transition"
+                          >
                             {job.attributes.jobType}
-                          </span>
+                          </Link>
                           {job.attributes.location && (
-                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-mono text-xs">
+                            <Link
+                              href={`/jobs?location=${encodeURIComponent(job.attributes.location)}`}
+                              className="relative z-10 px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-mono text-xs hover:bg-gray-200 transition"
+                            >
                               📍 {job.attributes.location}
-                            </span>
+                            </Link>
                           )}
                           {job.attributes.experienceLevel && (
                             <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full font-mono text-xs">
@@ -237,12 +247,13 @@ export default async function Home() {
                       <div className="mt-3 pt-3 border-t">
                         <div className="flex flex-wrap gap-1 mb-2">
                           {job.attributes.categories?.data?.slice(0, 3).map((category) => (
-                            <span
+                            <Link
                               key={category.id}
-                              className="px-2 py-1 bg-gray-50 text-gray-600 rounded font-mono text-xs"
+                              href={`/jobs?category=${encodeURIComponent(category.attributes.slug)}`}
+                              className="relative z-10 px-2 py-1 bg-gray-50 text-gray-600 rounded font-mono text-xs hover:bg-gray-100 transition"
                             >
                               {category.attributes.name}
-                            </span>
+                            </Link>
                           ))}
                         </div>
                         {job.attributes.closingDate && (
@@ -255,7 +266,7 @@ export default async function Home() {
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
