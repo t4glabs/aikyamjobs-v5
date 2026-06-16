@@ -12,6 +12,11 @@ export default async function Footer() {
     { label: 'About Us', url: '/about' },
     { label: 'Contact', url: '/contact' },
   ];
+  const seekerLinks: Array<{ label: string; url: string }> = settings?.footerSeekerLinks || [
+    { label: 'Browse Jobs', url: '/jobs' },
+    { label: 'Browse Companies', url: '/companies' },
+    { label: 'Get Job Alerts', url: '/subscribe' },
+  ];
 
   return (
     <footer className="bg-gray-900 text-white mt-auto">
@@ -27,9 +32,11 @@ export default async function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-3 text-gray-300">For Job Seekers</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/jobs" className="hover:text-white transition">Browse Jobs</Link></li>
-              <li><Link href="/companies" className="hover:text-white transition">Browse Companies</Link></li>
-              <li><Link href="/subscribe" className="hover:text-white transition">Get Job Alerts</Link></li>
+              {seekerLinks.map((link, i) => (
+                <li key={i}>
+                  <Link href={link.url} className="hover:text-white transition">{link.label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 

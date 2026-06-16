@@ -56,11 +56,7 @@ export default function SubscribePage() {
 
             <p className="text-sm text-gray-500 mt-4">
               By subscribing, you agree to receive job alerts and updates from aikyam jobs.
-              You can{" "}
-              <Link href="/unsubscribe" className="link-brand">
-                unsubscribe
-              </Link>
-              {" "}at any time.
+              You can unsubscribe from any email.
             </p>
           </div>
         </div>

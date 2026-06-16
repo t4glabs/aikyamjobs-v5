@@ -145,6 +145,7 @@ export interface SiteSettings {
     footerTagline?: string;
     footerCreditsLine?: string;
     footerResourceLinks?: Array<{ label: string; url: string }>;
+    footerSeekerLinks?: Array<{ label: string; url: string }>;
     navLinks?: Array<{ label: string; url: string; external?: boolean }>;
   };
 }

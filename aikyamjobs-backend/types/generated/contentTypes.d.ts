@@ -690,6 +690,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     favicon: Attribute.Media<'images'>;
     footerCreditsLine: Attribute.Text;
     footerResourceLinks: Attribute.JSON;
+    footerSeekerLinks: Attribute.JSON;
     footerTagline: Attribute.String;
     heroSubtitle: Attribute.Text &
       Attribute.DefaultTo<'Browse opportunities to solve pressing problems with your tech and design skills'>;
