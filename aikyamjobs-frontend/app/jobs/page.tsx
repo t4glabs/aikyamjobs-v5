@@ -157,12 +157,13 @@ export default async function JobsPage({
                   {job.attributes.skills && job.attributes.skills.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t">
                       {job.attributes.skills.slice(0, 4).map((skill, index) => (
-                        <span
+                        <Link
                           key={index}
-                          className="text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded"
+                          href={`/jobs?search=${encodeURIComponent(skill)}`}
+                          className="relative z-10 text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition"
                         >
                           {skill}
-                        </span>
+                        </Link>
                       ))}
                       {job.attributes.skills.length > 4 && (
                         <span className="text-xs text-gray-500 px-2 py-1">
