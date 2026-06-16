@@ -43,7 +43,7 @@ export default async function BlogsPage({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-900">Blog & Resources</h1>
           <p className="text-gray-600 mt-2">
@@ -53,7 +53,7 @@ export default async function BlogsPage({
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-6">
           <form method="get" className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input

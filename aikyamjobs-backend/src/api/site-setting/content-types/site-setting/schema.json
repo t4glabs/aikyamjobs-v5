@@ -63,7 +63,7 @@
     },
     "blogsLayoutType": {
       "type": "enumeration",
-      "enum": ["grid", "list"],
+      "enum": ["grid", "list", "line"],
       "default": "grid"
     },
     "blogsGridColumns": {

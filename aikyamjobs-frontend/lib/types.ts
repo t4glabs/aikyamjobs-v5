@@ -120,7 +120,7 @@ export interface SiteSettings {
     companiesLayoutType: 'grid' | 'list';
     companiesGridColumns: number;
     blogsSectionTitle: string;
-    blogsLayoutType: 'grid' | 'list';
+    blogsLayoutType: 'grid' | 'list' | 'line';
     blogsGridColumns: number;
     showJobsOnHomepage: boolean;
     showCompaniesOnHomepage: boolean;

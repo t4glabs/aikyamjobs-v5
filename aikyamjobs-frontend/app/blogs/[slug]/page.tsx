@@ -92,7 +92,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
             </p>
           )}
 
-          <div className="flex items-center justify-between border-t pt-4 text-gray-600">
+          <div className="flex items-center justify-between border-t border-gray-100 pt-4 text-gray-600">
             <div>
               {blog.attributes.author && (
                 <p className="font-medium text-gray-900">

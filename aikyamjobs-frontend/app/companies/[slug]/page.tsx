@@ -22,7 +22,7 @@ export default async function CompanyDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-4">
           <Link href="/companies" className="link-brand font-medium">
             ← Back to all companies

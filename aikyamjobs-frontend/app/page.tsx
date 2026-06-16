@@ -55,7 +55,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-white border-b py-16">
+      <section className="bg-white border-b border-gray-100 py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">
@@ -139,7 +139,7 @@ export default async function Home() {
 
       {/* Categories */}
       {categories.length > 0 && (
-        <section className="py-12 bg-white border-b">
+        <section className="py-12 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Browse by Tag
@@ -244,7 +244,7 @@ export default async function Home() {
                           </p>
                         )}
                       </div>
-                      <div className="mt-3 pt-3 border-t">
+                      <div className="mt-3 pt-3 border-t border-gray-100">
                         <div className="flex flex-wrap gap-1 mb-2">
                           {job.attributes.categories?.data?.slice(0, 3).map((category) => (
                             <Link
@@ -276,7 +276,7 @@ export default async function Home() {
 
       {/* Blog Section */}
       {settings.showBlogsOnHomepage && blogs.length > 0 && (
-        <section className="py-12 bg-white border-t">
+        <section className="py-12 bg-white border-t border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -290,55 +290,73 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className={`grid ${settings.blogsLayoutType === 'grid' ? `grid-cols-1 md:grid-cols-2 lg:grid-cols-${settings.blogsGridColumns}` : 'grid-cols-1'} gap-6`}>
-              {blogs.slice(0, settings.homepageBlogsLimit).map((blog) => (
-                <Link
-                  key={blog.id}
-                  href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
-                  target={blog.attributes.externalLink ? "_blank" : undefined}
-                  className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition group"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      {blog.attributes.category && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                          {blog.attributes.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                        </span>
-                      )}
-                      {blog.attributes.featured && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                          Featured
-                        </span>
-                      )}
-                      {blog.attributes.readTime && (
-                        <span className="text-xs text-gray-500">
-                          {blog.attributes.readTime} min
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand transition line-clamp-2">
+            {settings.blogsLayoutType === 'line' ? (
+              <div className="max-w-2xl mx-auto divide-y divide-gray-100">
+                {blogs.slice(0, settings.homepageBlogsLimit).map((blog) => (
+                  <Link
+                    key={blog.id}
+                    href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
+                    target={blog.attributes.externalLink ? "_blank" : undefined}
+                    className="flex items-center justify-between py-4 group"
+                  >
+                    <span className="text-gray-900 group-hover:underline pr-4">
                       {blog.attributes.title}
-                    </h3>
-                    {blog.attributes.excerpt && (
-                      <p className="text-gray-600 text-sm mb-3">
-                        {blog.attributes.excerpt.length > 300 ? blog.attributes.excerpt.slice(0, 300) + '…' : blog.attributes.excerpt}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-sm text-gray-500 pt-3 border-t">
-                      {blog.attributes.author && (
-                        <span className="font-medium">{blog.attributes.author}</span>
+                    </span>
+                    <span className="text-gray-400 group-hover:text-gray-700 flex-shrink-0 transition">→</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className={`grid ${settings.blogsLayoutType === 'grid' ? `grid-cols-1 md:grid-cols-2 lg:grid-cols-${settings.blogsGridColumns}` : 'grid-cols-1'} gap-6`}>
+                {blogs.slice(0, settings.homepageBlogsLimit).map((blog) => (
+                  <Link
+                    key={blog.id}
+                    href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
+                    target={blog.attributes.externalLink ? "_blank" : undefined}
+                    className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition group"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        {blog.attributes.category && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            {blog.attributes.category.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          </span>
+                        )}
+                        {blog.attributes.featured && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            Featured
+                          </span>
+                        )}
+                        {blog.attributes.readTime && (
+                          <span className="text-xs text-gray-500">
+                            {blog.attributes.readTime} min
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand transition line-clamp-2">
+                        {blog.attributes.title}
+                      </h3>
+                      {blog.attributes.excerpt && (
+                        <p className="text-gray-600 text-sm mb-3">
+                          {blog.attributes.excerpt.length > 300 ? blog.attributes.excerpt.slice(0, 300) + '…' : blog.attributes.excerpt}
+                        </p>
                       )}
-                      <span>
-                        {new Date(blog.attributes.publishDate || blog.attributes.publishedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
+                      <div className="flex items-center justify-between text-sm text-gray-500 pt-3 border-t border-gray-100">
+                        {blog.attributes.author && (
+                          <span className="font-medium">{blog.attributes.author}</span>
+                        )}
+                        <span>
+                          {new Date(blog.attributes.publishDate || blog.attributes.publishedAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

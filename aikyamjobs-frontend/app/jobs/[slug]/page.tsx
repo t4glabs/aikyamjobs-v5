@@ -73,7 +73,7 @@ export default async function JobDetailPage({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back Button */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-4">
           <Link href="/jobs" className="link-brand font-mono text-sm font-medium">
             ← Back to all jobs
@@ -268,8 +268,12 @@ export default async function JobDetailPage({
                     )}
                     <p className="font-semibold text-gray-900">{company.attributes.name}</p>
                   </div>
-                  {company.attributes.location && (
-                    <p className="text-sm text-gray-600 mb-2">📍 {company.attributes.location}</p>
+                  {company.attributes.excerpt && (
+                    <p className="text-sm text-gray-600 mb-3">
+                      {company.attributes.excerpt.length > 150
+                        ? company.attributes.excerpt.slice(0, 150) + '…'
+                        : company.attributes.excerpt}
+                    </p>
                   )}
                   {company.attributes.industry && (
                     <p className="text-sm text-gray-600 mb-3">{company.attributes.industry}</p>

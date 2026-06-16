@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function SubscribePage() {
+export default function UnsubscribePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-100">
@@ -15,11 +15,12 @@ export default function SubscribePage() {
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-lg border border-gray-200 p-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Subscribe for Job Alerts
+              Unsubscribe
             </h1>
             <p className="text-gray-600 mb-6">
-              Join a community discovering meaningful careers in social impact.
+              Enter your email address to unsubscribe from aikyam jobs alerts.
             </p>
+
             <form
               method="post"
               action="https://mails.tinybridge.org/subscription/form"
@@ -31,6 +32,7 @@ export default function SubscribePage() {
                 name="l"
                 value="4ab2985e-c34e-41c3-9370-7024f8b27bae"
               />
+              <input type="hidden" name="unsubscribe" value="true" />
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -48,19 +50,18 @@ export default function SubscribePage() {
 
               <button
                 type="submit"
-                className="btn-brand w-full px-6 py-3 rounded-lg font-mono text-sm font-semibold"
+                className="w-full px-6 py-3 rounded-lg font-mono text-sm font-semibold bg-gray-800 text-white hover:bg-gray-900 transition"
               >
-                Subscribe
+                Unsubscribe
               </button>
             </form>
 
             <p className="text-sm text-gray-500 mt-4">
-              By subscribing, you agree to receive job alerts and updates from aikyam jobs.
-              You can{" "}
-              <Link href="/unsubscribe" className="link-brand">
-                unsubscribe
+              Changed your mind?{" "}
+              <Link href="/subscribe" className="link-brand">
+                Subscribe again
               </Link>
-              {" "}at any time.
+              .
             </p>
           </div>
         </div>

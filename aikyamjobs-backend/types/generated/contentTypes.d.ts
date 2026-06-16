@@ -662,7 +662,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
         number
       > &
       Attribute.DefaultTo<3>;
-    blogsLayoutType: Attribute.Enumeration<['grid', 'list']> &
+    blogsLayoutType: Attribute.Enumeration<['grid', 'list', 'line']> &
       Attribute.DefaultTo<'grid'>;
     blogsSectionTitle: Attribute.String &
       Attribute.DefaultTo<'Latest from our Blog'>;

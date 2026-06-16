@@ -77,7 +77,7 @@ export default async function TagPage({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
             <Link href="/" className="hover:text-brand">
@@ -173,7 +173,7 @@ export default async function TagPage({
                   )}
                 </div>
                 {job.attributes.skills && job.attributes.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t">
+                  <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100">
                     {job.attributes.skills.slice(0, 4).map((skill, index) => (
                       <span
                         key={index}

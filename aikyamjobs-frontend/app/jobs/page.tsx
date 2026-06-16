@@ -155,7 +155,7 @@ export default async function JobsPage({
                     )}
                   </div>
                   {job.attributes.skills && job.attributes.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t">
+                    <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100">
                       {job.attributes.skills.slice(0, 4).map((skill, index) => (
                         <Link
                           key={index}
