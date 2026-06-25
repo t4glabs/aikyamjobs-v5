@@ -13,13 +13,15 @@ module.exports = {
     today.setHours(0, 0, 0, 0);
 
     try {
-      // Look up the expired-job internal tag once
+      // Look up the expired-job internal tag by exact name
       const expiredTag = await strapi.db.query('api::internal-tag.internal-tag').findOne({
         where: { name: 'expired-job' },
       });
 
       if (!expiredTag) {
-        strapi.log.warn('expired-job internal tag not found — jobs will be unpublished but not tagged. Create it in Settings → Internal Tags.');
+        strapi.log.warn('expired-job internal tag not found — jobs will be unpublished but not tagged.');
+      } else {
+        strapi.log.info(`Found internal tag: "${expiredTag.name}" (ID: ${expiredTag.id})`);
       }
 
       // Find all published jobs with a closingDate in the past
@@ -39,19 +41,25 @@ module.exports = {
 
       for (const job of expiredJobs) {
         try {
+          // Step 1: add the expired-job tag (done while still published to avoid lifecycle conflicts)
+          if (expiredTag) {
+            await strapi.db.query('api::job.job').update({
+              where: { id: job.id },
+              data: {
+                internalTags: { connect: [expiredTag.id] },
+              },
+            });
+          }
+
+          // Step 2: unpublish (set to draft)
           await strapi.entityService.update('api::job.job', job.id, {
-            data: {
-              publishedAt: null,
-              ...(expiredTag && {
-                internalTags: { connect: [{ id: expiredTag.id }] },
-              }),
-            },
+            data: { publishedAt: null },
           });
 
-          strapi.log.info(`Auto-unpublished expired job: ${job.title} (ID: ${job.id})`);
+          strapi.log.info(`Auto-unpublished expired job: ${job.title} (ID: ${job.id})${expiredTag ? ' + tagged expired-job' : ''}`);
           unpublished++;
         } catch (jobError) {
-          strapi.log.error(`Failed to unpublish job ID ${job.id}: ${jobError.message}`);
+          strapi.log.error(`Failed to process job ID ${job.id}: ${jobError.message}`);
         }
       }
 
