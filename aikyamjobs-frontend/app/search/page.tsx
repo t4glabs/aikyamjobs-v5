@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 // Set NEXT_PUBLIC_MEILISEARCH_URL and NEXT_PUBLIC_MEILISEARCH_KEY in .env.local
@@ -170,10 +170,8 @@ function ResultCard({ hit }: { hit: SearchHit }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
-export default function SearchPage() {
+function SearchPageInner() {
   const searchParams = useSearchParams();
-  const router       = useRouter();
-
   const [query,   setQuery]   = useState(searchParams.get('q') || '');
   const [filter,  setFilter]  = useState<FilterType>('all');
   const [hits,    setHits]    = useState<SearchHit[]>([]);
@@ -349,5 +347,13 @@ export default function SearchPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchPageInner />
+    </Suspense>
   );
 }
