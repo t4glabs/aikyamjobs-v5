@@ -1,0 +1,8 @@
+{
+  "name": "aikyamjobs-scripts",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "meilisearch": "^0.44.0"
+  }
+}
