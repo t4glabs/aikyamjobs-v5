@@ -134,7 +134,16 @@ export async function getBlog(slug: string) {
 }
 
 export async function getSiteSettings() {
-  return fetchAPI('/site-setting?populate=*');
+  // Cached for 1 hour so dynamic routes (like /search) reuse build-time data
+  // instead of re-fetching Strapi on every request and potentially falling back
+  // to DEFAULT_NAV_LINKS if Strapi is momentarily slow.
+  const url = `${INTERNAL_URL}/api/site-setting?populate=*`;
+  const response = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    next: { revalidate: 3600 },
+  });
+  if (!response.ok) throw new Error(`API call failed: ${response.statusText}`);
+  return response.json();
 }
 
 export async function getPage(slug: string) {

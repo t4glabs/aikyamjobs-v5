@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import HomeSearch from "@/components/HomeSearch";
 import { getJobs, getCategories, getBlogs, getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
 
@@ -108,22 +109,7 @@ export default async function Home() {
             </div>
 
             {/* Search Bar */}
-            <form action="/jobs" method="get" className="mb-6">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="search"
-                  placeholder="Search by skill, location, or impact area"
-                  className="flex-1 px-5 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
-                />
-                <button
-                  type="submit"
-                  className="btn-brand px-8 py-3 rounded-lg font-mono text-sm font-semibold"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
+            <HomeSearch />
 
             <div className="text-center">
               <Link
