@@ -30,7 +30,7 @@
     },
     "jobType": {
       "type": "enumeration",
-      "enum": ["full-time", "part-time", "contract", "internship"],
+      "enum": ["full-time", "part-time", "contract", "internship", "fellowship"],
       "default": "full-time"
     },
     "experienceLevel": {
