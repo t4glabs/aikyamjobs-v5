@@ -181,7 +181,7 @@ export default function SearchPage() {
   const [timing,  setTiming]  = useState(0);
   const [status,  setStatus]  = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const inputRef    = useRef<HTMLInputElement>(null);
 
   const runSearch = useCallback(async (q: string, f: FilterType) => {
