@@ -1,0 +1,11 @@
+{
+  "name": "follow-ups",
+  "version": "1.0.0",
+  "description": "Admin-only API backing the Follow-ups queue page (draft jobs due for an org check-in).",
+  "strapi": {
+    "kind": "plugin",
+    "name": "follow-ups",
+    "displayName": "Follow-ups"
+  },
+  "main": "strapi-server.js"
+}

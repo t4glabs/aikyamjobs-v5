@@ -108,6 +108,14 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::internal-tag.internal-tag"
+    },
+    "unpublishedAt": {
+      "type": "datetime",
+      "private": true
+    },
+    "lastFollowUpAt": {
+      "type": "datetime",
+      "private": true
     }
   }
 }

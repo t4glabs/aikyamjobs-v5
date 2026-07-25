@@ -167,6 +167,11 @@
     },
     "navLinks": {
       "type": "json"
+    },
+    "followUpThresholdDays": {
+      "type": "integer",
+      "default": 30,
+      "min": 1
     }
   }
 }

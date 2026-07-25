@@ -13,6 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@strapi/design-system": "^1.19.0",
+    "@strapi/helper-plugin": "^4.25.23",
+    "@strapi/icons": "^1.19.0",
     "@strapi/plugin-i18n": "^4.25.14",
     "@strapi/plugin-users-permissions": "^4.25.14",
     "@strapi/strapi": "^4.25.14",

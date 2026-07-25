@@ -1,4 +1,8 @@
 module.exports = ({ env }) => ({
+  'follow-ups': {
+    enabled: true,
+    resolve: './src/plugins/follow-ups',
+  },
   upload: {
     config: {
       provider: 'local',
