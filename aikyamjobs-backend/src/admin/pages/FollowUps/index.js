@@ -34,7 +34,7 @@ const FollowUps = () => {
   const fetchQueue = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data } = await get('/follow-ups/queue');
+      const { data } = await get('/admin/follow-ups/queue');
       setThresholdDays(data.thresholdDays);
       setQueue(data.queue);
     } catch (error) {
@@ -54,7 +54,7 @@ const FollowUps = () => {
   const handleMarkFollowedUp = async (id) => {
     setMarkingId(id);
     try {
-      await post(`/follow-ups/queue/${id}/mark-followed-up`);
+      await post(`/admin/follow-ups/queue/${id}/mark-followed-up`);
       setQueue((current) => current.filter((job) => job.id !== id));
       toggleNotification({
         type: 'success',
