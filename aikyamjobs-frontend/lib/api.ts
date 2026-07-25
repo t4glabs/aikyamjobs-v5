@@ -85,7 +85,27 @@ export async function getCompany(slug: string) {
 }
 
 export async function getCategories() {
-  return fetchAPI('/categories?pagination[pageSize]=200&sort=name:asc');
+  const pageSize = 200;
+  const firstPage = await fetchAPI(`/categories?pagination[pageSize]=${pageSize}&pagination[page]=1&sort=name:asc`);
+  const pageCount = firstPage.meta?.pagination?.pageCount || 1;
+
+  if (pageCount <= 1) {
+    return firstPage;
+  }
+
+  // Categories are created per-org and now exceed a single page — fetch the rest
+  // so tags past the first `pageSize` alphabetically don't silently disappear
+  // (this caused /tag/[slug] 404s for categories like "swasti").
+  const remainingPages = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, i) =>
+      fetchAPI(`/categories?pagination[pageSize]=${pageSize}&pagination[page]=${i + 2}&sort=name:asc`)
+    )
+  );
+
+  return {
+    ...firstPage,
+    data: [firstPage.data, ...remainingPages.map((page) => page.data)].flat(),
+  };
 }
 
 export async function subscribeEmail(data: {
