@@ -24,7 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings?.metaDescription || settings?.siteDescription || "Find your dream job in public interest technology. Discover opportunities to make an impact with your tech and design skills.";
 
   const ogImageUrl = getStrapiMediaUrl(settings?.ogImage?.data?.attributes?.url) || undefined;
-  const faviconUrl = getStrapiMediaUrl(settings?.favicon?.data?.attributes?.url) || undefined;
+  const faviconBaseUrl = getStrapiMediaUrl(settings?.favicon?.data?.attributes?.url) || undefined;
+  // Cache-bust with the media's updatedAt — Firefox/Safari cache favicons
+  // aggressively per-origin and otherwise won't pick up a re-uploaded file.
+  const faviconVersion = settings?.favicon?.data?.attributes?.updatedAt;
+  const faviconUrl = faviconBaseUrl && faviconVersion
+    ? `${faviconBaseUrl}?v=${encodeURIComponent(faviconVersion)}`
+    : faviconBaseUrl;
 
   return {
     title,
