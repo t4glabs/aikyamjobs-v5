@@ -19,6 +19,16 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
+// Deep-link payload from a channel post's subscribe button, e.g. "cats-12-45"
+function parseCategoryPayload(payload) {
+  if (!payload.startsWith('cats-')) return [];
+  return payload
+    .slice(5)
+    .split('-')
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n > 0);
+}
+
 async function findOrCreateSubscriber(chatId, from) {
   const existing = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findOne({
     where: { chatId },
@@ -46,9 +56,10 @@ async function findOrCreateSubscriber(chatId, from) {
   return { ...created, categories: [] };
 }
 
-async function buildCategoryKeyboard(chatId) {
+async function buildCategoryKeyboard(chatId, restrictToIds) {
   const categories = await strapi.db.query('api::category.category').findMany({
     select: ['id', 'name'],
+    ...(restrictToIds?.length ? { where: { id: { $in: restrictToIds } } } : {}),
     orderBy: { name: 'asc' },
   });
 
@@ -88,10 +99,20 @@ function registerHandlers(botInstance, strapiInstance) {
   botInstance.command('start', async (ctx) => {
     const chatId = String(ctx.chat.id);
     await findOrCreateSubscriber(chatId, ctx.from);
-    const keyboard = await buildCategoryKeyboard(chatId);
+
+    const categoryIds = parseCategoryPayload(ctx.match || '');
+    if (categoryIds.length > 0) {
+      const keyboard = await buildCategoryKeyboard(chatId, categoryIds);
+      await ctx.reply('Want alerts for jobs like this one? Tap a category to subscribe:', {
+        reply_markup: keyboard,
+      });
+      return;
+    }
+
     await ctx.reply(
-      "Welcome to aikyamjobs job alerts! 👋\n\nTap the categories you'd like alerts for — tap again to unsubscribe. You can revisit this anytime with /subscriptions.",
-      { reply_markup: keyboard }
+      '👋 Welcome to aikyamjobs Job Alerts!\n\n' +
+        'Head over to the channel for the latest postings: https://t.me/aikyamjobs\n\n' +
+        'To get notified about a specific type of role, tap "🔔 Get alerts for jobs like this" under any job post in the channel — or use /subscriptions anytime to manage what you\'re subscribed to.'
     );
   });
 
@@ -175,6 +196,7 @@ async function notifyJobPublished(jobId) {
   const siteUrl = process.env.SITE_URL || 'https://aikyamjobs.org';
   const jobUrl = `${siteUrl}/jobs/${job.slug}`;
   const companyName = job.company?.name;
+  const categories = job.categories || [];
   const metaLine = [companyName, job.location, job.jobType].filter(Boolean).map(escapeHtml).join(' · ');
 
   const messageLines = [`<b>${escapeHtml(job.title)}</b>`];
@@ -183,8 +205,9 @@ async function notifyJobPublished(jobId) {
 
   const channelKeyboard = new InlineKeyboard().url('View & Apply', jobUrl);
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
-  if (botUsername) {
-    channelKeyboard.row().url('🔔 Subscribe to job alerts', `https://t.me/${botUsername}?start=subscribe`);
+  if (botUsername && categories.length > 0) {
+    const payload = `cats-${categories.map((c) => c.id).join('-')}`;
+    channelKeyboard.row().url('🔔 Get alerts for jobs like this', `https://t.me/${botUsername}?start=${payload}`);
   }
 
   let sent;
@@ -198,7 +221,6 @@ async function notifyJobPublished(jobId) {
     return;
   }
 
-  const categories = job.categories || [];
   if (categories.length === 0) return;
 
   const categoryIds = categories.map((c) => c.id);
