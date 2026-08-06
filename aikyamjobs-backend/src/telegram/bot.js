@@ -1,5 +1,7 @@
 'use strict';
 
+const os = require('os');
+const fs = require('fs');
 const { Bot, InlineKeyboard } = require('grammy');
 
 let bot = null;
@@ -107,7 +109,7 @@ async function buildSubscribedScopeKeyboard(chatId) {
   return buildToggleKeyboard(categories, subscribedIds, (catId) => `t:s:${catId}`);
 }
 
-const BROWSE_PAGE_SIZE = 10;
+const BROWSE_PAGE_SIZE = 12;
 
 // Paginated browse of every category — opt-in only, never shown by default.
 async function buildBrowseKeyboard(chatId, page) {
@@ -144,6 +146,89 @@ async function toggleSubscription(chatId, from, categoryId) {
   });
 
   return !isSubscribed;
+}
+
+function getAdminIds() {
+  return new Set(
+    (process.env.TELEGRAM_ADMIN_CHAT_IDS || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+  );
+}
+
+function formatGb(bytes) {
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
+async function getDiskStats() {
+  try {
+    const stats = await fs.promises.statfs('/');
+    return { total: stats.blocks * stats.bsize, free: stats.bfree * stats.bsize };
+  } catch {
+    return null;
+  }
+}
+
+async function getSubscriberStats() {
+  const subscribers = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findMany({
+    select: ['id'],
+    populate: ['categories'],
+  });
+
+  const categoryCounts = new Map(); // categoryId -> { name, count }
+  let activeSubscribers = 0;
+
+  for (const subscriber of subscribers) {
+    const categories = subscriber.categories || [];
+    if (categories.length > 0) activeSubscribers += 1;
+    for (const category of categories) {
+      const entry = categoryCounts.get(category.id) || { name: category.name, count: 0 };
+      entry.count += 1;
+      categoryCounts.set(category.id, entry);
+    }
+  }
+
+  const topCategories = Array.from(categoryCounts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return { totalSubscribers: subscribers.length, activeSubscribers, topCategories };
+}
+
+async function buildStatusMessage(botInstance) {
+  const channel = process.env.TELEGRAM_CHANNEL_USERNAME;
+  let channelMemberCount = 'n/a';
+  if (channel) {
+    try {
+      channelMemberCount = String(await botInstance.api.getChatMemberCount(channel));
+    } catch {
+      channelMemberCount = 'error fetching';
+    }
+  }
+
+  const { totalSubscribers, activeSubscribers, topCategories } = await getSubscriberStats();
+  const topCategoriesText = topCategories.length
+    ? topCategories.map((c) => `${c.name} (${c.count})`).join(', ')
+    : 'none yet';
+
+  const disk = await getDiskStats();
+  const lines = [
+    '📊 <b>aikyamjobs Bot Status</b>',
+    '',
+    `Channel members: ${channelMemberCount}`,
+    `Bot users (started bot): ${totalSubscribers}`,
+    `Active alert subscribers: ${activeSubscribers}`,
+    '',
+    `Top subscribed categories: ${topCategoriesText}`,
+    '',
+    `Bot uptime: ${(process.uptime() / 3600).toFixed(1)}h`,
+    `RAM free: ${formatGb(os.freemem())} / ${formatGb(os.totalmem())}`,
+  ];
+  if (disk) lines.push(`Disk free: ${formatGb(disk.free)} / ${formatGb(disk.total)}`);
+  lines.push(`Load avg (1m): ${os.loadavg()[0].toFixed(2)}`);
+
+  return lines.join('\n');
 }
 
 function registerHandlers(botInstance, strapiInstance) {
@@ -218,6 +303,14 @@ function registerHandlers(botInstance, strapiInstance) {
     await ctx
       .editMessageText('Browse all categories — tap to subscribe or unsubscribe:', { reply_markup: keyboard })
       .catch(() => ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {}));
+  });
+
+  // Hidden admin-only command — deliberately left out of setMyCommands so it
+  // never appears in the public "/" menu. Silently ignored for non-admins.
+  botInstance.command('status', async (ctx) => {
+    if (!getAdminIds().has(String(ctx.from?.id))) return;
+    const message = await buildStatusMessage(botInstance);
+    await ctx.reply(message, { parse_mode: 'HTML' });
   });
 
   botInstance.catch((err) => {
