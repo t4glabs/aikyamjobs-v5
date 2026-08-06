@@ -248,7 +248,7 @@ function registerHandlers(botInstance, strapiInstance) {
     await ctx.reply(
       '👋 Welcome to aikyamjobs Job Alerts!\n\n' +
         'Head over to the channel for the latest postings: https://t.me/aikyamjobs\n\n' +
-        'To get notified about a specific type of role, tap "🔔 Get alerts for jobs like this" under any job post in the channel — or use /subscriptions anytime to manage what you\'re subscribed to.'
+        'To get notified about a specific type of role, tap "🔔 Subscribe to this job category" under any job post in the channel — or use /subscriptions anytime to manage what you\'re subscribed to.'
     );
   });
 
@@ -381,7 +381,7 @@ async function notifyJobPublished(jobId) {
   let channelKeyboard;
   if (botUsername && categories.length > 0) {
     const payload = `cats-${categories.map((c) => c.id).join('-')}`;
-    channelKeyboard = new InlineKeyboard().url('🔔 Get alerts for jobs like this', `https://t.me/${botUsername}?start=${payload}`);
+    channelKeyboard = new InlineKeyboard().url('🔔 Subscribe to this job category', `https://t.me/${botUsername}?start=${payload}`);
   }
 
   let sent;
