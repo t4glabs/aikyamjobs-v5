@@ -56,27 +56,78 @@ async function findOrCreateSubscriber(chatId, from) {
   return { ...created, categories: [] };
 }
 
-async function buildCategoryKeyboard(chatId, restrictToIds) {
-  const categories = await strapi.db.query('api::category.category').findMany({
-    select: ['id', 'name'],
-    ...(restrictToIds?.length ? { where: { id: { $in: restrictToIds } } } : {}),
-    orderBy: { name: 'asc' },
-  });
-
+async function getSubscribedIds(chatId) {
   const subscriber = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findOne({
     where: { chatId },
     populate: ['categories'],
   });
+  return new Set((subscriber?.categories || []).map((c) => c.id));
+}
 
-  const subscribedIds = new Set((subscriber?.categories || []).map((c) => c.id));
+// Renders a 2-per-row grid of toggle buttons with no stray empty rows.
+function buildToggleKeyboard(categories, subscribedIds, callbackDataFor) {
+  if (categories.length === 0) return new InlineKeyboard([]);
 
   const keyboard = new InlineKeyboard();
   categories.forEach((category, index) => {
+    if (index > 0 && index % 2 === 0) keyboard.row();
     const checked = subscribedIds.has(category.id) ? '✅ ' : '';
-    keyboard.text(`${checked}${category.name}`, `toggle:${category.id}`);
-    if (index % 2 === 1) keyboard.row();
+    keyboard.text(`${checked}${category.name}`, callbackDataFor(category.id));
   });
+  return keyboard;
+}
 
+function withBrowseMoreButton(keyboard) {
+  keyboard.row().text('🔎 See more categories', 'p:b:0');
+  return keyboard;
+}
+
+// Fixed set of categories (a job's own tags) — same set shown before and after toggling.
+async function buildJobScopeKeyboard(chatId, categoryIds) {
+  if (categoryIds.length === 0) return new InlineKeyboard([]);
+  const categories = await strapi.db.query('api::category.category').findMany({
+    select: ['id', 'name'],
+    where: { id: { $in: categoryIds } },
+    orderBy: { name: 'asc' },
+  });
+  const subscribedIds = await getSubscribedIds(chatId);
+  const idsCsv = categoryIds.join('-');
+  return buildToggleKeyboard(categories, subscribedIds, (catId) => `t:j:${catId}:${idsCsv}`);
+}
+
+// Dynamic set — always exactly what the user is currently subscribed to.
+async function buildSubscribedScopeKeyboard(chatId) {
+  const subscribedIds = await getSubscribedIds(chatId);
+  if (subscribedIds.size === 0) return new InlineKeyboard([]);
+  const categories = await strapi.db.query('api::category.category').findMany({
+    select: ['id', 'name'],
+    where: { id: { $in: Array.from(subscribedIds) } },
+    orderBy: { name: 'asc' },
+  });
+  return buildToggleKeyboard(categories, subscribedIds, (catId) => `t:s:${catId}`);
+}
+
+const BROWSE_PAGE_SIZE = 10;
+
+// Paginated browse of every category — opt-in only, never shown by default.
+async function buildBrowseKeyboard(chatId, page) {
+  const totalCount = await strapi.db.query('api::category.category').count();
+  const categories = await strapi.db.query('api::category.category').findMany({
+    select: ['id', 'name'],
+    orderBy: { name: 'asc' },
+    limit: BROWSE_PAGE_SIZE,
+    offset: page * BROWSE_PAGE_SIZE,
+  });
+  const subscribedIds = await getSubscribedIds(chatId);
+  const keyboard = buildToggleKeyboard(categories, subscribedIds, (catId) => `t:b:${catId}:${page}`);
+
+  const hasPrev = page > 0;
+  const hasNext = (page + 1) * BROWSE_PAGE_SIZE < totalCount;
+  if (hasPrev || hasNext) {
+    keyboard.row();
+    if (hasPrev) keyboard.text('◀ Prev', `p:b:${page - 1}`);
+    if (hasNext) keyboard.text('Next ▶', `p:b:${page + 1}`);
+  }
   return keyboard;
 }
 
@@ -102,7 +153,7 @@ function registerHandlers(botInstance, strapiInstance) {
 
     const categoryIds = parseCategoryPayload(ctx.match || '');
     if (categoryIds.length > 0) {
-      const keyboard = await buildCategoryKeyboard(chatId, categoryIds);
+      const keyboard = withBrowseMoreButton(await buildJobScopeKeyboard(chatId, categoryIds));
       await ctx.reply('Want alerts for jobs like this one? Tap a category to subscribe:', {
         reply_markup: keyboard,
       });
@@ -118,25 +169,55 @@ function registerHandlers(botInstance, strapiInstance) {
 
   botInstance.command('subscriptions', async (ctx) => {
     const chatId = String(ctx.chat.id);
-    const subscriber = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findOne({
-      where: { chatId },
-      populate: ['categories'],
-    });
-    const names = (subscriber?.categories || []).map((c) => c.name);
-    const summary = names.length
-      ? `You're currently subscribed to:\n${names.map((n) => `• ${n}`).join('\n')}`
-      : "You're not subscribed to any categories yet.";
-    const keyboard = await buildCategoryKeyboard(chatId);
-    await ctx.reply(`${summary}\n\nTap below to add or remove:`, { reply_markup: keyboard });
+    const subscribedIds = await getSubscribedIds(chatId);
+    const summary = subscribedIds.size
+      ? "You're currently subscribed to the categories below. Tap to unsubscribe, or see more to add:"
+      : "You're not subscribed to any categories yet. Tap below to browse and subscribe:";
+    const keyboard = withBrowseMoreButton(await buildSubscribedScopeKeyboard(chatId));
+    await ctx.reply(summary, { reply_markup: keyboard });
   });
 
-  botInstance.callbackQuery(/^toggle:(\d+)$/, async (ctx) => {
+  // Toggle within a job's own category set — re-renders the same fixed set, never the full list.
+  botInstance.callbackQuery(/^t:j:(\d+):([\d-]+)$/, async (ctx) => {
+    const categoryId = Number(ctx.match[1]);
+    const scopeIds = ctx.match[2].split('-').map(Number);
+    const chatId = String(ctx.chat.id);
+    const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
+    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    const keyboard = withBrowseMoreButton(await buildJobScopeKeyboard(chatId, scopeIds));
+    await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
+  });
+
+  // Toggle within /subscriptions — re-renders whatever is still subscribed after the change.
+  botInstance.callbackQuery(/^t:s:(\d+)$/, async (ctx) => {
     const categoryId = Number(ctx.match[1]);
     const chatId = String(ctx.chat.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
     await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
-    const keyboard = await buildCategoryKeyboard(chatId);
+    const keyboard = withBrowseMoreButton(await buildSubscribedScopeKeyboard(chatId));
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
+  });
+
+  // Toggle within the paginated "browse all categories" view — stays on the same page.
+  botInstance.callbackQuery(/^t:b:(\d+):(\d+)$/, async (ctx) => {
+    const categoryId = Number(ctx.match[1]);
+    const page = Number(ctx.match[2]);
+    const chatId = String(ctx.chat.id);
+    const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
+    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    const keyboard = await buildBrowseKeyboard(chatId, page);
+    await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
+  });
+
+  // "See more categories" / pagination — switches the message into browse mode.
+  botInstance.callbackQuery(/^p:b:(\d+)$/, async (ctx) => {
+    const page = Number(ctx.match[1]);
+    const chatId = String(ctx.chat.id);
+    const keyboard = await buildBrowseKeyboard(chatId, page);
+    await ctx.answerCallbackQuery();
+    await ctx
+      .editMessageText('Browse all categories — tap to subscribe or unsubscribe:', { reply_markup: keyboard })
+      .catch(() => ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {}));
   });
 
   botInstance.catch((err) => {
