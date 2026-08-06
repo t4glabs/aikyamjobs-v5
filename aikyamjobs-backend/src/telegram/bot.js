@@ -199,22 +199,23 @@ async function notifyJobPublished(jobId) {
   const categories = job.categories || [];
   const metaLine = [companyName, job.location, job.jobType].filter(Boolean).map(escapeHtml).join(' · ');
 
-  const messageLines = [`<b>${escapeHtml(job.title)}</b>`];
+  const messageLines = [`<b><a href="${jobUrl}">${escapeHtml(job.title)}</a></b>`];
   if (metaLine) messageLines.push(metaLine);
   if (job.excerpt) messageLines.push(escapeHtml(job.excerpt));
 
-  const channelKeyboard = new InlineKeyboard().url('View & Apply', jobUrl);
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
+  let channelKeyboard;
   if (botUsername && categories.length > 0) {
     const payload = `cats-${categories.map((c) => c.id).join('-')}`;
-    channelKeyboard.row().url('🔔 Get alerts for jobs like this', `https://t.me/${botUsername}?start=${payload}`);
+    channelKeyboard = new InlineKeyboard().url('🔔 Get alerts for jobs like this', `https://t.me/${botUsername}?start=${payload}`);
   }
 
   let sent;
   try {
     sent = await botInstance.api.sendMessage(channel, messageLines.join('\n\n'), {
       parse_mode: 'HTML',
-      reply_markup: channelKeyboard,
+      link_preview_options: { url: jobUrl },
+      ...(channelKeyboard ? { reply_markup: channelKeyboard } : {}),
     });
   } catch (err) {
     strapi.log.error('[telegram-bot] failed to post job to channel', err);
