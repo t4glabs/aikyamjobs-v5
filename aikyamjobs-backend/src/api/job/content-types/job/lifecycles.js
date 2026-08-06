@@ -1,3 +1,5 @@
+const { notifyJobPublished } = require('../../../../telegram/bot');
+
 module.exports = {
   /**
    * Stamps unpublishedAt the moment a job transitions from published to
@@ -6,6 +8,10 @@ module.exports = {
    * are already happening; does not decide to unpublish anything itself.
    * (A prior version of this file made that decision on every read, which
    * raced the cron and left jobs untagged — see project history.)
+   *
+   * Also records the publish transition on event.state so afterUpdate can
+   * fire the Telegram notification without re-querying for the same
+   * before/after comparison — one source of truth for the transition.
    */
   async beforeUpdate(event) {
     const { params } = event;
@@ -33,6 +39,25 @@ module.exports = {
       // Republished — reset the follow-up clock for next time
       data.unpublishedAt = null;
       data.lastFollowUpAt = null;
+    }
+
+    event.state = event.state || {};
+    event.state.justPublished = !wasPublished && willBePublished;
+  },
+
+  async afterUpdate(event) {
+    if (event.state?.justPublished) {
+      await notifyJobPublished(event.result.id).catch((err) =>
+        strapi.log.error('[telegram-bot] notifyJobPublished failed', err)
+      );
+    }
+  },
+
+  async afterCreate(event) {
+    if (event.result.publishedAt) {
+      await notifyJobPublished(event.result.id).catch((err) =>
+        strapi.log.error('[telegram-bot] notifyJobPublished failed', err)
+      );
     }
   },
 };

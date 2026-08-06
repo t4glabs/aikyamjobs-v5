@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "telegram_subscribers",
+  "info": {
+    "singularName": "telegram-subscriber",
+    "pluralName": "telegram-subscribers",
+    "displayName": "Telegram Subscriber",
+    "description": "Users who have started the job alerts bot, and which categories they've subscribed to"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "chatId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "username": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::category.category"
+    }
+  }
+}

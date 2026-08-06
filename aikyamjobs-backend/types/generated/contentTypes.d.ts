@@ -581,10 +581,11 @@ export interface ApiJobJob extends Schema.CollectionType {
       'api::internal-tag.internal-tag'
     >;
     jobType: Attribute.Enumeration<
-      ['full-time', 'part-time', 'contract', 'internship']
+      ['full-time', 'part-time', 'contract', 'internship', 'fellowship']
     > &
       Attribute.DefaultTo<'full-time'>;
     keywords: Attribute.JSON;
+    lastFollowUpAt: Attribute.DateTime & Attribute.Private;
     location: Attribute.String;
     metaDescription: Attribute.Text &
       Attribute.SetMinMaxLength<{
@@ -601,6 +602,7 @@ export interface ApiJobJob extends Schema.CollectionType {
     slug: Attribute.UID<'api::job.job', 'title'> & Attribute.Required;
     socialImage: Attribute.Media<'images'>;
     title: Attribute.String & Attribute.Required;
+    unpublishedAt: Attribute.DateTime & Attribute.Private;
     updatedAt: Attribute.DateTime;
     updatedBy: Attribute.Relation<'api::job.job', 'oneToOne', 'admin::user'> &
       Attribute.Private;
@@ -688,6 +690,14 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     > &
       Attribute.Private;
     favicon: Attribute.Media<'images'>;
+    followUpThresholdDays: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<30>;
     footerCreditsLine: Attribute.Text;
     footerResourceLinks: Attribute.JSON;
     footerSeekerLinks: Attribute.JSON;
@@ -816,6 +826,44 @@ export interface ApiSubscriberSubscriber extends Schema.CollectionType {
       'admin::user'
     > &
       Attribute.Private;
+  };
+}
+
+export interface ApiTelegramSubscriberTelegramSubscriber
+  extends Schema.CollectionType {
+  collectionName: 'telegram_subscribers';
+  info: {
+    description: "Users who have started the job alerts bot, and which categories they've subscribed to";
+    displayName: 'Telegram Subscriber';
+    pluralName: 'telegram-subscribers';
+    singularName: 'telegram-subscriber';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    categories: Attribute.Relation<
+      'api::telegram-subscriber.telegram-subscriber',
+      'manyToMany',
+      'api::category.category'
+    >;
+    chatId: Attribute.String & Attribute.Required & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::telegram-subscriber.telegram-subscriber',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    firstName: Attribute.String;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::telegram-subscriber.telegram-subscriber',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    username: Attribute.String;
   };
 }
 
@@ -1264,6 +1312,7 @@ declare module '@strapi/types' {
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::staff.staff': ApiStaffStaff;
       'api::subscriber.subscriber': ApiSubscriberSubscriber;
+      'api::telegram-subscriber.telegram-subscriber': ApiTelegramSubscriberTelegramSubscriber;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
