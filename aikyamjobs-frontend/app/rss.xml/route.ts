@@ -48,7 +48,7 @@ export async function GET() {
 
         return `
   <item>
-    <title>${escapeXml(companyName ? `${title} at ${companyName}` : title)}</title>
+    <title>${escapeXml(title)}</title>
     <link>${link}</link>
     <guid isPermaLink="true">${link}</guid>
     <pubDate>${pubDate}</pubDate>
