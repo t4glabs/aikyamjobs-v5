@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import { permanentRedirect, notFound } from 'next/navigation';
-import { getJob, getCompany, getPage } from '@/lib/api';
+import { notFound } from 'next/navigation';
+import { getPage } from '@/lib/api';
 import { Page, StrapiResponse } from '@/lib/types';
 import { generateSEOMetadata } from '@/components/SEO';
 import { Metadata } from 'next';
@@ -53,24 +53,6 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
       );
     }
   } catch {}
-
-  // 2. Legacy Ghost URL redirect — remove after old URLs are out of Google's index
-  // NOTE: permanentRedirect() throws internally, so it must be called OUTSIDE try/catch
-  let redirectTo: string | null = null;
-
-  try {
-    const job = await getJob(slug);
-    if (job.data && job.data.length > 0) redirectTo = `/jobs/${slug}`;
-  } catch {}
-
-  if (!redirectTo) {
-    try {
-      const company = await getCompany(slug);
-      if (company?.data && company.data.length > 0) redirectTo = `/companies/${slug}`;
-    } catch {}
-  }
-
-  if (redirectTo) permanentRedirect(redirectTo);
 
   notFound();
 }
