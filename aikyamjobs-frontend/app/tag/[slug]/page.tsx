@@ -119,76 +119,78 @@ export default async function TagPage({
               <Link
                 key={job.id}
                 href={`/jobs/${job.attributes.slug}`}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition flex flex-col"
+                className="flex flex-col bg-white border border-gray-200 rounded-lg p-6 transition hover:border-gray-300 hover:shadow-sm"
               >
-                <div className="flex-1">
-                  <div className="flex items-start gap-2 mb-2">
-                    <h2 className="text-xl font-bold text-gray-900 flex-1">
-                      {job.attributes.title}
-                    </h2>
-                    {job.attributes.featured && (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                        Featured
+                <div className="flex items-center justify-between gap-3 mb-3.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {job.attributes.company?.data?.attributes.logo?.data ? (
+                      <img
+                        src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
+                        alt=""
+                        className="w-8 h-8 object-contain rounded-md border border-gray-200 flex-shrink-0"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-500">
+                        {job.attributes.company?.data?.attributes.name?.charAt(0) ?? '·'}
                       </span>
                     )}
-                  </div>
-                  {job.attributes.company?.data && (
-                    <div className="flex items-center gap-2 mb-3">
-                      {job.attributes.company.data.attributes.logo?.data && (
-                        <img
-                          src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
-                          alt={job.attributes.company.data.attributes.name}
-                          className="w-8 h-8 object-contain rounded border border-gray-100 flex-shrink-0"
-                        />
-                      )}
-                      <p className="text-gray-700 font-medium">
+                    {job.attributes.company?.data && (
+                      <span className="truncate text-sm font-medium text-gray-600">
                         {job.attributes.company.data.attributes.name}
-                      </p>
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      {job.attributes.jobType}
-                    </span>
-                    {job.attributes.location && (
-                      <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-                        📍 {job.attributes.location}
-                      </span>
-                    )}
-                    {job.attributes.experienceLevel && (
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                        {job.attributes.experienceLevel}
                       </span>
                     )}
                   </div>
-                  {job.attributes.salary && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      💰 {job.attributes.salary}
-                    </p>
-                  )}
-                  {job.attributes.excerpt && (
-                    <p className="text-sm text-gray-600">
-                      {job.attributes.excerpt.length > 300 ? job.attributes.excerpt.slice(0, 300) + '…' : job.attributes.excerpt}
-                    </p>
+                  {job.attributes.featured && (
+                    <span className="flex-none rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                      Featured
+                    </span>
                   )}
                 </div>
-                {job.attributes.skills && job.attributes.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100">
-                    {job.attributes.skills.slice(0, 4).map((skill, index) => (
-                      <span
-                        key={index}
-                        className="text-xs bg-gray-50 text-gray-700 px-2 py-1 rounded"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                    {job.attributes.skills.length > 4 && (
-                      <span className="text-xs text-gray-500 px-2 py-1">
-                        +{job.attributes.skills.length - 4} more
-                      </span>
-                    )}
-                  </div>
+
+                <h2 className="mb-2.5 text-[19px] font-semibold tracking-tight leading-snug text-gray-900">
+                  {job.attributes.title}
+                </h2>
+
+                <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                  {job.attributes.location && <span>{job.attributes.location}</span>}
+                  {job.attributes.salary && (
+                    <>
+                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                      <span>{job.attributes.salary}</span>
+                    </>
+                  )}
+                  {job.attributes.experienceLevel && (
+                    <>
+                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                      <span>{job.attributes.experienceLevel}</span>
+                    </>
+                  )}
+                </div>
+
+                {job.attributes.excerpt && (
+                  <p className="mb-4 text-[15px] leading-relaxed text-gray-700 line-clamp-3">
+                    {job.attributes.excerpt}
+                  </p>
                 )}
+
+                <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5">
+                  <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800">
+                    {job.attributes.jobType}
+                  </span>
+                  {job.attributes.skills?.slice(0, 2).map((skill, index) => (
+                    <span
+                      key={index}
+                      className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                  {job.attributes.skills && job.attributes.skills.length > 2 && (
+                    <span className="px-1 text-[13px] text-gray-600">
+                      +{job.attributes.skills.length - 2}
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
@@ -198,7 +200,7 @@ export default async function TagPage({
       {/* Related Tags Section */}
       <div className="container mx-auto px-4 pb-12">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+          <h2 className="text-xl font-bold text-foreground mb-4">
             Related Tags
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -206,7 +208,7 @@ export default async function TagPage({
               <Link
                 key={cat.id}
                 href={`/tag/${cat.attributes.slug}`}
-                className={`px-4 py-2 rounded-full font-mono text-sm transition ${
+                className={`inline-flex items-center h-9 px-4 rounded-md text-sm transition ${
                   cat.id === category.id
                     ? 'btn-brand'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -219,7 +221,7 @@ export default async function TagPage({
           <div className="mt-4 text-center">
             <Link
               href="/jobs"
-              className="link-brand font-mono text-sm"
+              className="link-brand text-sm"
             >
               View all jobs →
             </Link>
