@@ -19,19 +19,19 @@ export default async function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-900 text-white mt-auto">
+    <footer className="bg-[#1F2421] text-white mt-auto">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
             <h3 className="font-semibold mb-3">{siteName}</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">{tagline}</p>
+            <p className="text-sm text-[#B8AFA9] leading-relaxed">{tagline}</p>
           </div>
 
           {/* For Job Seekers */}
           <div>
             <h4 className="text-sm font-semibold mb-3 text-gray-300">For Job Seekers</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-[#B8AFA9]">
               {seekerLinks.map((link, i) => (
                 <li key={i}>
                   <Link href={link.url} className="hover:text-white transition">{link.label}</Link>
@@ -43,7 +43,7 @@ export default async function Footer() {
           {/* Resources — links from Strapi */}
           <div>
             <h4 className="text-sm font-semibold mb-3 text-gray-300">Resources</h4>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-[#B8AFA9]">
               {resourceLinks.map((link, i) => (
                 <li key={i}>
                   <Link href={link.url} className="hover:text-white transition">{link.label}</Link>
@@ -55,7 +55,7 @@ export default async function Footer() {
           {/* Connect */}
           <div>
             <h4 className="text-sm font-semibold mb-3 text-gray-300">Connect</h4>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-[#B8AFA9]">
               © {new Date().getFullYear()} {siteName}. All rights reserved.
             </p>
           </div>
