@@ -28,62 +28,119 @@ export default async function JobsPage({
   const jobs = jobsResponse.data;
   const pagination = jobsResponse.meta.pagination;
 
+  // Active filters, as removable chips. Each href drops one key and resets paging.
+  const activeFilters = [
+    search && { key: 'search', label: search },
+    location && { key: 'location', label: location },
+    jobType && { key: 'jobType', label: jobType },
+    category && { key: 'category', label: category },
+  ].filter(Boolean) as { key: string; label: string }[];
+
+  const hrefWithout = (key: string) => {
+    const next = new URLSearchParams(
+      Object.entries(params).filter(([k, v]) => k !== key && k !== 'page' && typeof v === 'string') as [string, string][]
+    );
+    const qs = next.toString();
+    return qs ? `/jobs?${qs}` : '/jobs';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header + Filters */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-5">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-shrink-0">
-              <h1 className="text-xl font-semibold text-gray-900">All Jobs</h1>
-              <p className="text-sm text-gray-400 mt-0.5">{pagination?.total || 0} opportunities</p>
-            </div>
-            <form method="get" className="flex flex-col md:flex-row gap-2 flex-1 md:justify-end">
-              <input
-                type="text"
-                name="search"
-                defaultValue={search}
-                placeholder="Search title or skill..."
-                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 placeholder:text-gray-400 w-full md:w-48"
-              />
-              <input
-                type="text"
-                name="location"
-                defaultValue={location}
-                placeholder="Location"
-                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 placeholder:text-gray-400 w-full md:w-36"
-              />
-              <select
-                name="jobType"
-                defaultValue={jobType}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 text-sm text-gray-900 w-full md:w-36"
-              >
-                <option value="">All types</option>
-                <option value="full-time">Full Time</option>
-                <option value="part-time">Part Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-                <option value="fellowship">Fellowship</option>
-              </select>
+          <form method="get" className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-end gap-3">
+              <div className="flex-shrink-0 md:mr-4">
+                <h1 className="text-xl font-semibold tracking-tight text-gray-900">All jobs</h1>
+                <p className="text-sm text-gray-600 mt-0.5">{pagination?.total || 0} curated roles</p>
+              </div>
+
+              <label className="flex flex-1 flex-col gap-1.5">
+                <span className="text-xs font-semibold text-gray-600">Keyword</span>
+                <input
+                  type="text"
+                  name="search"
+                  defaultValue={search}
+                  placeholder="Title, skill or organisation"
+                  className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-500 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1.5 md:w-40">
+                <span className="text-xs font-semibold text-gray-600">Location</span>
+                <input
+                  type="text"
+                  name="location"
+                  defaultValue={location}
+                  placeholder="Anywhere"
+                  className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-500 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1.5 md:w-40">
+                <span className="text-xs font-semibold text-gray-600">Type</span>
+                <select
+                  name="jobType"
+                  defaultValue={jobType}
+                  className="h-10 w-full rounded-md border border-gray-300 bg-white px-2.5 text-sm text-gray-900 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
+                >
+                  <option value="">All types</option>
+                  <option value="full-time">Full time</option>
+                  <option value="part-time">Part time</option>
+                  <option value="contract">Contract</option>
+                  <option value="internship">Internship</option>
+                  <option value="fellowship">Fellowship</option>
+                </select>
+              </label>
+
               <button
                 type="submit"
-                className="btn-brand px-4 py-1.5 text-sm rounded-lg"
+                className="btn-brand h-10 rounded-md px-5 text-sm md:w-auto"
               >
                 Filter
               </button>
-            </form>
-          </div>
+            </div>
+
+            {activeFilters.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Showing {pagination?.total || 0} matching roles
+                </span>
+                {activeFilters.map((f) => (
+                  <Link
+                    key={f.key}
+                    href={hrefWithout(f.key)}
+                    className="inline-flex items-center gap-1.5 rounded bg-gray-100 px-2.5 py-1 text-[13px] font-semibold text-gray-800 transition hover:bg-gray-200"
+                  >
+                    {f.label}
+                    <span aria-hidden="true">✕</span>
+                    <span className="sr-only">Remove filter</span>
+                  </Link>
+                ))}
+                <Link href="/jobs" className="text-[13px] font-medium text-gray-600 underline underline-offset-2 hover:text-gray-900">
+                  Clear all
+                </Link>
+              </div>
+            )}
+          </form>
         </div>
       </div>
 
       {/* Jobs Grid */}
       <div className="container mx-auto px-4 py-8">
         {jobs.length === 0 ? (
-          <div className="bg-white rounded-lg p-12 text-center">
-            <p className="text-xl text-gray-600">No jobs found matching your criteria.</p>
-            <Link href="/jobs" className="link-brand mt-4 inline-block">
-              Clear filters
-            </Link>
+          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
+            <p className="text-lg font-semibold text-gray-900">No jobs match these filters</p>
+            <p className="mt-1.5 text-sm text-gray-600">Try widening the location, or get an email when something new is posted.</p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+              <Link href="/jobs" className="inline-flex items-center h-10 rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">
+                Clear filters
+              </Link>
+              <Link href="/subscribe" className="btn-brand inline-flex items-center h-10 rounded-md px-4 text-sm">
+                Get job alerts
+              </Link>
+            </div>
           </div>
         ) : (
           <>
