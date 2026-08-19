@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, IBM_Plex_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -63,12 +65,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settingsResponse = await getSiteSettings().catch(() => null);
-  const primaryColor = settingsResponse?.data?.attributes?.primaryColor || '#111827';
+  const primaryColor = settingsResponse?.data?.attributes?.primaryColor || '#AE4634';
 
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${figtree.variable} ${plexMono.variable} h-full antialiased`}
       style={{ '--brand': primaryColor } as React.CSSProperties}
     >
       <body className="min-h-full flex flex-col">

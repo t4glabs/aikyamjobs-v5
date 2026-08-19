@@ -54,7 +54,7 @@ export default async function Home() {
     .slice(0, settings.homepageTagsLimit);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="bg-white border-b border-gray-100 py-16">
         <div className="container mx-auto px-4">
