@@ -72,37 +72,37 @@ export default async function Home() {
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               <Link
                 href="/jobs"
-                className="btn-brand px-5 py-2 rounded-full font-mono text-sm"
+                className="btn-brand inline-flex items-center h-9 px-4 rounded-md text-sm"
               >
                 All
               </Link>
               <Link
                 href="/jobs?location=Remote"
-                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Remote
               </Link>
               <Link
                 href="/jobs?location=Delhi"
-                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Delhi
               </Link>
               <Link
                 href="/jobs?location=Mumbai"
-                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Mumbai
               </Link>
               <Link
                 href="/jobs?location=Bangalore"
-                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Bangalore
               </Link>
               <Link
                 href="/jobs?location=Hyderabad"
-                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Hyderabad
               </Link>
@@ -114,7 +114,7 @@ export default async function Home() {
             <div className="text-center space-y-2">
               <Link
                 href="/subscribe"
-                className="link-brand font-mono text-sm font-medium block"
+                className="link-brand text-sm font-medium block"
               >
                 Click here to join 3000+ others to get curated job alerts, skilling opportunities  →
               </Link>
@@ -147,7 +147,7 @@ export default async function Home() {
                 <Link
                   key={category.id}
                   href={`/tag/${category.attributes.slug}`}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full font-mono text-sm hover:bg-gray-200 transition"
+                  className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
                 >
                   {category.attributes.name}
                 </Link>
@@ -184,85 +184,84 @@ export default async function Home() {
                 {jobs.slice(0, settings.homepageJobsLimit).map((job) => (
                   <div
                     key={job.id}
-                    className="relative block bg-white border border-gray-200 rounded-lg p-6 hover:border-blue-300 hover:shadow-md transition"
+                    className="relative flex flex-col bg-white border border-gray-200 rounded-lg p-6 transition hover:border-gray-300 hover:shadow-sm"
                   >
                     <Link
                       href={`/jobs/${job.attributes.slug}`}
                       className="absolute inset-0 rounded-lg z-0"
                       aria-label={job.attributes.title}
                     />
-                    <div className="flex flex-col h-full">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          {job.attributes.title}
-                        </h3>
+
+                    <div className="flex items-center justify-between gap-3 mb-3.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {job.attributes.company?.data?.attributes.logo?.data ? (
+                          <img
+                            src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
+                            alt=""
+                            className="w-8 h-8 object-contain rounded-md border border-gray-200 flex-shrink-0"
+                          />
+                        ) : (
+                          <span className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-500">
+                            {job.attributes.company?.data?.attributes.name?.charAt(0) ?? '·'}
+                          </span>
+                        )}
                         {job.attributes.company?.data && (
-                          <div className="flex items-center gap-2 mb-3">
-                            {job.attributes.company.data.attributes.logo?.data && (
-                              <img
-                                src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
-                                alt={job.attributes.company.data.attributes.name}
-                                className="w-8 h-8 object-contain rounded border border-gray-100 flex-shrink-0"
-                              />
-                            )}
-                            <p className="text-gray-700 font-medium">
-                              {job.attributes.company.data.attributes.name}
-                            </p>
-                          </div>
-                        )}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <Link
-                            href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
-                            className="relative z-10 px-3 py-1 bg-blue-50 text-blue-700 rounded-full font-mono text-xs hover:bg-blue-100 transition"
-                          >
-                            {job.attributes.jobType}
-                          </Link>
-                          {job.attributes.location && (
-                            <Link
-                              href={`/jobs?location=${encodeURIComponent(job.attributes.location)}`}
-                              className="relative z-10 px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-mono text-xs hover:bg-gray-200 transition"
-                            >
-                              📍 {job.attributes.location}
-                            </Link>
-                          )}
-                          {job.attributes.experienceLevel && (
-                            <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full font-mono text-xs">
-                              {job.attributes.experienceLevel}
-                            </span>
-                          )}
-                          {job.attributes.featured && (
-                            <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full font-mono text-xs">
-                              ⭐ Featured
-                            </span>
-                          )}
-                        </div>
-                        {job.attributes.excerpt && (
-                          <p className="text-sm text-gray-600">
-                            {job.attributes.excerpt.length > 300 ? job.attributes.excerpt.slice(0, 300) + '…' : job.attributes.excerpt}
-                          </p>
+                          <span className="truncate text-sm font-medium text-gray-600">
+                            {job.attributes.company.data.attributes.name}
+                          </span>
                         )}
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {job.attributes.categories?.data?.slice(0, 3).map((category) => (
-                            <Link
-                              key={category.id}
-                              href={`/jobs?category=${encodeURIComponent(category.attributes.slug)}`}
-                              className="relative z-10 px-2 py-1 bg-gray-50 text-gray-600 rounded font-mono text-xs hover:bg-gray-100 transition"
-                            >
-                              {category.attributes.name}
-                            </Link>
-                          ))}
-                        </div>
-                        {job.attributes.closingDate && (
-                          <p className="text-xs text-red-600 font-mono font-semibold">
-                            ⏰ Closes: {new Date(job.attributes.closingDate).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        )}
-                      </div>
+                      {job.attributes.featured && (
+                        <span className="flex-none rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                          Featured
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="mb-2.5 text-[19px] font-semibold tracking-tight leading-snug text-gray-900">
+                      {job.attributes.title}
+                    </h3>
+
+                    <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                      {job.attributes.location && <span>{job.attributes.location}</span>}
+                      {job.attributes.experienceLevel && (
+                        <>
+                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                          <span>{job.attributes.experienceLevel}</span>
+                        </>
+                      )}
+                      {job.attributes.closingDate && (
+                        <>
+                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                          <span>
+                            Closes {new Date(job.attributes.closingDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {job.attributes.excerpt && (
+                      <p className="mb-4 text-[15px] leading-relaxed text-gray-700 line-clamp-3">
+                        {job.attributes.excerpt}
+                      </p>
+                    )}
+
+                    <div className="relative z-10 mt-auto flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5">
+                      <Link
+                        href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
+                        className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
+                      >
+                        {job.attributes.jobType}
+                      </Link>
+                      {job.attributes.categories?.data?.slice(0, 2).map((category) => (
+                        <Link
+                          key={category.id}
+                          href={`/jobs?category=${encodeURIComponent(category.attributes.slug)}`}
+                          className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
+                        >
+                          {category.attributes.name}
+                        </Link>
+                      ))}
                     </div>
                   </div>
                 ))}
