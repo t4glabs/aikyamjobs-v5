@@ -244,23 +244,23 @@ export default async function JobsPage({
                 {page > 1 ? (
                   <Link
                     href={`/jobs?${new URLSearchParams({ ...params as any, page: (page - 1).toString() })}`}
-                    className="text-gray-600 hover:text-gray-900 transition"
+                    className="inline-flex items-center min-h-11 px-1 text-gray-600 hover:text-gray-900 transition"
                   >
                     ← Previous
                   </Link>
                 ) : (
-                  <span className="text-gray-300">← Previous</span>
+                  <span className="inline-flex items-center min-h-11 px-1 text-gray-300">← Previous</span>
                 )}
-                <span className="text-gray-400">{page} of {pagination.pageCount}</span>
+                <span className="text-gray-600">{page} of {pagination.pageCount}</span>
                 {page < pagination.pageCount ? (
                   <Link
                     href={`/jobs?${new URLSearchParams({ ...params as any, page: (page + 1).toString() })}`}
-                    className="text-gray-600 hover:text-gray-900 transition"
+                    className="inline-flex items-center min-h-11 px-1 text-gray-600 hover:text-gray-900 transition"
                   >
                     Next →
                   </Link>
                 ) : (
-                  <span className="text-gray-300">Next →</span>
+                  <span className="inline-flex items-center min-h-11 px-1 text-gray-300">Next →</span>
                 )}
               </div>
             )}

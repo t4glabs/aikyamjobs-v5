@@ -33,7 +33,7 @@ async function quickSearch(query: string): Promise<Hit[]> {
       q: query,
       limit: 12,
       attributesToHighlight: ['title'],
-      highlightPreTag: '<mark class="bg-yellow-100 text-yellow-900">',
+      highlightPreTag: '<mark class="bg-[#F7E7E2] text-[#8E3527]">',
       highlightPostTag: '</mark>',
     }),
   });
@@ -105,7 +105,7 @@ export default function HomeSearch() {
               onChange={e => { setQuery(e.target.value); if (!e.target.value.trim()) setOpen(false); }}
               onFocus={() => { if (hits.length) setOpen(true); }}
               placeholder="Search jobs, organisations, resources…"
-              className="w-full px-5 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
+              className="w-full px-5 py-3 border border-gray-200 rounded-lg focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15 text-sm text-gray-900 placeholder:text-gray-400"
               autoComplete="off"
             />
             {loading && (
@@ -116,7 +116,7 @@ export default function HomeSearch() {
           </div>
           <button
             type="submit"
-            className="btn-brand px-8 py-3 rounded-lg font-mono text-sm font-semibold"
+            className="btn-brand px-8 py-3 rounded-lg text-sm font-semibold"
           >
             Search
           </button>

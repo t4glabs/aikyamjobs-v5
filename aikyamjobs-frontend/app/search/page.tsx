@@ -45,7 +45,7 @@ async function searchMeili(query: string, filter: FilterType): Promise<{ hits: S
     q: query,
     limit: 40,
     attributesToHighlight: ['title', 'excerpt', 'company'],
-    highlightPreTag: '<mark class="bg-yellow-100 text-yellow-900 rounded-sm px-0.5">',
+    highlightPreTag: '<mark class="bg-[#F7E7E2] text-[#8E3527] rounded-sm px-0.5">',
     highlightPostTag: '</mark>',
   };
 
@@ -157,13 +157,13 @@ function ResultCard({ hit }: { hit: SearchHit }) {
           <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full capitalize">{hit.category}</span>
         )}
         {hit.type === 'blog' && hit.author && (
-          <span className="text-xs text-gray-400">by {hit.author}</span>
+          <span className="text-xs text-gray-600">by {hit.author}</span>
         )}
       </div>
 
       {/* Date */}
       {hit.published_at && (
-        <p className="text-xs text-gray-400 mt-auto">{formatDate(hit.published_at)}</p>
+        <p className="text-xs text-gray-600 mt-auto">{formatDate(hit.published_at)}</p>
       )}
     </Link>
   );
@@ -244,7 +244,7 @@ function SearchPageInner() {
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search jobs, companies, resources…"
-              className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-600 focus:ring-2 focus:ring-gray-600/20 transition-colors shadow-sm"
+              className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 bg-white text-base text-gray-900 placeholder:text-gray-400 focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15 transition-colors shadow-sm"
             />
             {query && (
               <button
@@ -261,7 +261,7 @@ function SearchPageInner() {
 
           {/* Stats */}
           {status === 'done' && query && (
-            <p className="mt-4 text-xs text-gray-400">
+            <p className="mt-4 text-xs text-gray-600">
               {total} result{total !== 1 ? 's' : ''} for <strong className="text-gray-600">&ldquo;{query}&rdquo;</strong> · {timing}ms
             </p>
           )}
@@ -285,7 +285,7 @@ function SearchPageInner() {
               >
                 {f.label}
                 {f.value !== 'all' && status === 'done' && (
-                  <span className={`ml-1.5 text-xs ${filter === f.value ? 'text-gray-300' : 'text-gray-400'}`}>
+                  <span className={`ml-1.5 text-xs ${filter === f.value ? 'text-gray-300' : 'text-gray-600'}`}>
                     {hits.filter(h => h.type === f.value).length}
                   </span>
                 )}

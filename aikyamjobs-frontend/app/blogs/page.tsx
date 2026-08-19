@@ -187,7 +187,7 @@ export default async function BlogsPage({
                 ) : (
                   <span className="text-gray-300">← Previous</span>
                 )}
-                <span className="text-gray-400">{page} of {pagination.pageCount}</span>
+                <span className="text-gray-600">{page} of {pagination.pageCount}</span>
                 {page < pagination.pageCount ? (
                   <Link
                     href={`/blogs?${new URLSearchParams({ ...params as any, page: (page + 1).toString() })}`}
