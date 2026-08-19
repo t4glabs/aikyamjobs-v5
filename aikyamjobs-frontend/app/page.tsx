@@ -59,7 +59,7 @@ export default async function Home() {
       <section className="bg-white border-b border-gray-100 py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-center">
               {settings.heroTitle}
             </h1>
             {settings.heroSubtitle && (
@@ -139,7 +139,7 @@ export default async function Home() {
       {categories.length > 0 && (
         <section className="py-12 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-6">
               Browse by Tag
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -162,7 +162,7 @@ export default async function Home() {
         <section className="py-12">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {settings.jobsSectionTitle}
               </h2>
               <Link
@@ -276,7 +276,7 @@ export default async function Home() {
         <section className="py-12 bg-white border-t border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 {settings.blogsSectionTitle}
               </h2>
               <Link

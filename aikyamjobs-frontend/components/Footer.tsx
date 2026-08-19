@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getSiteSettings } from "@/lib/api";
 
 export default async function Footer() {
@@ -24,7 +25,19 @@ export default async function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="font-semibold mb-3">{siteName}</h3>
+            <span className="inline-flex items-center gap-3 mb-3">
+              <Image
+                src="/logo/clasp-vector-bold-white.svg"
+                alt=""
+                width={24}
+                height={27}
+                className="block flex-none"
+                unoptimized
+              />
+              <span className="whitespace-nowrap text-[15px] font-semibold tracking-[0.02em] text-white">
+                aikyam <span className="font-normal tracking-[-0.02em]">jobs</span>
+              </span>
+            </span>
             <p className="text-sm text-[#B8AFA9] leading-relaxed">{tagline}</p>
           </div>
 
