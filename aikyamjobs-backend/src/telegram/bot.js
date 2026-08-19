@@ -79,9 +79,14 @@ function buildToggleKeyboard(categories, subscribedIds, callbackDataFor) {
   return keyboard;
 }
 
+function withSearchButton(keyboard) {
+  keyboard.row().switchInlineCurrent('🔎 Search categories by yourself', '');
+  return keyboard;
+}
+
 function withBrowseMoreButton(keyboard) {
   keyboard.row().text('🔎 See more categories', 'p:b:0');
-  return keyboard;
+  return withSearchButton(keyboard);
 }
 
 // Fixed set of categories (a job's own tags) — same set shown before and after toggling.
@@ -130,7 +135,35 @@ async function buildBrowseKeyboard(chatId, page) {
     if (hasPrev) keyboard.text('◀ Prev', `p:b:${page - 1}`);
     if (hasNext) keyboard.text('Next ▶', `p:b:${page + 1}`);
   }
-  return keyboard;
+  return withSearchButton(keyboard);
+}
+
+const INLINE_SEARCH_LIMIT = 30;
+
+// Inline search — lets the user type "@botname query" in this chat instead of
+// paging through 170+ categories. Requires inline mode enabled via @BotFather
+// (/setinline); Telegram silently drops the query otherwise.
+async function buildInlineSearchResults(query, chatId) {
+  const categories = await strapi.db.query('api::category.category').findMany({
+    select: ['id', 'name'],
+    where: query ? { name: { $containsi: query } } : {},
+    orderBy: { name: 'asc' },
+    limit: INLINE_SEARCH_LIMIT,
+  });
+  const subscribedIds = await getSubscribedIds(chatId);
+
+  return categories.map((category) => {
+    const checked = subscribedIds.has(category.id);
+    const label = `${checked ? '✅ ' : ''}${category.name}`;
+    return {
+      type: 'article',
+      id: String(category.id),
+      title: label,
+      description: checked ? 'Subscribed — tap to view' : 'Tap to view and subscribe',
+      input_message_content: { message_text: category.name },
+      reply_markup: new InlineKeyboard().text(label, `t:q:${category.id}`),
+    };
+  });
 }
 
 async function toggleSubscription(chatId, from, categoryId) {
@@ -303,6 +336,31 @@ function registerHandlers(botInstance, strapiInstance) {
     await ctx
       .editMessageText('Browse all categories — tap to subscribe or unsubscribe:', { reply_markup: keyboard })
       .catch(() => ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {}));
+  });
+
+  // Toggle on a single category picked from inline search results.
+  botInstance.callbackQuery(/^t:q:(\d+)$/, async (ctx) => {
+    const categoryId = Number(ctx.match[1]);
+    const chatId = String(ctx.chat.id);
+    const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
+    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    const category = await strapi.db
+      .query('api::category.category')
+      .findOne({ where: { id: categoryId }, select: ['id', 'name'] });
+    const keyboard = category
+      ? new InlineKeyboard().text(`${subscribed ? '✅ ' : ''}${category.name}`, `t:q:${categoryId}`)
+      : new InlineKeyboard();
+    await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
+  });
+
+  // Inline search — "@botname query" typed in the chat via the switchInlineCurrent button.
+  botInstance.on('inline_query', async (ctx) => {
+    const query = (ctx.inlineQuery.query || '').trim();
+    const chatId = String(ctx.from.id);
+    const results = await buildInlineSearchResults(query, chatId);
+    await ctx.answerInlineQuery(results, { cache_time: 0, is_personal: true }).catch((err) => {
+      strapiInstance.log.warn('[telegram-bot] answerInlineQuery failed', err.message || err);
+    });
   });
 
   // Hidden admin-only command — deliberately left out of setMyCommands so it
