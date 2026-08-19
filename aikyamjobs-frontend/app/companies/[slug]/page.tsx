@@ -21,7 +21,7 @@ export default async function CompanyDetailPage({
   const company = companyResponse.data[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-4">
           <Link href="/companies" className="link-brand font-medium">
@@ -41,29 +41,24 @@ export default async function CompanyDetailPage({
                   className="w-16 h-16 object-contain rounded border border-gray-100 flex-shrink-0"
                 />
               )}
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900">
                 {company.attributes.name}
               </h1>
             </div>
 
-            <div className="flex flex-wrap gap-4 mb-6">
-              {company.attributes.location && (
-                <div className="flex items-center text-gray-600">
-                  <span className="mr-2">📍</span>
-                  <span>{company.attributes.location}</span>
-                </div>
-              )}
+            <div className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+              {company.attributes.location && <span>{company.attributes.location}</span>}
               {company.attributes.size && (
-                <div className="flex items-center text-gray-600">
-                  <span className="mr-2">👥</span>
+                <>
+                  <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
                   <span>{company.attributes.size}</span>
-                </div>
+                </>
               )}
               {company.attributes.industry && (
-                <div className="flex items-center text-gray-600">
-                  <span className="mr-2">🏢</span>
+                <>
+                  <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
                   <span>{company.attributes.industry}</span>
-                </div>
+                </>
               )}
             </div>
 
@@ -72,7 +67,7 @@ export default async function CompanyDetailPage({
                 href={company.attributes.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-brand inline-block px-6 py-2 rounded-lg font-semibold mb-6"
+                className="btn-brand inline-block px-6 py-2 rounded-md font-semibold mb-6"
               >
                 Visit Website →
               </a>
@@ -80,17 +75,17 @@ export default async function CompanyDetailPage({
 
             {company.attributes.description && (
               <div className="mt-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">About</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">About</h2>
                 <Markdown
                   content={company.attributes.description}
-                  className="prose max-w-none"
+                  className="prose"
                 />
               </div>
             )}
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Open Positions</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Open Positions</h2>
             <div className="space-y-4">
               {/* Job listings will be populated when jobs are added */}
               <p className="text-gray-600">

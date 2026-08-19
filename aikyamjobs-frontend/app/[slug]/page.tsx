@@ -37,15 +37,15 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
         : page.attributes.content;
 
       return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
           <div className="container mx-auto px-4 py-12 max-w-3xl">
             <div className="bg-white rounded-lg border border-gray-200 p-8 md:p-12">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{page.attributes.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">{page.attributes.title}</h1>
               {page.attributes.excerpt && (
-                <p className="text-gray-500 mb-8 text-lg">{page.attributes.excerpt}</p>
+                <p className="text-gray-600 mb-8 text-lg">{page.attributes.excerpt}</p>
               )}
               <div className="border-t border-gray-100 pt-8">
-                <Markdown content={content} className="prose max-w-none" />
+                <Markdown content={content} className="prose" />
               </div>
             </div>
           </div>

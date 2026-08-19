@@ -6,7 +6,7 @@ import { Company, StrapiResponse } from "@/lib/types";
 
 function truncate(text: string): string {
   if (!text) return '';
-  const plain = text
+  return text
     .replace(/!\[.*?\]\(.*?\)/g, '')
     .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
     .replace(/^#{1,6}\s+/gm, '')
@@ -14,7 +14,6 @@ function truncate(text: string): string {
     .replace(/`{1,3}[^`]+`{1,3}/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  return plain.length > 200 ? plain.slice(0, 200) + '…' : plain;
 }
 
 export default async function CompaniesPage({
@@ -30,13 +29,13 @@ export default async function CompaniesPage({
   const pagination = companiesResponse.meta?.pagination;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-900">Companies</h1>
           <p className="text-gray-600 mt-2">
             Discover organizations making an impact
-            {pagination && <span className="text-gray-400 text-sm ml-2">— {pagination.total} organisations</span>}
+            {pagination && <span className="text-gray-600 text-sm ml-2">— {pagination.total} organisations</span>}
           </p>
         </div>
       </div>
@@ -47,7 +46,7 @@ export default async function CompaniesPage({
             <Link
               key={company.id}
               href={`/companies/${company.attributes.slug}`}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
+              className="bg-white border border-gray-200 rounded-lg p-6 transition hover:border-gray-300 hover:shadow-sm"
             >
               <div className="flex items-center gap-4 mb-3">
                 {company.attributes.logo?.data && (
@@ -57,20 +56,21 @@ export default async function CompaniesPage({
                     className="w-14 h-14 object-contain rounded-lg border border-gray-100 flex-shrink-0"
                   />
                 )}
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-[19px] font-semibold tracking-tight text-gray-900">
                   {company.attributes.name}
                 </h2>
               </div>
-              {company.attributes.location && (
-                <p className="text-sm text-gray-600 mb-2">📍 {company.attributes.location}</p>
-              )}
-              {company.attributes.industry && (
-                <p className="text-sm text-gray-500 mb-3">
-                  {company.attributes.industry}
-                </p>
+              {(company.attributes.location || company.attributes.industry) && (
+                <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                  {company.attributes.location && <span>{company.attributes.location}</span>}
+                  {company.attributes.location && company.attributes.industry && (
+                    <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                  )}
+                  {company.attributes.industry && <span>{company.attributes.industry}</span>}
+                </div>
               )}
               {(company.attributes.excerpt || company.attributes.description) && (
-                <p className="text-sm text-gray-700">
+                <p className="text-[15px] leading-relaxed text-gray-700 line-clamp-3">
                   {truncate(company.attributes.excerpt || company.attributes.description || '')}
                 </p>
               )}
@@ -83,23 +83,23 @@ export default async function CompaniesPage({
             {page > 1 ? (
               <Link
                 href={`/companies?page=${page - 1}`}
-                className="text-gray-600 hover:text-gray-900 transition"
+                className="inline-flex items-center min-h-11 px-1 text-gray-600 hover:text-gray-900 transition"
               >
                 ← Previous
               </Link>
             ) : (
-              <span className="text-gray-300">← Previous</span>
+              <span className="inline-flex items-center min-h-11 px-1 text-gray-300">← Previous</span>
             )}
-            <span className="text-gray-400">{page} of {pagination.pageCount}</span>
+            <span className="text-gray-600">{page} of {pagination.pageCount}</span>
             {page < pagination.pageCount ? (
               <Link
                 href={`/companies?page=${page + 1}`}
-                className="text-gray-600 hover:text-gray-900 transition"
+                className="inline-flex items-center min-h-11 px-1 text-gray-600 hover:text-gray-900 transition"
               >
                 Next →
               </Link>
             ) : (
-              <span className="text-gray-300">Next →</span>
+              <span className="inline-flex items-center min-h-11 px-1 text-gray-300">Next →</span>
             )}
           </div>
         )}
