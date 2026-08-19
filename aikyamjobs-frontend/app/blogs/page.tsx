@@ -61,12 +61,12 @@ export default async function BlogsPage({
               name="search"
               defaultValue={search}
               placeholder="Search articles..."
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900 placeholder:text-gray-600"
+              className="h-10 px-4 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
             />
             <select
               name="category"
               defaultValue={category}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-900"
+              className="h-10 px-4 border border-gray-300 rounded-md text-sm text-gray-900 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
             >
               <option value="">All Categories</option>
               {categoryOptions.map((cat) => (
@@ -77,7 +77,7 @@ export default async function BlogsPage({
             </select>
             <button
               type="submit"
-              className="btn-brand px-6 py-2 rounded-lg font-semibold"
+              className="btn-brand h-10 rounded-md font-semibold text-sm"
             >
               Apply Filters
             </button>
@@ -119,7 +119,7 @@ export default async function BlogsPage({
                   key={blog.id}
                   href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
                   target={blog.attributes.externalLink ? "_blank" : undefined}
-                  className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition group"
+                  className="flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden transition hover:border-gray-300 hover:shadow-sm group"
                 >
                   {blog.attributes.featuredImage?.data && (
                     <div className="relative h-48 bg-gray-100">
@@ -131,33 +131,33 @@ export default async function BlogsPage({
                       />
                     </div>
                   )}
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-col flex-1 p-6">
+                    <div className="flex items-center gap-1.5 mb-3">
                       {blog.attributes.category && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800">
                           {blog.attributes.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                         </span>
                       )}
                       {blog.attributes.featured && (
-                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                        <span className="rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
                           Featured
                         </span>
                       )}
                       {blog.attributes.readTime && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-600">
                           {blog.attributes.readTime} min read
                         </span>
                       )}
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-brand transition">
+                    <h2 className="text-[19px] font-semibold tracking-tight leading-snug text-gray-900 mb-2.5 group-hover:text-brand transition">
                       {blog.attributes.title}
                     </h2>
                     {blog.attributes.excerpt && (
-                      <p className="text-gray-600 text-sm mb-3">
-                        {blog.attributes.excerpt.length > 300 ? blog.attributes.excerpt.slice(0, 300) + '…' : blog.attributes.excerpt}
+                      <p className="text-[15px] leading-relaxed text-gray-700 line-clamp-3 mb-4">
+                        {blog.attributes.excerpt}
                       </p>
                     )}
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="mt-auto flex items-center justify-between text-sm text-gray-600 pt-3.5 border-t border-gray-100">
                       {blog.attributes.author && (
                         <span className="font-medium">{blog.attributes.author}</span>
                       )}
@@ -180,23 +180,23 @@ export default async function BlogsPage({
                 {page > 1 ? (
                   <Link
                     href={`/blogs?${new URLSearchParams({ ...params as any, page: (page - 1).toString() })}`}
-                    className="link-brand"
+                    className="link-brand inline-flex items-center min-h-11 px-1"
                   >
                     ← Previous
                   </Link>
                 ) : (
-                  <span className="text-gray-300">← Previous</span>
+                  <span className="inline-flex items-center min-h-11 px-1 text-gray-300">← Previous</span>
                 )}
                 <span className="text-gray-600">{page} of {pagination.pageCount}</span>
                 {page < pagination.pageCount ? (
                   <Link
                     href={`/blogs?${new URLSearchParams({ ...params as any, page: (page + 1).toString() })}`}
-                    className="link-brand"
+                    className="link-brand inline-flex items-center min-h-11 px-1"
                   >
                     Next →
                   </Link>
                 ) : (
-                  <span className="text-gray-300">Next →</span>
+                  <span className="inline-flex items-center min-h-11 px-1 text-gray-300">Next →</span>
                 )}
               </div>
             )}

@@ -51,7 +51,7 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
     : (blog.attributes.content || '');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <article className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm text-gray-600">
@@ -63,20 +63,20 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         </nav>
 
         {/* Header */}
-        <header className="bg-white rounded-lg p-8 mb-6">
+        <header className="bg-white border border-gray-200 rounded-lg p-8 mb-6">
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {blog.attributes.category && (
-              <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+              <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800">
                 {blog.attributes.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
               </span>
             )}
             {blog.attributes.featured && (
-              <span className="text-sm bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">
+              <span className="rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
                 Featured
               </span>
             )}
             {blog.attributes.readTime && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-600">
                 {blog.attributes.readTime} min read
               </span>
             )}
@@ -108,11 +108,11 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
               </p>
             </div>
             {blog.attributes.tags && blog.attributes.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {blog.attributes.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                    className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800"
                   >
                     #{tag}
                   </span>
@@ -135,8 +135,8 @@ export default async function BlogPage({ params }: { params: Promise<{ slug: str
         )}
 
         {/* Content */}
-        <div className="bg-white rounded-lg p-8">
-          <div className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg">
+        <div className="bg-white border border-gray-200 rounded-lg p-8">
+          <div className="prose">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {content}
             </ReactMarkdown>
