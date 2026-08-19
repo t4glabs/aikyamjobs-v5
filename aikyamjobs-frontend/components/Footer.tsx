@@ -75,11 +75,14 @@ export default async function Footer() {
         </div>
 
         {/* Credits line */}
-        {creditsLine && (
-          <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-500 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition [&_a]:text-gray-500 [&_a:hover]:text-gray-300">
-            <p dangerouslySetInnerHTML={{ __html: creditsLine }} />
-          </div>
-        )}
+        <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-500 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition [&_a]:text-gray-500 [&_a:hover]:text-gray-300">
+          <p>
+            aikyam / <span lang="ml">ഐക്യം</span> / <span lang="hi">ऐक्यम</span> | noun. unity
+          </p>
+          {creditsLine && (
+            <p className="mt-1.5" dangerouslySetInnerHTML={{ __html: creditsLine }} />
+          )}
+        </div>
       </div>
     </footer>
   );
