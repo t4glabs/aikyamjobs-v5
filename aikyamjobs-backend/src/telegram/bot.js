@@ -154,14 +154,16 @@ async function buildInlineSearchResults(query, chatId) {
 
   return categories.map((category) => {
     const checked = subscribedIds.has(category.id);
-    const label = `${checked ? '✅ ' : ''}${category.name}`;
     return {
       type: 'article',
       id: String(category.id),
-      title: label,
+      title: `${checked ? '✅ ' : ''}${category.name}`,
       description: checked ? 'Subscribed — tap to view' : 'Tap to view and subscribe',
-      input_message_content: { message_text: category.name },
-      reply_markup: new InlineKeyboard().text(label, `t:q:${category.id}`),
+      input_message_content: { message_text: `Subscribe to "${category.name}"?` },
+      reply_markup: new InlineKeyboard().text(
+        checked ? '✅ Subscribed' : '🔔 Subscribe',
+        `t:q:${category.id}`
+      ),
     };
   });
 }
@@ -338,18 +340,18 @@ function registerHandlers(botInstance, strapiInstance) {
       .catch(() => ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {}));
   });
 
-  // Toggle on a single category picked from inline search results.
+  // Toggle on a single category picked from inline search results. These buttons
+  // live on a message Telegram sent on the bot's behalf (no ctx.chat, only
+  // ctx.inlineMessageId) — the user who tapped is always the right subscriber.
   botInstance.callbackQuery(/^t:q:(\d+)$/, async (ctx) => {
     const categoryId = Number(ctx.match[1]);
-    const chatId = String(ctx.chat.id);
+    const chatId = String(ctx.from.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
     await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
-    const category = await strapi.db
-      .query('api::category.category')
-      .findOne({ where: { id: categoryId }, select: ['id', 'name'] });
-    const keyboard = category
-      ? new InlineKeyboard().text(`${subscribed ? '✅ ' : ''}${category.name}`, `t:q:${categoryId}`)
-      : new InlineKeyboard();
+    const keyboard = new InlineKeyboard().text(
+      subscribed ? '✅ Subscribed' : '🔔 Subscribe',
+      `t:q:${categoryId}`
+    );
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
   });
 
