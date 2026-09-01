@@ -13,6 +13,16 @@ export interface Job {
     impactArea?: string;
     applicationUrl?: string;
     applicationEmail?: string;
+    applyMode?: 'auto' | 'external' | 'gated';
+    // Injected server-side by the job controller. For gated jobs the raw
+    // applicationUrl/applicationEmail are stripped from the response.
+    resolvedApplyMode?: 'external' | 'gated';
+    requirementChecklist?: Array<{
+      id?: number;
+      label: string;
+      required?: boolean;
+      weight?: number;
+    }>;
     closingDate?: string;
     publishDate?: string;
     curatedBy?: {

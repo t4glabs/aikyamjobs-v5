@@ -362,6 +362,128 @@ export interface AdminUser extends Schema.CollectionType {
   };
 }
 
+export interface ApiApplicantApplicant extends Schema.CollectionType {
+  collectionName: 'applicants';
+  info: {
+    description: 'A job seeker who applies through the aikyam gated flow (identified by email via magic-link).';
+    displayName: 'Applicant';
+    pluralName: 'applicants';
+    singularName: 'applicant';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    applications: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToMany',
+      'api::application.application'
+    >;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    currentCv: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToOne',
+      'api::cv-upload.cv-upload'
+    >;
+    cvUploads: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToMany',
+      'api::cv-upload.cv-upload'
+    >;
+    email: Attribute.Email & Attribute.Required & Attribute.Unique;
+    interestTags: Attribute.JSON;
+    lastLoginAt: Attribute.DateTime;
+    magicTokenExpiresAt: Attribute.DateTime & Attribute.Private;
+    magicTokenHash: Attribute.String & Attribute.Private;
+    name: Attribute.String;
+    phone: Attribute.String;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiApplicationApplication extends Schema.CollectionType {
+  collectionName: 'applications';
+  info: {
+    description: "One applicant's gated application to one job: self-assessment checklist answers, score, CV version used, consent, and the review decision.";
+    displayName: 'Application';
+    pluralName: 'applications';
+    singularName: 'application';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    aiMarkedFields: Attribute.JSON;
+    aiReviewed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    applicant: Attribute.Relation<
+      'api::application.application',
+      'manyToOne',
+      'api::applicant.applicant'
+    >;
+    checklistAnswers: Attribute.JSON;
+    checklistMax: Attribute.Integer & Attribute.DefaultTo<0>;
+    checklistPercent: Attribute.Integer & Attribute.DefaultTo<0>;
+    checklistScore: Attribute.Integer & Attribute.DefaultTo<0>;
+    consent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::application.application',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    cvUsed: Attribute.Relation<
+      'api::application.application',
+      'manyToOne',
+      'api::cv-upload.cv-upload'
+    >;
+    decisionAt: Attribute.DateTime;
+    decisionBy: Attribute.Relation<
+      'api::application.application',
+      'manyToOne',
+      'api::staff.staff'
+    >;
+    decisionNote: Attribute.Text;
+    job: Attribute.Relation<
+      'api::application.application',
+      'manyToOne',
+      'api::job.job'
+    >;
+    status: Attribute.Enumeration<
+      [
+        'submitted',
+        'under_review',
+        'shortlisted',
+        'approved',
+        'rejected_with_tips',
+        'rejected',
+        'withdrawn'
+      ]
+    > &
+      Attribute.DefaultTo<'submitted'>;
+    submittedAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::application.application',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiBlogBlog extends Schema.CollectionType {
   collectionName: 'blogs';
   info: {
@@ -503,6 +625,44 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
   };
 }
 
+export interface ApiCvUploadCvUpload extends Schema.CollectionType {
+  collectionName: 'cv_uploads';
+  info: {
+    description: 'A single CV/resume version uploaded by an applicant. Distinct (counted) uploads are rate-limited; same-day re-uploads replace without counting.';
+    displayName: 'CV Upload';
+    pluralName: 'cv-uploads';
+    singularName: 'cv-upload';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    applicant: Attribute.Relation<
+      'api::cv-upload.cv-upload',
+      'manyToOne',
+      'api::applicant.applicant'
+    >;
+    counted: Attribute.Boolean & Attribute.DefaultTo<true>;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::cv-upload.cv-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    file: Attribute.Media<'files' | 'images'>;
+    originalName: Attribute.String;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::cv-upload.cv-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    uploadedAt: Attribute.DateTime;
+  };
+}
+
 export interface ApiInternalTagInternalTag extends Schema.CollectionType {
   collectionName: 'internal_tags';
   info: {
@@ -549,6 +709,8 @@ export interface ApiJobJob extends Schema.CollectionType {
   attributes: {
     applicationEmail: Attribute.Email;
     applicationUrl: Attribute.String;
+    applyMode: Attribute.Enumeration<['auto', 'external', 'gated']> &
+      Attribute.DefaultTo<'auto'>;
     categories: Attribute.Relation<
       'api::job.job',
       'manyToMany',
@@ -597,6 +759,7 @@ export interface ApiJobJob extends Schema.CollectionType {
       }>;
     publishDate: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
+    requirementChecklist: Attribute.Component<'apply.checklist-item', true>;
     salary: Attribute.String;
     skills: Attribute.JSON;
     slug: Attribute.UID<'api::job.job', 'title'> & Attribute.Required;
@@ -655,6 +818,9 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     draftAndPublish: false;
   };
   attributes: {
+    applicationsNotifyEmail: Attribute.Email;
+    applyConfirmationCopy: Attribute.Text &
+      Attribute.DefaultTo<"Thanks for applying with aikyamjobs. Our team will carefully review your interest within 24 hours and get back to you by email. Please don't submit again for this role.">;
     blogsGridColumns: Attribute.Integer &
       Attribute.SetMinMax<
         {
@@ -689,6 +855,22 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
       'admin::user'
     > &
       Attribute.Private;
+    cvUploadMinGapHours: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<24>;
+    cvUploadWindowDays: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<180>;
     favicon: Attribute.Media<'images'>;
     followUpThresholdDays: Attribute.Integer &
       Attribute.SetMinMax<
@@ -702,6 +884,8 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     footerResourceLinks: Attribute.JSON;
     footerSeekerLinks: Attribute.JSON;
     footerTagline: Attribute.String;
+    globalApplyMode: Attribute.Enumeration<['perJob', 'gatedEverywhere']> &
+      Attribute.DefaultTo<'perJob'>;
     heroSubtitle: Attribute.Text &
       Attribute.DefaultTo<'Browse opportunities to solve pressing problems with your tech and design skills'>;
     heroTitle: Attribute.String &
@@ -732,6 +916,14 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     jobsSectionTitle: Attribute.String &
       Attribute.DefaultTo<'Latest Opportunities'>;
     logo: Attribute.Media<'images'>;
+    maxCvUploadsPer6Months: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<3>;
     metaDescription: Attribute.Text;
     metaKeywords: Attribute.Text;
     metaTitle: Attribute.String;
@@ -1303,9 +1495,12 @@ declare module '@strapi/types' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::applicant.applicant': ApiApplicantApplicant;
+      'api::application.application': ApiApplicationApplication;
       'api::blog.blog': ApiBlogBlog;
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
+      'api::cv-upload.cv-upload': ApiCvUploadCvUpload;
       'api::internal-tag.internal-tag': ApiInternalTagInternalTag;
       'api::job.job': ApiJobJob;
       'api::page.page': ApiPagePage;

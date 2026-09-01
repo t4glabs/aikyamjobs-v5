@@ -53,6 +53,16 @@
     "applicationEmail": {
       "type": "email"
     },
+    "applyMode": {
+      "type": "enumeration",
+      "enum": ["auto", "external", "gated"],
+      "default": "auto"
+    },
+    "requirementChecklist": {
+      "type": "component",
+      "repeatable": true,
+      "component": "apply.checklist-item"
+    },
     "closingDate": {
       "type": "datetime"
     },

@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cv_uploads",
+  "info": {
+    "singularName": "cv-upload",
+    "pluralName": "cv-uploads",
+    "displayName": "CV Upload",
+    "description": "A single CV/resume version uploaded by an applicant. Distinct (counted) uploads are rate-limited; same-day re-uploads replace without counting."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "applicant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::applicant.applicant",
+      "inversedBy": "cvUploads"
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files", "images"]
+    },
+    "originalName": {
+      "type": "string"
+    },
+    "uploadedAt": {
+      "type": "datetime"
+    },
+    "counted": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

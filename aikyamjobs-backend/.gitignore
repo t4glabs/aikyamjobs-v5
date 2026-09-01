@@ -39,3 +39,6 @@ images-backup.tar.gz
 aikyamjobs_*.csv
 migration-processed.json
 ghost-recent-50.json
+
+# local DB backups (never commit)
+backups/
