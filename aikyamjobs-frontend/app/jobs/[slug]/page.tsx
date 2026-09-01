@@ -191,7 +191,19 @@ export default async function JobDetailPage({
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
               {/* Apply Button */}
-              {(job.attributes.applicationUrl || job.attributes.applicationEmail) && (
+              {job.attributes.resolvedApplyMode === 'gated' ? (
+                <div className="mb-6">
+                  <Link
+                    href={`/jobs/${job.attributes.slug}/apply`}
+                    className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
+                  >
+                    Apply with aikyamjobs →
+                  </Link>
+                  <p className="mt-2 text-center text-xs text-gray-500">
+                    A quick check helps us match you well.
+                  </p>
+                </div>
+              ) : (job.attributes.applicationUrl || job.attributes.applicationEmail) ? (
                 <div className="mb-6">
                   {job.attributes.applicationUrl ? (
                     <a
@@ -211,7 +223,7 @@ export default async function JobDetailPage({
                     </a>
                   ) : null}
                 </div>
-              )}
+              ) : null}
 
               <div className="space-y-4 text-sm">
                 {job.attributes.impactArea && (
