@@ -29,3 +29,6 @@ Thumbs.db
 ghost-recent-50.json
 aikyamjobs*.json
 *migration*.json
+
+# generated checklist review files (do not commit)
+scripts/checklists/
