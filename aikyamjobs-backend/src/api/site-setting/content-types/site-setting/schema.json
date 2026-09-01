@@ -172,6 +172,33 @@
       "type": "integer",
       "default": 30,
       "min": 1
+    },
+    "globalApplyMode": {
+      "type": "enumeration",
+      "enum": ["perJob", "gatedEverywhere"],
+      "default": "perJob"
+    },
+    "maxCvUploadsPer6Months": {
+      "type": "integer",
+      "default": 3,
+      "min": 1
+    },
+    "cvUploadMinGapHours": {
+      "type": "integer",
+      "default": 24,
+      "min": 0
+    },
+    "cvUploadWindowDays": {
+      "type": "integer",
+      "default": 180,
+      "min": 1
+    },
+    "applyConfirmationCopy": {
+      "type": "text",
+      "default": "Thanks for applying with aikyamjobs. Our team will carefully review your interest within 24 hours and get back to you by email. Please don't submit again for this role."
+    },
+    "applicationsNotifyEmail": {
+      "type": "email"
     }
   }
 }

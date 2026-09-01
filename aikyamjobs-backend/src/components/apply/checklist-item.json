@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_apply_checklist_items",
+  "info": {
+    "displayName": "Checklist Item",
+    "description": "One self-assessment statement shown as a checkbox on the gated application form."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+    "weight": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 10
+    }
+  }
+}

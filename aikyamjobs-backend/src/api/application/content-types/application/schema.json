@@ -1,0 +1,85 @@
+{
+  "kind": "collectionType",
+  "collectionName": "applications",
+  "info": {
+    "singularName": "application",
+    "pluralName": "applications",
+    "displayName": "Application",
+    "description": "One applicant's gated application to one job: self-assessment checklist answers, score, CV version used, consent, and the review decision."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "applicant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::applicant.applicant",
+      "inversedBy": "applications"
+    },
+    "job": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::job.job"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "submitted",
+        "under_review",
+        "shortlisted",
+        "approved",
+        "rejected_with_tips",
+        "rejected",
+        "withdrawn"
+      ],
+      "default": "submitted"
+    },
+    "checklistAnswers": {
+      "type": "json"
+    },
+    "checklistScore": {
+      "type": "integer",
+      "default": 0
+    },
+    "checklistMax": {
+      "type": "integer",
+      "default": 0
+    },
+    "checklistPercent": {
+      "type": "integer",
+      "default": 0
+    },
+    "consent": {
+      "type": "boolean",
+      "default": false
+    },
+    "cvUsed": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cv-upload.cv-upload"
+    },
+    "aiMarkedFields": {
+      "type": "json"
+    },
+    "aiReviewed": {
+      "type": "boolean",
+      "default": false
+    },
+    "decisionBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::staff.staff"
+    },
+    "decisionNote": {
+      "type": "text"
+    },
+    "submittedAt": {
+      "type": "datetime"
+    },
+    "decisionAt": {
+      "type": "datetime"
+    }
+  }
+}

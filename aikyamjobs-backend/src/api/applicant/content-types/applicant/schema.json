@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "applicants",
+  "info": {
+    "singularName": "applicant",
+    "pluralName": "applicants",
+    "displayName": "Applicant",
+    "description": "A job seeker who applies through the aikyam gated flow (identified by email via magic-link)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "lastLoginAt": {
+      "type": "datetime"
+    },
+    "magicTokenHash": {
+      "type": "string",
+      "private": true
+    },
+    "magicTokenExpiresAt": {
+      "type": "datetime",
+      "private": true
+    },
+    "interestTags": {
+      "type": "json"
+    },
+    "currentCv": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::cv-upload.cv-upload"
+    },
+    "cvUploads": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cv-upload.cv-upload",
+      "mappedBy": "applicant"
+    },
+    "applications": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::application.application",
+      "mappedBy": "applicant"
+    }
+  }
+}
