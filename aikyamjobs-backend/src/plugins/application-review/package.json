@@ -1,0 +1,11 @@
+{
+  "name": "application-review",
+  "version": "1.0.0",
+  "description": "Admin-only API backing the Application Review screen — lets a non-technical recruiter score a CV against a job's requirements, leave notes, and record a Good match / Not a match decision, without touching raw content-manager fields.",
+  "strapi": {
+    "kind": "plugin",
+    "name": "application-review",
+    "displayName": "Application Review"
+  },
+  "main": "strapi-server.js"
+}

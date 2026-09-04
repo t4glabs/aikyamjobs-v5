@@ -1,4 +1,4 @@
-import { Clock } from '@strapi/icons';
+import { Clock, CheckCircle } from '@strapi/icons';
 
 export default {
   config: {},
@@ -11,6 +11,16 @@ export default {
         defaultMessage: 'Follow-ups',
       },
       Component: () => import('./pages/FollowUps'),
+      permissions: [],
+    });
+    app.addMenuLink({
+      to: '/application-review',
+      icon: CheckCircle,
+      intlLabel: {
+        id: 'application-review.plugin.name',
+        defaultMessage: 'Application Review',
+      },
+      Component: () => import('./pages/ApplicationReview'),
       permissions: [],
     });
   },
