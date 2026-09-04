@@ -125,3 +125,43 @@ export function submitApplication(input: {
     body: input,
   });
 }
+
+export interface ReadResultItem {
+  label: string;
+  required?: boolean;
+  weight?: number;
+  reviewerChecked: boolean;
+  applicantChecked: boolean | null;
+}
+
+export interface ReadResult {
+  status: 'pending' | 'approved' | 'rejected_with_tips' | string;
+  jobTitle?: string;
+  jobSlug?: string;
+  companyName?: string | null;
+  decisionAt?: string;
+  reviewerScore?: number;
+  reviewerMax?: number;
+  reviewerPercent?: number;
+  items?: ReadResultItem[];
+  leadWithThese?: string | null;
+  fixBeforeSending?: string | null;
+  applyTarget?: { url: string | null; email: string | null } | null;
+  recommendations?: Array<{ title: string; slug: string }>;
+  canReapply?: boolean;
+}
+
+export interface ApplyStatus {
+  hasApplication: boolean;
+  applicationId?: number;
+  status?: string;
+  decided?: boolean;
+}
+
+export function getApplyStatus(jobSlug: string) {
+  return request<ApplyStatus>(`/apply/status/${jobSlug}`, { auth: true });
+}
+
+export function getReadResult(id: string | number) {
+  return request<ReadResult>(`/apply/read/${id}`, { auth: true });
+}
