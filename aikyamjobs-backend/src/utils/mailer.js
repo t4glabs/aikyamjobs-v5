@@ -59,17 +59,25 @@ async function sendEmail({ to, subject, text, html, from, replyTo }) {
   }
 }
 
-const DEFAULT_NOTIFY_EMAIL = 'greeshma@aikyamfellows.org';
-
 /**
  * The one place that decides who "the team" is for email purposes: used both
  * as the recipient of new-submission notifications and as the Reply-To on
  * every applicant-facing email, so a reply lands somewhere a person reads it
  * instead of the no-reply sending address.
+ *
+ * Reads exclusively from Site Settings > applicationsNotifyEmail — no
+ * hardcoded fallback. If it's not configured, returns null and logs a
+ * warning; callers decide how to handle that (skip sending, or just omit a
+ * Reply-To), but nothing silently redirects to a specific hardcoded person.
  */
 async function getNotifyEmail() {
   const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
-  return (settings && settings.applicationsNotifyEmail) || DEFAULT_NOTIFY_EMAIL;
+  const email = settings && settings.applicationsNotifyEmail;
+  if (!email) {
+    strapi.log.warn('[mailer] Site Settings > applicationsNotifyEmail is not configured.');
+    return null;
+  }
+  return email;
 }
 
 module.exports = { sendEmail, getNotifyEmail };

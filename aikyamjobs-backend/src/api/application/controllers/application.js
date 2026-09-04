@@ -35,6 +35,10 @@ function buildPreviousSummary(existing) {
  */
 async function notifySummary({ job, applicant, snapshot, application, cvUrl, isRetry }) {
   const to = await getNotifyEmail();
+  if (!to) {
+    strapi.log.warn('[apply] skipping new-submission notification: no notify email configured');
+    return;
+  }
 
   const ticked = snapshot.items.filter((i) => i.checked).map((i) => `  ✓ ${i.label}`);
   const missed = snapshot.items
