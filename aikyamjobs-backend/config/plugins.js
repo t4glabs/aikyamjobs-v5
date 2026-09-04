@@ -3,6 +3,10 @@ module.exports = ({ env }) => ({
     enabled: true,
     resolve: './src/plugins/follow-ups',
   },
+  'application-review': {
+    enabled: true,
+    resolve: './src/plugins/application-review',
+  },
   upload: {
     config: {
       provider: 'local',

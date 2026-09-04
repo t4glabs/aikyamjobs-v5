@@ -3,12 +3,9 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { getJob, getSiteSettings } from '@/lib/api';
+import { getJob } from '@/lib/api';
 import { Job, StrapiResponse } from '@/lib/types';
 import ApplyClient from '@/components/apply/ApplyClient';
-
-const DEFAULT_CONFIRMATION =
-  'Thanks for applying with aikyamjobs. Our team will carefully review your interest within 24 hours and get back to you by email. Please don’t submit again for this role.';
 
 export async function generateMetadata({
   params,
@@ -45,15 +42,6 @@ export default async function ApplyPage({
     redirect(`/jobs/${slug}`);
   }
 
-  let confirmationCopy = DEFAULT_CONFIRMATION;
-  try {
-    const settings = await getSiteSettings();
-    const copy = settings?.data?.attributes?.applyConfirmationCopy;
-    if (copy) confirmationCopy = copy;
-  } catch {
-    /* fall back to default copy */
-  }
-
   const checklist = (a.requirementChecklist || []).map((i) => ({
     label: i.label,
     required: i.required,
@@ -75,8 +63,9 @@ export default async function ApplyPage({
           jobSlug={slug}
           jobTitle={a.title}
           companyName={job.attributes.company?.data?.attributes?.name}
+          location={a.location}
+          closingDate={a.closingDate}
           checklist={checklist}
-          confirmationCopy={confirmationCopy}
         />
       </div>
     </div>

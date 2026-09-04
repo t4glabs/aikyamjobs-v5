@@ -455,12 +455,21 @@ export interface ApiApplicationApplication extends Schema.CollectionType {
       'manyToOne',
       'api::staff.staff'
     >;
+    decisionByAdminEmail: Attribute.String & Attribute.Private;
+    decisionEmailSent: Attribute.Boolean & Attribute.DefaultTo<false>;
     decisionNote: Attribute.Text;
+    fixBeforeSending: Attribute.Text;
     job: Attribute.Relation<
       'api::application.application',
       'manyToOne',
       'api::job.job'
     >;
+    leadWithThese: Attribute.Text;
+    previousDecisionSummary: Attribute.Text;
+    reviewerChecklistAnswers: Attribute.JSON;
+    reviewerMax: Attribute.Integer;
+    reviewerPercent: Attribute.Integer;
+    reviewerScore: Attribute.Integer;
     status: Attribute.Enumeration<
       [
         'submitted',
@@ -818,9 +827,11 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     draftAndPublish: false;
   };
   attributes: {
+    allowReapplyAfterRejection: Attribute.Boolean & Attribute.DefaultTo<false>;
     applicationsNotifyEmail: Attribute.Email;
     applyConfirmationCopy: Attribute.Text &
       Attribute.DefaultTo<"Thanks for applying with aikyamjobs. Our team will carefully review your interest within 24 hours and get back to you by email. Please don't submit again for this role.">;
+    autoSendDecisionEmails: Attribute.Boolean & Attribute.DefaultTo<false>;
     blogsGridColumns: Attribute.Integer &
       Attribute.SetMinMax<
         {
