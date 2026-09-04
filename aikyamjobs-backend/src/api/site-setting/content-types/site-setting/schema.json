@@ -199,6 +199,14 @@
     },
     "applicationsNotifyEmail": {
       "type": "email"
+    },
+    "autoSendDecisionEmails": {
+      "type": "boolean",
+      "default": false
+    },
+    "allowReapplyAfterRejection": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

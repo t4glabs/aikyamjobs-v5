@@ -3,7 +3,7 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../../../utils/mailer');
+const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 
 const TOKEN_TTL_MIN = 20;
 const JWT_TTL = '30d';
@@ -82,9 +82,10 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
 
     await sendEmail({
       to: normEmail,
-      subject: 'Your aikyamjobs sign-in link',
-      text: `Continue your application on aikyamjobs:\n\n${link}\n\nThis link expires in ${TOKEN_TTL_MIN} minutes. If you didn't request it, you can ignore this email.`,
-      html: `<p>Continue your application on <strong>aikyamjobs</strong>:</p><p><a href="${link}">${link}</a></p><p style="color:#666;font-size:13px">This link expires in ${TOKEN_TTL_MIN} minutes. If you didn't request it, you can ignore this email.</p>`,
+      replyTo: await getNotifyEmail(),
+      subject: 'Your sign-in link',
+      text: `Tap below to carry on where you left off:\n\n${link}\n\nWorks on any device, for the next ${TOKEN_TTL_MIN} minutes. If you didn't ask for this, ignore it.`,
+      html: `<p>Tap below to carry on where you left off.</p><p style="margin:24px 0"><a href="${link}" style="background-color:#AE4634;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Continue →</a></p><p style="color:#666;font-size:13px">Works on any device, for the next ${TOKEN_TTL_MIN} minutes. If you didn't ask for this, ignore it.</p><p style="color:#999;font-size:12px">Button not working? Paste this in your browser:<br><a href="${link}" style="color:#999">${link}</a></p>`,
     });
 
     return { ok: true };
