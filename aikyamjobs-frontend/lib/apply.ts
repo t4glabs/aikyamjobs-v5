@@ -165,3 +165,41 @@ export function getApplyStatus(jobSlug: string) {
 export function getReadResult(id: string | number) {
   return request<ReadResult>(`/apply/read/${id}`, { auth: true });
 }
+
+export interface MyApplication {
+  applicationId: number;
+  jobTitle: string;
+  jobSlug: string | null;
+  companyName: string | null;
+  status: string;
+  decided: boolean;
+  submittedAt?: string;
+}
+
+export function getMyApplications() {
+  return request<{ applications: MyApplication[] }>('/apply/mine', { auth: true });
+}
+
+export interface SavedJob {
+  jobId: number;
+  jobTitle: string;
+  jobSlug: string;
+  companyName: string | null;
+  savedAt?: string;
+}
+
+export function getSavedStatus(jobSlug: string) {
+  return request<{ saved: boolean }>(`/apply/saved/${jobSlug}`, { auth: true });
+}
+
+export function saveJob(jobSlug: string) {
+  return request<{ saved: boolean }>(`/apply/saved/${jobSlug}`, { method: 'POST', auth: true });
+}
+
+export function unsaveJob(jobSlug: string) {
+  return request<{ saved: boolean }>(`/apply/saved/${jobSlug}`, { method: 'DELETE', auth: true });
+}
+
+export function getSavedJobs() {
+  return request<{ savedJobs: SavedJob[] }>('/apply/saved', { auth: true });
+}

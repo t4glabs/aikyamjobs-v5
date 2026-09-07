@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link";
+import { track } from "@/lib/analytics";
 
 export default function SubscribePage() {
   return (
@@ -24,6 +27,7 @@ export default function SubscribePage() {
               method="post"
               action="https://mails.tinybridge.org/subscription/form"
               className="space-y-4"
+              onSubmit={() => track('Newsletter Subscribed')}
             >
               <input type="hidden" name="nonce" />
               <input
@@ -64,6 +68,7 @@ export default function SubscribePage() {
                 href="https://whatsapp.com/channel/0029Vb8DvZ5CxoAsvj0Oie2C"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => track('WhatsApp Channel Click')}
                 className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 font-medium transition"
               >
                 <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">

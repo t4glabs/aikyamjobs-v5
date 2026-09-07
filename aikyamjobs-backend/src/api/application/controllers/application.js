@@ -325,4 +325,32 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       decided: !!application.decisionAt,
     };
   },
+
+  /**
+   * "My Applications" — every application this applicant has ever submitted,
+   * newest first, across all jobs. Feeds a single list page linking each row
+   * to its /apply/read/[id] result.
+   */
+  async mine(ctx) {
+    const { applicant } = ctx.state;
+    const applications = await strapi.entityService.findMany('api::application.application', {
+      filters: { applicant: applicant.id },
+      sort: { submittedAt: 'desc' },
+      populate: {
+        job: { populate: { company: { fields: ['name'] } }, fields: ['title', 'slug'] },
+      },
+    });
+
+    return {
+      applications: applications.map((a) => ({
+        applicationId: a.id,
+        jobTitle: a.job?.title || 'Untitled role',
+        jobSlug: a.job?.slug || null,
+        companyName: a.job?.company?.name || null,
+        status: a.status,
+        decided: !!a.decisionAt,
+        submittedAt: a.submittedAt,
+      })),
+    };
+  },
 }));

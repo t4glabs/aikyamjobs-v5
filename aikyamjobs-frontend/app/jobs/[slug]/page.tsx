@@ -8,6 +8,8 @@ import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
 import Markdown from "@/components/Markdown";
 import JobApplyStatus from "@/components/apply/JobApplyStatus";
+import SaveJobButton from "@/components/apply/SaveJobButton";
+import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 
 export async function generateMetadata({
   params,
@@ -197,24 +199,26 @@ export default async function JobDetailPage({
               ) : (job.attributes.applicationUrl || job.attributes.applicationEmail) ? (
                 <div className="mb-6">
                   {job.attributes.applicationUrl ? (
-                    <a
+                    <ExternalApplyLink
                       href={job.attributes.applicationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      jobSlug={job.attributes.slug}
                       className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
                     >
                       Apply now →
-                    </a>
+                    </ExternalApplyLink>
                   ) : job.attributes.applicationEmail ? (
-                    <a
+                    <ExternalApplyLink
                       href={`mailto:${job.attributes.applicationEmail}`}
+                      jobSlug={job.attributes.slug}
                       className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
                     >
                       Apply via email →
-                    </a>
+                    </ExternalApplyLink>
                   ) : null}
                 </div>
               ) : null}
+
+              <SaveJobButton jobSlug={job.attributes.slug} />
 
               <div className="space-y-4 text-sm">
                 {job.attributes.impactArea && (

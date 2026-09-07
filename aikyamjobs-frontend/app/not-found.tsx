@@ -1,6 +1,14 @@
+'use client';
+
+import { useEffect } from "react";
 import Link from "next/link";
+import { track } from "@/lib/analytics";
 
 export default function NotFound() {
+  useEffect(() => {
+    track('404', { path: window.location.pathname });
+  }, []);
+
   return (
     <div className="min-h-[60vh] bg-gray-50 flex items-center justify-center px-4">
       <div className="text-center max-w-md">

@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "saved_jobs",
+  "info": {
+    "singularName": "saved-job",
+    "pluralName": "saved-jobs",
+    "displayName": "Saved Job",
+    "description": "An applicant's bookmark of a job to apply to later."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "applicant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::applicant.applicant"
+    },
+    "job": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::job.job"
+    }
+  }
+}

@@ -815,6 +815,45 @@ export interface ApiPagePage extends Schema.CollectionType {
   };
 }
 
+export interface ApiSavedJobSavedJob extends Schema.CollectionType {
+  collectionName: 'saved_jobs';
+  info: {
+    description: "An applicant's bookmark of a job to apply to later.";
+    displayName: 'Saved Job';
+    pluralName: 'saved-jobs';
+    singularName: 'saved-job';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    applicant: Attribute.Relation<
+      'api::saved-job.saved-job',
+      'manyToOne',
+      'api::applicant.applicant'
+    >;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::saved-job.saved-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    job: Attribute.Relation<
+      'api::saved-job.saved-job',
+      'manyToOne',
+      'api::job.job'
+    >;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::saved-job.saved-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
   collectionName: 'site_settings';
   info: {
@@ -1515,6 +1554,7 @@ declare module '@strapi/types' {
       'api::internal-tag.internal-tag': ApiInternalTagInternalTag;
       'api::job.job': ApiJobJob;
       'api::page.page': ApiPagePage;
+      'api::saved-job.saved-job': ApiSavedJobSavedJob;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::staff.staff': ApiStaffStaff;
       'api::subscriber.subscriber': ApiSubscriberSubscriber;

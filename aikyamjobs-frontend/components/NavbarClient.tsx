@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ApplicantNavIndicator from "./apply/ApplicantNavIndicator";
+import ApplicantMobileMenu from "./apply/ApplicantMobileMenu";
 
 interface NavLink {
   label: string;
@@ -75,6 +77,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
             >
               Get job alerts
             </Link>
+            <ApplicantNavIndicator />
           </div>
 
           {/* Mobile hamburger — 44px target */}
@@ -114,6 +117,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
           >
             Get job alerts
           </Link>
+          <ApplicantMobileMenu onNavigate={() => setOpen(false)} />
         </div>
       )}
     </nav>

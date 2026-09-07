@@ -10,6 +10,7 @@ import {
   requestMagicLink,
   type ReadResult,
 } from '@/lib/apply';
+import { track } from '@/lib/analytics';
 
 type Stage = 'checking' | 'signin' | 'link-sent' | 'result' | 'not-found';
 
@@ -45,6 +46,12 @@ export default function ReadResultPage() {
       }
       setResult(res.data);
       setStage('result');
+      if (res.data.status !== 'pending') {
+        track('Result Viewed', {
+          job_slug: res.data.jobSlug || 'unknown',
+          outcome: res.data.status === 'approved' ? 'approved' : 'not_a_match',
+        });
+      }
     })();
     return () => {
       active = false;
@@ -57,8 +64,12 @@ export default function ReadResultPage() {
     setSigninBusy(true);
     const res = await requestMagicLink({ email: email.trim(), redirect: pathname });
     setSigninBusy(false);
-    if (res.ok) setStage('link-sent');
-    else setError(res.error);
+    if (res.ok) {
+      track('Magic Link Requested', { context: 'read-result' });
+      setStage('link-sent');
+    } else {
+      setError(res.error);
+    }
   }
 
   return (
@@ -264,6 +275,12 @@ function ResultView({ result }: { result: ReadResult }) {
             href={result.applyTarget.url || `mailto:${result.applyTarget.email}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              track('External Apply Click', {
+                job_slug: result.jobSlug || 'unknown',
+                apply_source: 'gated_result',
+              })
+            }
             className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
           >
             {result.applyTarget.url ? 'Apply on their site →' : 'Apply by email →'}

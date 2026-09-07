@@ -12,6 +12,7 @@ import {
   getToken,
   type ApplicantProfile,
 } from '@/lib/apply';
+import { track } from '@/lib/analytics';
 
 interface ChecklistItem {
   label: string;
@@ -96,8 +97,12 @@ export default function ApplyClient({
     setSigninBusy(true);
     const res = await requestMagicLink({ email: email.trim(), name: name.trim() || undefined, redirect: pathname });
     setSigninBusy(false);
-    if (res.ok) setStage('link-sent');
-    else setError(res.error);
+    if (res.ok) {
+      track('Magic Link Requested', { context: 'apply', job_slug: jobSlug });
+      setStage('link-sent');
+    } else {
+      setError(res.error);
+    }
   }
 
   async function handleCvChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -138,6 +143,10 @@ export default function ApplyClient({
     const res = await submitApplication({ jobSlug, checked, consent });
     setSubmitBusy(false);
     if (res.ok) {
+      track('Application Submitted', {
+        job_slug: jobSlug,
+        required_missing: requiredMissing ? 'yes' : 'no',
+      });
       setStage('done');
     } else if (res.status === 409) {
       setStage('already');
