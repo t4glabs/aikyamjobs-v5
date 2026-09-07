@@ -9,12 +9,10 @@ interface Props {
 }
 
 /**
- * The gated-job sidebar CTA. Renders the standard "Does my CV fit this role?"
- * pitch by default (matches server-rendered state, so there's no flash for
- * anonymous visitors or first-time applicants) — and swaps to the applicant's
- * actual status once we know they've already applied here before. Minimal by
- * design: this is the only personalization on the JD page; a full "my
- * applications" list stays out of scope for now.
+ * The gated-job sidebar CTA. Renders the standard "CV Improver" pitch by
+ * default (matches server-rendered state, so there's no flash for anonymous
+ * visitors or first-time applicants) — and swaps to the applicant's actual
+ * status once we know they've already applied here before.
  */
 export default function JobApplyStatus({ jobSlug }: Props) {
   const [status, setStatus] = useState<ApplyStatus | null>(null);
@@ -75,20 +73,20 @@ export default function JobApplyStatus({ jobSlug }: Props) {
         href={`/jobs/${jobSlug}/apply`}
         className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
       >
-        Does my CV fit this role?
+        Use CV Improver to apply
       </Link>
+      <p className="mt-2 text-center text-xs text-gray-500">
+        Free. An aikyam friend reads it for you
+      </p>
       <ul className="mt-4 space-y-2">
         <li className="flex gap-2 text-sm text-gray-700">
           <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-          Simply tick the job&rsquo;s requirements against your CV.
+          Tick off what your CV already shows for this role.
         </li>
         <li className="flex gap-2 text-sm text-gray-700">
           <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-          A team member reads your self scoring and reads your CV.
-        </li>
-        <li className="flex gap-2 text-sm text-gray-700">
-          <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-          On a good fit, you will receive the job apply link by email.
+          Someone on our team reads the same CV and writes back with notes and the job
+          application link.
         </li>
       </ul>
       <p className="mt-3 pt-3 border-t border-hairline text-xs text-gray-500">

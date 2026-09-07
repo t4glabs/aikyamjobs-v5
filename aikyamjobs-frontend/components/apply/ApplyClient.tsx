@@ -441,31 +441,32 @@ export default function ApplyClient({
           <div className="text-center py-4">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-brand-10">
               <svg className="h-6 w-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-6 6m6-6l6 6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">With a friendly reviewer now</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Someone&rsquo;s reading it now</h2>
             <p className="text-sm text-gray-500 mt-2">
-              Someone on our team will read your CV, then write an email to you.
+              Greeshma, Senti, Shemeer, Chhabil, others on the team will read your CV and email
+              you notes either way.
             </p>
             <ul className="mt-4 space-y-2 rounded-lg bg-background p-4 text-left">
               <li className="flex gap-2 text-sm text-gray-700">
                 <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-                A person reads your CV — no algorithm, no AI, no keyword filter.
+                A person reads it. Just like a friend would.
               </li>
               <li className="flex gap-2 text-sm text-gray-700">
                 <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-                You&rsquo;ll hear back either way, usually within a day.
+                You get notes either way, usually within a day.
               </li>
               <li className="flex gap-2 text-sm text-gray-700">
                 <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-[var(--brand)]" />
-                {`If it’s a good fit, that email carries ${orgName}’s apply link.${
-                  closingDate ? ` They close on ${formatDate(closingDate)}.` : ''
+                {`If your CV’s ready, that email carries ${orgName}’s apply link. If it needs a fix, there’s still time${
+                  closingDate ? ` — they close ${formatDate(closingDate)}.` : ' to apply again.'
                 }`}
               </li>
             </ul>
             <p className="mt-4 text-xs text-gray-400">
-              {`Your self-score stays between you and us. It never goes to ${orgName}.`}
+              {`Your own ticks stay between you and us. They never go to ${orgName}.`}
             </p>
             <Link href="/jobs" className="inline-block mt-6 link-brand text-sm font-medium">
               ← Browse more roles
