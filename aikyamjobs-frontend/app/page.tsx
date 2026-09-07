@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import Image from "next/image";
 import HomeSearch from "@/components/HomeSearch";
 import { getJobs, getCategories, getBlogs, getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
@@ -195,9 +196,11 @@ export default async function Home() {
                     <div className="flex items-center justify-between gap-3 mb-3.5">
                       <div className="flex items-center gap-2.5 min-w-0">
                         {job.attributes.company?.data?.attributes.logo?.data ? (
-                          <img
+                          <Image
                             src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
                             alt=""
+                            width={32}
+                            height={32}
                             className="w-8 h-8 object-contain rounded-md border border-gray-200 flex-shrink-0"
                           />
                         ) : (
@@ -256,7 +259,7 @@ export default async function Home() {
                       {job.attributes.categories?.data?.slice(0, 2).map((category) => (
                         <Link
                           key={category.id}
-                          href={`/jobs?category=${encodeURIComponent(category.attributes.slug)}`}
+                          href={`/tag/${category.attributes.slug}`}
                           className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                         >
                           {category.attributes.name}

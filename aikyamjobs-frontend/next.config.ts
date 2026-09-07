@@ -26,6 +26,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Static brand assets under public/logo — filenames already encode the
+        // variant (e.g. -white), so a long cache lifetime is safe.
+        source: '/logo/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

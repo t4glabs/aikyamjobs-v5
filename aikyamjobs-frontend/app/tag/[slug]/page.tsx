@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import Image from "next/image";
 import { getJobs, getCategories, getStrapiMediaUrl } from "@/lib/api";
 import { Job, Category, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
@@ -124,9 +125,11 @@ export default async function TagPage({
                 <div className="flex items-center justify-between gap-3 mb-3.5">
                   <div className="flex items-center gap-2.5 min-w-0">
                     {job.attributes.company?.data?.attributes.logo?.data ? (
-                      <img
+                      <Image
                         src={getStrapiMediaUrl(job.attributes.company.data.attributes.logo.data.attributes.url)}
                         alt=""
+                        width={32}
+                        height={32}
                         className="w-8 h-8 object-contain rounded-md border border-gray-200 flex-shrink-0"
                       />
                     ) : (

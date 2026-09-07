@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import Image from "next/image";
 import { getJob, getStrapiMediaUrl } from "@/lib/api";
 import { Job, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
@@ -93,9 +94,11 @@ export default async function JobDetailPage({
               <div className="flex items-start justify-between gap-4 mb-6 pb-6 border-b border-gray-200">
                 <div className="flex gap-4 min-w-0">
                   {company?.attributes.logo?.data ? (
-                    <img
+                    <Image
                       src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
                       alt=""
+                      width={44}
+                      height={44}
                       className="w-11 h-11 flex-none object-contain rounded-md border border-gray-200"
                     />
                   ) : (
@@ -287,9 +290,11 @@ export default async function JobDetailPage({
                   <h4 className="font-semibold text-gray-900 mb-3 text-sm">About the Company</h4>
                   <div className="flex items-center gap-3 mb-2">
                     {company.attributes.logo?.data && (
-                      <img
+                      <Image
                         src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
                         alt={company.attributes.name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 object-contain rounded border border-gray-100 flex-shrink-0"
                       />
                     )}
@@ -323,9 +328,11 @@ export default async function JobDetailPage({
                     <p className="text-xs text-gray-600 mb-2">Curated by</p>
                     <div className="flex items-center gap-2">
                       {avatarUrl ? (
-                        <img
+                        <Image
                           src={avatarUrl}
                           alt={curator.name}
+                          width={32}
+                          height={32}
                           className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-gray-200"
                         />
                       ) : (

@@ -43,7 +43,7 @@ export default async function Footer() {
 
           {/* For Job Seekers */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-300">For Job Seekers</h4>
+            <h2 className="text-sm font-semibold mb-3 text-gray-300">For Job Seekers</h2>
             <ul className="space-y-2 text-sm text-[#B8AFA9]">
               {seekerLinks.map((link, i) => (
                 <li key={i}>
@@ -55,7 +55,7 @@ export default async function Footer() {
 
           {/* Resources — links from Strapi */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-300">Resources</h4>
+            <h2 className="text-sm font-semibold mb-3 text-gray-300">Resources</h2>
             <ul className="space-y-2 text-sm text-[#B8AFA9]">
               {resourceLinks.map((link, i) => (
                 <li key={i}>
@@ -67,7 +67,7 @@ export default async function Footer() {
 
           {/* Connect */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-gray-300">Connect</h4>
+            <h2 className="text-sm font-semibold mb-3 text-gray-300">Connect</h2>
             <p className="text-sm text-[#B8AFA9]">
               © {new Date().getFullYear()} {siteName}. All rights reserved.
             </p>
@@ -75,7 +75,7 @@ export default async function Footer() {
         </div>
 
         {/* Credits line */}
-        <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-500 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition [&_a]:text-gray-500 [&_a:hover]:text-gray-300">
+        <div className="mt-6 pt-6 border-t border-gray-800 text-xs text-gray-400 [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition [&_a]:text-gray-400 [&_a:hover]:text-gray-300">
           <p>
             aikyam / <span lang="ml">ഐക്യം</span> / <span lang="hi">ऐक्यम</span> | noun. unity
           </p>

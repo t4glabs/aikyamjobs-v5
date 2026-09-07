@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
+import Image from "next/image";
 import { getCompany, getStrapiMediaUrl } from "@/lib/api";
 import { Company, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
@@ -35,9 +36,11 @@ export default async function CompanyDetailPage({
           <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
             <div className="flex items-center gap-4 mb-4">
               {company.attributes.logo?.data && (
-                <img
+                <Image
                   src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
                   alt={company.attributes.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 object-contain rounded border border-gray-100 flex-shrink-0"
                 />
               )}
