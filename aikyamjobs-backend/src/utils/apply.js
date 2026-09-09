@@ -66,4 +66,64 @@ function scoreChecklist(items, checked) {
   return { items: snapshotItems, score, max, percent, requiredMissing };
 }
 
-module.exports = { resolveApplyMode, hasChecklist, scoreChecklist };
+/**
+ * Redacts applicationUrl/applicationEmail from a single Job API entry if it
+ * resolves to gated, and stamps resolvedApplyMode. Mutates in place. Used by
+ * the Job controller's own find/findOne, which always force-populates
+ * requirementChecklist first (see addChecklistPopulate in job.js), so
+ * resolveApplyMode always has what it needs here to tell gated from external
+ * correctly.
+ *
+ * NOT reused for jobs reached via Company/Category's `jobs` relation — see
+ * stripApplyContactFields below for why that needs a different, stricter
+ * approach.
+ */
+function applyGateToJob(job, settings) {
+  if (!job || !job.attributes) return;
+  const a = job.attributes;
+  const resolved = resolveApplyMode(a, settings);
+  a.resolvedApplyMode = resolved;
+  if (resolved === 'gated') {
+    delete a.applicationUrl;
+    delete a.applicationEmail;
+  }
+}
+
+/**
+ * Unconditionally strips applicationUrl/applicationEmail from a job entry
+ * reached via a *nested* populate (Company.jobs, Category.jobs) — deliberately
+ * NOT gated on resolveApplyMode here. Reason: resolveApplyMode needs
+ * requirementChecklist to correctly tell gated from external, and nothing
+ * forces that component to be populated when the client asks for
+ * `?populate[jobs]=*` (Strapi's shallow `*` doesn't deep-populate a nested
+ * relation's own components) — confirmed live that this silently fails OPEN
+ * (looks un-gated, real URL leaks) rather than failing closed. Since neither
+ * the companies pages nor the tag page ever read these two fields off a
+ * nested job (they only link through to the job's own `/jobs/[slug]` page,
+ * which has its own fully-populated, correctly-gated view), there's no
+ * legitimate case where a nested job needs them — so just always remove them.
+ */
+function stripApplyContactFields(job) {
+  if (!job || !job.attributes) return;
+  delete job.attributes.applicationUrl;
+  delete job.attributes.applicationEmail;
+}
+
+/**
+ * Walks a populated `jobs` relation (array or single entry) under one or more
+ * API entries and strips the sensitive fields from each. Safe no-op if `jobs`
+ * wasn't populated at all.
+ */
+function gateNestedJobs(entryOrEntries) {
+  const entries = Array.isArray(entryOrEntries) ? entryOrEntries : [entryOrEntries];
+  for (const entry of entries) {
+    const jobsData = entry && entry.attributes && entry.attributes.jobs && entry.attributes.jobs.data;
+    if (Array.isArray(jobsData)) {
+      jobsData.forEach((job) => stripApplyContactFields(job));
+    } else if (jobsData && typeof jobsData === 'object') {
+      stripApplyContactFields(jobsData);
+    }
+  }
+}
+
+module.exports = { resolveApplyMode, hasChecklist, scoreChecklist, applyGateToJob, gateNestedJobs };
