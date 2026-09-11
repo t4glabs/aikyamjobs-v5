@@ -16,8 +16,7 @@ import { EmptyStateLayout } from '@strapi/design-system/EmptyStateLayout';
 
 const TABS = [
   { key: 'pending', label: 'Needs review' },
-  { key: 'approved', label: 'Approved' },
-  { key: 'rejected_with_tips', label: 'Not a match' },
+  { key: 'reviewed', label: 'Reviewed' },
   { key: 'all', label: 'All' },
 ];
 
@@ -30,7 +29,7 @@ const formatDate = (value) => {
   });
 };
 
-const Queue = ({ onSelect }) => {
+const CvReviewQueue = ({ onSelect }) => {
   const { get } = useFetchClient();
   const toggleNotification = useNotification();
   const [isLoading, setIsLoading] = useState(true);
@@ -41,10 +40,10 @@ const Queue = ({ onSelect }) => {
     async (status) => {
       setIsLoading(true);
       try {
-        const { data } = await get(`/admin/application-review/queue?status=${status}`);
+        const { data } = await get(`/admin/application-review/cv-reviews?status=${status}`);
         setQueue(data.queue);
       } catch (error) {
-        toggleNotification({ type: 'warning', message: 'Could not load applications.' });
+        toggleNotification({ type: 'warning', message: 'Could not load CV Improver requests.' });
       } finally {
         setIsLoading(false);
       }
@@ -59,8 +58,8 @@ const Queue = ({ onSelect }) => {
   return (
     <Main>
       <HeaderLayout
-        title="Application Review"
-        subtitle="Score a CV against a job's requirements, leave notes, and decide — good match or not, either way the applicant hears back."
+        title="CV Improver"
+        subtitle="General CV feedback requests, not tied to any specific job — read the CV, note what's working and what to fix."
       />
       <ActionLayout
         startActions={
@@ -83,13 +82,11 @@ const Queue = ({ onSelect }) => {
         ) : queue.length === 0 ? (
           <EmptyStateLayout content="Nothing here right now." />
         ) : (
-          <Table colCount={7} rowCount={queue.length}>
+          <Table colCount={5} rowCount={queue.length}>
             <Thead>
               <Tr>
                 <Th><Typography variant="sigma">Applicant</Typography></Th>
-                <Th><Typography variant="sigma">Job</Typography></Th>
-                <Th><Typography variant="sigma">Self-score</Typography></Th>
-                <Th><Typography variant="sigma">Flags</Typography></Th>
+                <Th><Typography variant="sigma">Targeting</Typography></Th>
                 <Th><Typography variant="sigma">Submitted</Typography></Th>
                 <Th><Typography variant="sigma">Status</Typography></Th>
                 <Th><VisuallyHiddenLabel /></Th>
@@ -106,43 +103,20 @@ const Queue = ({ onSelect }) => {
                     <Typography variant="pi" textColor="neutral600">{item.applicantEmail}</Typography>
                   </Td>
                   <Td>
-                    <Typography>{item.jobTitle}</Typography>
-                    {item.companyName && (
-                      <Typography variant="pi" textColor="neutral600">{item.companyName}</Typography>
-                    )}
-                  </Td>
-                  <Td><Typography>{item.checklistPercent}%</Typography></Td>
-                  <Td>
-                    {item.hasRequiredMissing && (
-                      <Badge backgroundColor="warning100" textColor="warning700">
-                        Missing essentials
-                      </Badge>
-                    )}
+                    <Typography>{item.targetRoles}</Typography>
                   </Td>
                   <Td><Typography>{formatDate(item.submittedAt)}</Typography></Td>
                   <Td>
                     <Badge
-                      backgroundColor={
-                        item.status === 'approved'
-                          ? 'success100'
-                          : item.status === 'rejected_with_tips'
-                            ? 'neutral150'
-                            : 'primary100'
-                      }
-                      textColor={
-                        item.status === 'approved'
-                          ? 'success700'
-                          : item.status === 'rejected_with_tips'
-                            ? 'neutral700'
-                            : 'primary700'
-                      }
+                      backgroundColor={item.status === 'reviewed' ? 'success100' : 'primary100'}
+                      textColor={item.status === 'reviewed' ? 'success700' : 'primary700'}
                     >
                       {item.status}
                     </Badge>
                   </Td>
                   <Td>
                     <Button variant="tertiary" onClick={() => onSelect(item.id)}>
-                      {item.decisionAt ? 'View / edit' : 'Review'}
+                      {item.reviewedAt ? 'View / edit' : 'Review'}
                     </Button>
                   </Td>
                 </Tr>
@@ -161,4 +135,4 @@ const VisuallyHiddenLabel = () => (
   </Box>
 );
 
-export default Queue;
+export default CvReviewQueue;

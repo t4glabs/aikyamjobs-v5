@@ -391,6 +391,11 @@ export interface ApiApplicantApplicant extends Schema.CollectionType {
       'oneToOne',
       'api::cv-upload.cv-upload'
     >;
+    cvReviews: Attribute.Relation<
+      'api::applicant.applicant',
+      'oneToMany',
+      'api::cv-review.cv-review'
+    >;
     cvUploads: Attribute.Relation<
       'api::applicant.applicant',
       'oneToMany',
@@ -398,11 +403,15 @@ export interface ApiApplicantApplicant extends Schema.CollectionType {
     >;
     email: Attribute.Email & Attribute.Required & Attribute.Unique;
     interestTags: Attribute.JSON;
+    isStarCandidate: Attribute.Boolean & Attribute.DefaultTo<false>;
     lastLoginAt: Attribute.DateTime;
     magicTokenExpiresAt: Attribute.DateTime & Attribute.Private;
     magicTokenHash: Attribute.String & Attribute.Private;
     name: Attribute.String;
     phone: Attribute.String;
+    starCandidateMarkedAt: Attribute.DateTime;
+    starCandidateMarkedByAdminEmail: Attribute.String;
+    starCandidateNote: Attribute.Text;
     updatedAt: Attribute.DateTime;
     updatedBy: Attribute.Relation<
       'api::applicant.applicant',
@@ -631,6 +640,60 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
     > &
       Attribute.Private;
     website: Attribute.String;
+  };
+}
+
+export interface ApiCvReviewCvReview extends Schema.CollectionType {
+  collectionName: 'cv_reviews';
+  info: {
+    description: 'A general CV feedback request, not tied to any specific job ("CV Improver") \u2014 the applicant describes what roles/domains they\'re targeting, a reviewer writes back what\'s working and what to fix.';
+    displayName: 'CV Review';
+    pluralName: 'cv-reviews';
+    singularName: 'cv-review';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    applicant: Attribute.Relation<
+      'api::cv-review.cv-review',
+      'manyToOne',
+      'api::applicant.applicant'
+    >;
+    consent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::cv-review.cv-review',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    cvUsed: Attribute.Relation<
+      'api::cv-review.cv-review',
+      'manyToOne',
+      'api::cv-upload.cv-upload'
+    >;
+    decisionByAdminEmail: Attribute.String & Attribute.Private;
+    decisionEmailSent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    fixBeforeSending: Attribute.Text;
+    leadWithThese: Attribute.Text;
+    reviewedAt: Attribute.DateTime;
+    reviewedBy: Attribute.Relation<
+      'api::cv-review.cv-review',
+      'manyToOne',
+      'api::staff.staff'
+    >;
+    status: Attribute.Enumeration<['submitted', 'reviewed']> &
+      Attribute.DefaultTo<'submitted'>;
+    submittedAt: Attribute.DateTime;
+    targetRoles: Attribute.Text;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::cv-review.cv-review',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
   };
 }
 
@@ -870,6 +933,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     applicationsNotifyEmail: Attribute.Email;
     applyConfirmationCopy: Attribute.Text &
       Attribute.DefaultTo<"Thanks for applying with aikyamjobs. Our team will carefully review your interest within 24 hours and get back to you by email. Please don't submit again for this role.">;
+    autoSendCvReviewEmails: Attribute.Boolean & Attribute.DefaultTo<false>;
     autoSendDecisionEmails: Attribute.Boolean & Attribute.DefaultTo<false>;
     blogsGridColumns: Attribute.Integer &
       Attribute.SetMinMax<
@@ -1550,6 +1614,7 @@ declare module '@strapi/types' {
       'api::blog.blog': ApiBlogBlog;
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
+      'api::cv-review.cv-review': ApiCvReviewCvReview;
       'api::cv-upload.cv-upload': ApiCvUploadCvUpload;
       'api::internal-tag.internal-tag': ApiInternalTagInternalTag;
       'api::job.job': ApiJobJob;

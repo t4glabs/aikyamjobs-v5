@@ -4,6 +4,7 @@ const { createCoreController } = require('@strapi/strapi').factories;
 const { resolveApplyMode, scoreChecklist } = require('../../../utils/apply');
 const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 const { findRecommendedJobs } = require('../../../utils/recommendations');
+const { sendDecisionEmail } = require('../../../utils/decisionEmail');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -32,8 +33,12 @@ function buildPreviousSummary(existing) {
  * which job, the deterministic checklist score, which items they ticked, any
  * required items they DIDN'T tick (the red flags), and a direct CV link. This
  * is the "analytics in the inbox" the team reviews before deciding. No AI.
+ *
+ * When isStarAutoApprove is true, this application skipped review entirely
+ * (see submit() below) — the copy switches to a clear "already handled,
+ * nothing to do" notice so nobody wastes time re-reviewing it.
  */
-async function notifySummary({ job, applicant, snapshot, application, cvUrl, isRetry }) {
+async function notifySummary({ job, applicant, snapshot, application, cvUrl, isRetry, isStarAutoApprove }) {
   const to = await getNotifyEmail();
   if (!to) {
     strapi.log.warn('[apply] skipping new-submission notification: no notify email configured');
@@ -49,8 +54,22 @@ async function notifySummary({ job, applicant, snapshot, application, cvUrl, isR
   const adminLink = `${STRAPI_PUBLIC_URL}/admin/application-review?id=${application.id}`;
 
   const lines = [
-    isRetry ? `Reapplication through aikyamjobs (previous attempt wasn't a match)` : `New application through aikyamjobs`,
+    isStarAutoApprove
+      ? `⭐ Star candidate — already auto-approved, no action needed`
+      : isRetry
+        ? `Reapplication through aikyamjobs (previous attempt wasn't a match)`
+        : `New application through aikyamjobs`,
     ``,
+  ];
+
+  if (isStarAutoApprove) {
+    lines.push(
+      `${applicant.name || applicant.email} is marked as a star candidate, so this went straight to approved and they've already been emailed the apply link. This is just for your records — nothing to review here.`,
+      ``
+    );
+  }
+
+  lines.push(
     `Job:        ${job.title}`,
     `Applicant:  ${applicant.name || '—'} <${applicant.email}>`,
     `Score:      ${snapshot.score}/${snapshot.max}  (${snapshot.percent}%)`,
@@ -64,13 +83,15 @@ async function notifySummary({ job, applicant, snapshot, application, cvUrl, isR
     ``,
     `CV: ${cvUrl || '—'}`,
     ``,
-    `Review in admin: ${adminLink}`,
-  ];
+    `Review in admin: ${adminLink}`
+  );
 
   await sendEmail({
     to,
     replyTo: applicant.email,
-    subject: `${isRetry ? 'Reapplied' : 'New application'}: ${applicant.email} → ${job.title} (${snapshot.percent}%)`,
+    subject: isStarAutoApprove
+      ? `[Auto-approved, star candidate] ${applicant.email} → ${job.title}`
+      : `${isRetry ? 'Reapplied' : 'New application'}: ${applicant.email} → ${job.title} (${snapshot.percent}%)`,
     text: lines.join('\n'),
   });
 }
@@ -160,10 +181,17 @@ module.exports = createCoreController('api::application.application', ({ strapi 
 
     const snapshot = scoreChecklist(job.requirementChecklist, checked);
 
+    // Star candidates skip the gated review wait entirely — see
+    // project_gated_apply.md for the full rationale. Only kicks in if the job
+    // actually has a real apply target on file; otherwise there'd be nothing
+    // to send them, so it falls back to the normal pending flow.
+    const jobHasRealApplyTarget = !!(job.applicationUrl || job.applicationEmail);
+    const isStarAutoApprove = !!full.isStarCandidate && jobHasRealApplyTarget;
+
     const data = {
       applicant: applicant.id,
       job: job.id,
-      status: 'submitted',
+      status: isStarAutoApprove ? 'approved' : 'submitted',
       checklistAnswers: { ...snapshot, freeText: answers || null },
       checklistScore: snapshot.score,
       checklistMax: snapshot.max,
@@ -173,23 +201,37 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       submittedAt: new Date(),
     };
 
+    if (isStarAutoApprove) {
+      // Mirror the applicant's own self-score into the reviewer fields so the
+      // record reads coherently later — nobody actually reviewed it, but the
+      // decisionNote makes that explicit for anyone who opens it.
+      data.reviewerChecklistAnswers = snapshot;
+      data.reviewerScore = snapshot.score;
+      data.reviewerMax = snapshot.max;
+      data.reviewerPercent = snapshot.percent;
+      data.decisionNote = 'Auto-approved — star candidate, skips gated review.';
+      data.decisionAt = new Date();
+    }
+
     let application;
     if (isRetry) {
       // Reset the same record in place — clears the prior decision so it goes
       // back through review fresh, but keeps a one-line note of what happened
       // last time for the reviewer's context.
       data.previousDecisionSummary = previousDecisionSummary;
-      data.reviewerChecklistAnswers = null;
-      data.reviewerScore = null;
-      data.reviewerMax = null;
-      data.reviewerPercent = null;
+      if (!isStarAutoApprove) {
+        data.reviewerChecklistAnswers = null;
+        data.reviewerScore = null;
+        data.reviewerMax = null;
+        data.reviewerPercent = null;
+        data.decisionNote = null;
+        data.decisionAt = null;
+      }
       data.leadWithThese = null;
       data.fixBeforeSending = null;
-      data.decisionNote = null;
       data.decisionBy = null;
       data.decisionByAdminEmail = null;
       data.decisionEmailSent = false;
-      data.decisionAt = null;
       application = await strapi.entityService.update('api::application.application', existing.id, {
         data,
       });
@@ -203,6 +245,23 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       .addInterestFromJob(applicant.id, job.id)
       .catch((err) => strapi.log.error('[apply] interest learn failed', err));
 
+    if (isStarAutoApprove) {
+      // Bypasses Site Settings > autoSendDecisionEmails on purpose — a star
+      // candidate should never sit waiting just because that toggle is off.
+      sendDecisionEmail({
+        application,
+        job,
+        applicant: full,
+        reviewerFirstName: null,
+      })
+        .then(() =>
+          strapi.entityService.update('api::application.application', application.id, {
+            data: { decisionEmailSent: true },
+          })
+        )
+        .catch((err) => strapi.log.error('[apply] star auto-approve decision email failed', err));
+    }
+
     // Notify the review team (best effort, non-blocking).
     notifySummary({
       job,
@@ -211,9 +270,10 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       application,
       cvUrl: absoluteMediaUrl(full.currentCv.file && full.currentCv.file.url),
       isRetry,
+      isStarAutoApprove,
     }).catch((err) => strapi.log.error('[apply] summary email failed', err));
 
-    return { ok: true, applicationId: application.id, status: 'submitted' };
+    return { ok: true, applicationId: application.id, status: data.status };
   },
 
   /**

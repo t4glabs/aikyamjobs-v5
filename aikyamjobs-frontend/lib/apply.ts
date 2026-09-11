@@ -40,9 +40,9 @@ export function isSignedIn(): boolean {
   return !!getToken();
 }
 
-type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };
+export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };
 
-async function request<T>(
+export async function request<T>(
   path: string,
   { method = 'GET', body, auth = false, isForm = false }: {
     method?: string;

@@ -40,7 +40,7 @@ module.exports = {
       filters,
       populate: {
         job: { fields: ['title'], populate: { company: { fields: ['name'] } } },
-        applicant: { fields: ['name', 'email'] },
+        applicant: { fields: ['name', 'email', 'isStarCandidate'] },
       },
       sort: { submittedAt: 'asc' },
       limit: -1,
@@ -54,6 +54,7 @@ module.exports = {
         companyName: a.job?.company?.name || null,
         applicantName: a.applicant?.name || null,
         applicantEmail: a.applicant?.email || '(deleted applicant)',
+        isStarCandidate: !!a.applicant?.isStarCandidate,
         checklistPercent: a.checklistPercent,
         hasRequiredMissing: !!(a.checklistAnswers?.requiredMissing?.length),
         submittedAt: a.submittedAt,
@@ -98,6 +99,10 @@ module.exports = {
         id: app.applicant?.id,
         name: app.applicant?.name || null,
         email: app.applicant?.email,
+        isStarCandidate: !!app.applicant?.isStarCandidate,
+        starCandidateNote: app.applicant?.starCandidateNote || null,
+        starCandidateMarkedByAdminEmail: app.applicant?.starCandidateMarkedByAdminEmail || null,
+        starCandidateMarkedAt: app.applicant?.starCandidateMarkedAt || null,
       },
       cv: app.cvUsed
         ? {
@@ -117,6 +122,7 @@ module.exports = {
         ? {
             decisionAt: app.decisionAt,
             decisionByAdminEmail: app.decisionByAdminEmail,
+            decisionNote: app.decisionNote || null,
             reviewerChecklist: app.reviewerChecklistAnswers,
             reviewerScore: app.reviewerScore,
             reviewerMax: app.reviewerMax,

@@ -9,10 +9,12 @@ interface Props {
 }
 
 /**
- * The gated-job sidebar CTA. Renders the standard "CV Improver" pitch by
- * default (matches server-rendered state, so there's no flash for anonymous
- * visitors or first-time applicants) — and swaps to the applicant's actual
- * status once we know they've already applied here before.
+ * The gated-job sidebar CTA. Renders the standard "Application Assist" pitch
+ * by default (matches server-rendered state, so there's no flash for
+ * anonymous visitors or first-time applicants) — and swaps to the
+ * applicant's actual status once we know they've already applied here
+ * before. Not to be confused with the standalone CV Improver feature
+ * (app/cv-improver) — this one is tied to this specific job.
  */
 export default function JobApplyStatus({ jobSlug }: Props) {
   const [status, setStatus] = useState<ApplyStatus | null>(null);
@@ -73,7 +75,7 @@ export default function JobApplyStatus({ jobSlug }: Props) {
         href={`/jobs/${jobSlug}/apply`}
         className="btn-brand block w-full text-center px-6 py-3 rounded-md text-sm font-semibold"
       >
-        Use CV Improver to apply
+        Application Assist
       </Link>
       <p className="mt-2 text-center text-xs text-gray-500">
         Free. An aikyam friend reads it for you

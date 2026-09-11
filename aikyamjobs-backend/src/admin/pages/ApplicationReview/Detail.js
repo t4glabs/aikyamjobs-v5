@@ -13,6 +13,7 @@ import { Checkbox } from '@strapi/design-system/Checkbox';
 import { Textarea } from '@strapi/design-system/Textarea';
 import { Divider } from '@strapi/design-system/Divider';
 import { Alert } from '@strapi/design-system/Alert';
+import StarCandidateControl from './StarCandidateControl';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -115,7 +116,7 @@ const Detail = ({ id, onBack }) => {
   return (
     <Main>
       <HeaderLayout
-        title={applicant.name || applicant.email}
+        title={`${applicant.isStarCandidate ? '⭐ ' : ''}${applicant.name || applicant.email}`}
         subtitle={`${job.title}${job.companyName ? ` · ${job.companyName}` : ''}`}
         navigationAction={<TextButton onClick={onBack}>← Back to queue</TextButton>}
       />
@@ -132,10 +133,12 @@ const Detail = ({ id, onBack }) => {
               variant={decision.reviewerPercent >= 50 ? 'success' : 'default'}
               title={`Already decided — ${new Date(decision.decisionAt).toLocaleString('en-IN')}`}
             >
-              {`Reviewed by ${decision.decisionByAdminEmail || 'someone'}. `}
+              {decision.decisionNote
+                ? decision.decisionNote
+                : `Reviewed by ${decision.decisionByAdminEmail || 'someone'}. `}
               {decision.decisionEmailSent
-                ? 'The outcome email was sent.'
-                : 'The outcome email was NOT sent (auto-email is off, or it failed — check with the applicant manually).'}
+                ? ' The outcome email was sent.'
+                : ' The outcome email was NOT sent (auto-email is off, or it failed — check with the applicant manually).'}
               {' You can change and re-save the decision below if needed.'}
             </Alert>
           )}
@@ -146,6 +149,17 @@ const Detail = ({ id, onBack }) => {
               email with nothing to click. Add one on the Job before marking this a good match.
             </Alert>
           )}
+
+          <StarCandidateControl
+            applicantId={applicant.id}
+            isStarCandidate={applicant.isStarCandidate}
+            starCandidateNote={applicant.starCandidateNote}
+            starCandidateMarkedByAdminEmail={applicant.starCandidateMarkedByAdminEmail}
+            starCandidateMarkedAt={applicant.starCandidateMarkedAt}
+            onChange={(patch) =>
+              setData((prev) => (prev ? { ...prev, applicant: { ...prev.applicant, ...patch } } : prev))
+            }
+          />
 
           {/* Applicant + CV */}
           <Box background="neutral0" hasRadius borderColor="neutral150" padding={5}>

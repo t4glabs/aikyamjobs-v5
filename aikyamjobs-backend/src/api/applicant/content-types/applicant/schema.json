@@ -53,6 +53,25 @@
       "relation": "oneToMany",
       "target": "api::application.application",
       "mappedBy": "applicant"
+    },
+    "cvReviews": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cv-review.cv-review",
+      "mappedBy": "applicant"
+    },
+    "isStarCandidate": {
+      "type": "boolean",
+      "default": false
+    },
+    "starCandidateNote": {
+      "type": "text"
+    },
+    "starCandidateMarkedByAdminEmail": {
+      "type": "string"
+    },
+    "starCandidateMarkedAt": {
+      "type": "datetime"
     }
   }
 }

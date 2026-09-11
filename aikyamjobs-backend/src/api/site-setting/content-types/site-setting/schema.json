@@ -207,6 +207,10 @@
     "allowReapplyAfterRejection": {
       "type": "boolean",
       "default": false
+    },
+    "autoSendCvReviewEmails": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

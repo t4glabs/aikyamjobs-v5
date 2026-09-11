@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cv_reviews",
+  "info": {
+    "singularName": "cv-review",
+    "pluralName": "cv-reviews",
+    "displayName": "CV Review",
+    "description": "A general CV feedback request, not tied to any specific job (\"CV Improver\") — the applicant describes what roles/domains they're targeting, a reviewer writes back what's working and what to fix."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "applicant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::applicant.applicant",
+      "inversedBy": "cvReviews"
+    },
+    "cvUsed": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cv-upload.cv-upload"
+    },
+    "targetRoles": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["submitted", "reviewed"],
+      "default": "submitted"
+    },
+    "consent": {
+      "type": "boolean",
+      "default": false
+    },
+    "leadWithThese": {
+      "type": "text"
+    },
+    "fixBeforeSending": {
+      "type": "text"
+    },
+    "reviewedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::staff.staff"
+    },
+    "decisionByAdminEmail": {
+      "type": "string",
+      "private": true
+    },
+    "decisionEmailSent": {
+      "type": "boolean",
+      "default": false
+    },
+    "submittedAt": {
+      "type": "datetime"
+    },
+    "reviewedAt": {
+      "type": "datetime"
+    }
+  }
+}
