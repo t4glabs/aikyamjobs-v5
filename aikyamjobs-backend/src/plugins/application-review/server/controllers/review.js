@@ -129,6 +129,7 @@ module.exports = {
             reviewerPercent: app.reviewerPercent,
             leadWithThese: app.leadWithThese,
             fixBeforeSending: app.fixBeforeSending,
+            personalTouch: app.personalTouch,
             decisionEmailSent: app.decisionEmailSent,
           }
         : null,
@@ -155,7 +156,7 @@ module.exports = {
    * is lost by trialling this with sending switched off.
    */
   async decide(ctx) {
-    const { reviewerChecked, leadWithThese, fixBeforeSending, decisionNote, decision } =
+    const { reviewerChecked, leadWithThese, fixBeforeSending, personalTouch, decisionNote, decision } =
       ctx.request.body || {};
 
     if (!DECIDABLE_STATUSES.includes(decision)) {
@@ -177,6 +178,7 @@ module.exports = {
         reviewerPercent: snapshot.percent,
         leadWithThese: leadWithThese || null,
         fixBeforeSending: fixBeforeSending || null,
+        personalTouch: personalTouch || null,
         decisionNote: decisionNote || null,
         decisionByAdminEmail: ctx.state.user?.email || null,
         decisionAt: new Date(),
@@ -192,6 +194,7 @@ module.exports = {
           job: app.job,
           applicant: app.applicant,
           reviewerFirstName: ctx.state.user?.firstname || null,
+          reviewerEmail: ctx.state.user?.email || null,
         });
         emailSent = true;
         await strapi.entityService.update('api::application.application', app.id, {

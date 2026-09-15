@@ -114,6 +114,7 @@ module.exports = {
           cvReview: updated,
           applicant: r.applicant,
           reviewerFirstName: ctx.state.user?.firstname || null,
+          reviewerEmail: ctx.state.user?.email || null,
         });
         emailSent = true;
         await strapi.entityService.update('api::cv-review.cv-review', r.id, {

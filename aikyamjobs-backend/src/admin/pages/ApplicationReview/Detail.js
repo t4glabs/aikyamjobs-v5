@@ -33,6 +33,7 @@ const Detail = ({ id, onBack }) => {
   const [reviewerChecked, setReviewerChecked] = useState([]);
   const [leadWithThese, setLeadWithThese] = useState('');
   const [fixBeforeSending, setFixBeforeSending] = useState('');
+  const [personalTouch, setPersonalTouch] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [applicantItems, setApplicantItems] = useState(null);
   const [revealing, setRevealing] = useState(false);
@@ -49,12 +50,14 @@ const Detail = ({ id, onBack }) => {
         setReviewerChecked(d.job.requirementChecklist.map((_, i) => !!items[i]?.checked));
         setLeadWithThese(d.decision.leadWithThese || '');
         setFixBeforeSending(d.decision.fixBeforeSending || '');
+        setPersonalTouch(d.decision.personalTouch || '');
         setRevealed(true);
         setApplicantItems(d.applicantChecklist.items);
       } else {
         setReviewerChecked(d.job.requirementChecklist.map(() => false));
         setLeadWithThese('');
         setFixBeforeSending('');
+        setPersonalTouch('');
         setRevealed(false);
         setApplicantItems(null);
       }
@@ -90,6 +93,7 @@ const Detail = ({ id, onBack }) => {
         reviewerChecked,
         leadWithThese,
         fixBeforeSending,
+        personalTouch,
         decision,
       });
       setResult(r);
@@ -267,7 +271,7 @@ const Detail = ({ id, onBack }) => {
             <GridItem col={6}>
               <Textarea
                 label="Lead with these"
-                hint="A couple of strengths worth pointing at, for the approval email."
+                hint="A couple of strengths worth pointing at — one per line. Used in both the approval and no-match emails."
                 name="leadWithThese"
                 value={leadWithThese}
                 onChange={(e) => setLeadWithThese(e.target.value)}
@@ -276,10 +280,19 @@ const Detail = ({ id, onBack }) => {
             <GridItem col={6}>
               <Textarea
                 label="Fix before sending"
-                hint="Concrete edits — what's missing, not what to invent. This becomes the no-match email if it's not a fit."
+                hint="Concrete edits — what's missing, not what to invent, one per line. This becomes the no-match email if it's not a fit."
                 name="fixBeforeSending"
                 value={fixBeforeSending}
                 onChange={(e) => setFixBeforeSending(e.target.value)}
+              />
+            </GridItem>
+            <GridItem col={12}>
+              <Textarea
+                label="Personal touch (optional)"
+                hint="A specific detail that shows you actually read their CV, e.g. 'I really liked reading about the certification course mentioned.' Only appears in the no-match email — leave blank to skip that line."
+                name="personalTouch"
+                value={personalTouch}
+                onChange={(e) => setPersonalTouch(e.target.value)}
               />
             </GridItem>
           </Grid>

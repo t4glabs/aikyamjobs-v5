@@ -112,12 +112,12 @@ module.exports = createCoreController('api::application.application', ({ strapi 
     let job;
     if (jobId) {
       job = await strapi.entityService.findOne('api::job.job', jobId, {
-        populate: { requirementChecklist: true },
+        populate: { requirementChecklist: true, company: { fields: ['name'] } },
       });
     } else if (jobSlug) {
       const [j] = await strapi.entityService.findMany('api::job.job', {
         filters: { slug: jobSlug },
-        populate: { requirementChecklist: true },
+        populate: { requirementChecklist: true, company: { fields: ['name'] } },
         limit: 1,
       });
       job = j;

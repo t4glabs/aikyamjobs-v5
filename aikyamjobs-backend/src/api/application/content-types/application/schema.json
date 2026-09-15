@@ -97,6 +97,9 @@
     "fixBeforeSending": {
       "type": "text"
     },
+    "personalTouch": {
+      "type": "text"
+    },
     "decisionEmailSent": {
       "type": "boolean",
       "default": false

@@ -474,6 +474,7 @@ export interface ApiApplicationApplication extends Schema.CollectionType {
       'api::job.job'
     >;
     leadWithThese: Attribute.Text;
+    personalTouch: Attribute.Text;
     previousDecisionSummary: Attribute.Text;
     reviewerChecklistAnswers: Attribute.JSON;
     reviewerMax: Attribute.Integer;
