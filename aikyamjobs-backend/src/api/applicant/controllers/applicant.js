@@ -7,6 +7,7 @@ const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 
 const TOKEN_TTL_MIN = 20;
 const JWT_TTL = '30d';
+const RESEND_COOLDOWN_MS = 60 * 1000;
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -43,6 +44,18 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
     let applicant = await strapi.db
       .query('api::applicant.applicant')
       .findOne({ where: { email: normEmail } });
+
+    // Cooldown: if a still-valid token was issued within the last minute,
+    // silently no-op instead of re-sending — closes the unbounded-email-send
+    // path (repeatedly POSTing the same address costs Mailgun quota and can
+    // harass whoever owns that inbox) without changing the response shape,
+    // so this stays enumeration-safe.
+    if (applicant?.magicTokenExpiresAt) {
+      const issuedAt = new Date(applicant.magicTokenExpiresAt).getTime() - TOKEN_TTL_MIN * 60000;
+      if (Date.now() - issuedAt < RESEND_COOLDOWN_MS) {
+        return { ok: true };
+      }
+    }
 
     if (!applicant) {
       await strapi.entityService.create('api::applicant.applicant', {

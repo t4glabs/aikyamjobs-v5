@@ -8,7 +8,7 @@ module.exports = {
       method: 'POST',
       path: '/apply/auth/request',
       handler: 'applicant.requestLink',
-      config: { auth: false },
+      config: { auth: false, policies: ['global::rate-limit-magic-link'] },
     },
     {
       method: 'POST',
