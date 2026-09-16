@@ -44,6 +44,15 @@ module.exports = {
         handler: 'applicantStar.setStar',
         config: { policies: ['admin::isAuthenticatedAdmin'] },
       },
+      // Bulk CV export for the candidate-sourcing experiment — literal path,
+      // must stay above the generic GET /:id below (route array is matched
+      // in declaration order, not by specificity).
+      {
+        method: 'GET',
+        path: '/cv-export',
+        handler: 'applicantExport.cvExport',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
       {
         method: 'GET',
         path: '/:id',
