@@ -448,7 +448,7 @@ async function notifyJobPublished(jobId) {
   try {
     sent = await botInstance.api.sendMessage(channel, messageLines.join('\n\n'), {
       parse_mode: 'HTML',
-      link_preview_options: { url: jobUrl },
+      link_preview_options: { url: jobUrl, prefer_small_media: true },
       ...(channelKeyboard ? { reply_markup: channelKeyboard } : {}),
     });
   } catch (err) {
