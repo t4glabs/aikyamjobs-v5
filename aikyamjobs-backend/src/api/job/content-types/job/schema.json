@@ -126,6 +126,16 @@
     "lastFollowUpAt": {
       "type": "datetime",
       "private": true
+    },
+    "mindmapJson": {
+      "type": "json",
+      "private": true,
+      "description": "Visual mindmap source data: { title, root: { label, details?, children?: [...] } }. Editorial/generation input only -- never sent to the public API. When set on a published job, a downloadable PDF is generated automatically into mindmapPdf, which IS public."
+    },
+    "mindmapPdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"]
     }
   }
 }

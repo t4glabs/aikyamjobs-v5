@@ -73,7 +73,7 @@ export async function getJobs(filters?: {
 }
 
 export async function getJob(slug: string) {
-  return fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=*&populate[featureImage]=*&populate[socialImage]=*&populate[curatedBy][populate]=*`);
+  return fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=*&populate[featureImage]=*&populate[socialImage]=*&populate[curatedBy][populate]=*&populate[mindmapPdf]=*`);
 }
 
 export async function getCompanies(page = 1, pageSize = 24) {

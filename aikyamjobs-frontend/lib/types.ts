@@ -34,6 +34,7 @@ export interface Job {
     keywords?: string[];
     featureImage?: any;
     socialImage?: any;
+    mindmapPdf?: any;
     createdAt: string;
     updatedAt: string;
     publishedAt: string;

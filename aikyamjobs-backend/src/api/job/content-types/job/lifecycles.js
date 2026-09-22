@@ -1,4 +1,5 @@
 const { notifyJobPublished } = require('../../../../telegram/bot');
+const { regenerateJobMindmap } = require('../../../../utils/mindmapPdf');
 const { errors } = require('@strapi/utils');
 const { ApplicationError } = errors;
 
@@ -64,6 +65,10 @@ module.exports = {
     const { params } = event;
     const { data, where } = params;
 
+    event.state = event.state || {};
+    event.state.mindmapJsonInPayload =
+      !!data && Object.prototype.hasOwnProperty.call(data, 'mindmapJson');
+
     if (!data || !Object.prototype.hasOwnProperty.call(data, 'publishedAt')) {
       return;
     }
@@ -98,12 +103,33 @@ module.exports = {
         strapi.log.error('[telegram-bot] notifyJobPublished failed', err)
       );
     }
+
+    // Regenerate when either (a) this specific update actually touched
+    // mindmapJson on a job that's already/still live, or (b) the job just
+    // transitioned draft -> published and already had mindmapJson saved
+    // from an earlier draft edit -- Strapi's admin UI always does "Save"
+    // and "Publish" as two separate calls, so mindmapJson is essentially
+    // never part of the same update payload as the publish transition.
+    const shouldRegenerate =
+      (event.state?.mindmapJsonInPayload && event.result.publishedAt) ||
+      (event.state?.justPublished && event.result.mindmapJson);
+    if (shouldRegenerate) {
+      await regenerateJobMindmap(strapi, event.result.id).catch((err) =>
+        strapi.log.error('[mindmap] regenerateJobMindmap failed', err)
+      );
+    }
   },
 
   async afterCreate(event) {
     if (event.result.publishedAt) {
       await notifyJobPublished(event.result.id).catch((err) =>
         strapi.log.error('[telegram-bot] notifyJobPublished failed', err)
+      );
+    }
+
+    if (event.result.publishedAt && event.result.mindmapJson) {
+      await regenerateJobMindmap(strapi, event.result.id).catch((err) =>
+        strapi.log.error('[mindmap] regenerateJobMindmap failed', err)
       );
     }
   },

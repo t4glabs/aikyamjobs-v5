@@ -223,6 +223,31 @@ export default async function JobDetailPage({
 
               <SaveJobButton jobSlug={job.attributes.slug} />
 
+              {job.attributes.mindmapPdf?.data && (
+                <a
+                  href={getStrapiMediaUrl(job.attributes.mindmapPdf.data.attributes.url)}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="mb-6 flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4 flex-none"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                    />
+                  </svg>
+                  Download mindmap (PDF)
+                </a>
+              )}
+
               <div className="space-y-4 text-sm">
                 {job.attributes.impactArea && (
                   <div>

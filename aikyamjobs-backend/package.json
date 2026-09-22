@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@myriaddreamin/typst-ts-node-compiler": "^0.7.0",
     "@strapi/design-system": "^1.19.0",
     "@strapi/helper-plugin": "^4.25.23",
     "@strapi/icons": "^1.19.0",

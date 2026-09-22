@@ -830,6 +830,8 @@ export interface ApiJobJob extends Schema.CollectionType {
       Attribute.SetMinMaxLength<{
         maxLength: 60;
       }>;
+    mindmapJson: Attribute.JSON & Attribute.Private;
+    mindmapPdf: Attribute.Media<'files'>;
     publishDate: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     requirementChecklist: Attribute.Component<'apply.checklist-item', true>;
