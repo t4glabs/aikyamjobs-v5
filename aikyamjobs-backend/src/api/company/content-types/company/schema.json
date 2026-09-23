@@ -83,6 +83,11 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::internal-tag.internal-tag"
+    },
+    "mindmapJson": {
+      "type": "json",
+      "private": true,
+      "description": "Visual mindmap source data for this company, same shape as Job.mindmapJson: { title, root: { label, details?, children?: [...] } }. Editorial input only -- never sent to the public API. Rendered as a section inside a JD's mindmap PDF when that job's company has this set; has no standalone PDF of its own."
     }
   }
 }

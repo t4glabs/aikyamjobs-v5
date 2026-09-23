@@ -627,6 +627,7 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
       Attribute.SetMinMaxLength<{
         maxLength: 60;
       }>;
+    mindmapJson: Attribute.JSON & Attribute.Private;
     name: Attribute.String & Attribute.Required;
     publishDate: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
