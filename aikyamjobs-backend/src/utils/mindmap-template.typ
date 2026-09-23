@@ -1,9 +1,15 @@
 // JD mindmap renderer. Reads JSON injected by mindmapPdf.js as an in-memory
 // shadow file (never a real path on disk) at the shape:
-//   { tree: { title, root: { label, details?, children?: [...] } },
-//     meta: { jobTitle, jobUrl, brandColor } }
+//   { tree: <mindmap data, see below>, meta: { jobTitle, jobUrl, brandColor } }
 //
-// Any tree node may carry `details` (a subtitle/description shown under its
+// `tree` tolerates two shapes people have actually produced for this field:
+//   1. { title, root: { label, details?, children?: [...] } } -- an explicit
+//      root object, node text in `label`.
+//   2. { title, children: [...] } -- no separate root object at all; the
+//      top-level object IS the root, and its own node text is in `title`.
+// Every node (at any depth, in either shape) may use EITHER `label` or
+// `title` for its own text -- node-label() below reads whichever is present.
+// Any node may also carry `details` (a subtitle/description shown under its
 // label) and/or `children` (nested nodes, unbounded depth). Sizing/spacing
 // functions clamp to their last tuned value past the depths they explicitly
 // cover, rather than crashing on deeper-than-expected data.
@@ -30,6 +36,11 @@
 #let sibling-gap = 10pt
 #let page-inset-x = 20pt
 
+// Node text may arrive as either `label` or `title` -- accept both rather
+// than silently rendering blank/erroring on whichever one a given JSON
+// generation happened not to use.
+#let node-label(node) = node.at("label", default: node.at("title", default: ""))
+
 #let make-box(node, depth, color) = {
   let is-root = depth == 0
   let fill = if is-root { color } else { color.lighten(if depth == 1 { 68% } else { 88% }) }
@@ -45,7 +56,7 @@
     width: node-width(depth),
   )[
     #set text(size: font-size(depth), fill: text-color, weight: "bold")
-    #node.label
+    #node-label(node)
     #if has-details [
       #v(2pt)
       #text(size: detail-font-size(depth), weight: "regular", fill: detail-color)[#node.details]
@@ -113,7 +124,10 @@
   let job-title = meta.at("jobTitle", default: tree.at("title", default: ""))
   let job-url = meta.at("jobUrl", default: none)
 
-  let root = tree.root
+  // Shape 1 has an explicit `root` object; shape 2 has no `root` key at all,
+  // so the top-level tree object IS the root (its own text lives in `title`
+  // since there's nowhere else for it to be).
+  let root = tree.at("root", default: tree)
   let branches = root.at("children", default: ())
 
   let branch-layouts = branches.enumerate().map(((i, b)) => compute-layout(b, 1, palette.at(calc.rem(i, palette.len()))))

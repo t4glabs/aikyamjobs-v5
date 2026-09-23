@@ -68,6 +68,20 @@ async function uploadMindmapPdf(strapi, { slug, mindmapJson, jobTitle, brandColo
 }
 
 /**
+ * mindmapJson has shown up in two real shapes so far: one with an explicit
+ * `root: { label, ... }` object, and one with no `root` key at all where the
+ * top-level object IS the root (its own text in `title`). Both are valid —
+ * the Typst template itself renders either — this just confirms *something*
+ * tree-shaped is actually present before spending a compile on it.
+ */
+function looksLikeMindmapTree(mindmapJson) {
+  if (!mindmapJson || typeof mindmapJson !== 'object') return false;
+  const root = mindmapJson.root || mindmapJson;
+  if (!root || typeof root !== 'object') return false;
+  return typeof root.label === 'string' || typeof root.title === 'string';
+}
+
+/**
  * Full generate -> upload -> link -> clean-up-previous-file flow for one
  * job. Never throws — logs and returns without touching the job on any
  * failure, since a Typst bug should never block saving the job itself
@@ -79,7 +93,13 @@ async function regenerateJobMindmap(strapi, jobId) {
     populate: { mindmapPdf: true },
     fields: ['slug', 'title', 'mindmapJson'],
   });
-  if (!job || !job.mindmapJson || !job.mindmapJson.root) return;
+  if (!job || !job.mindmapJson) return;
+  if (!looksLikeMindmapTree(job.mindmapJson)) {
+    strapi.log.warn(
+      `[mindmap] job ${jobId} has mindmapJson set but it doesn't look like a valid tree (no root/label/title found) — skipping generation`
+    );
+    return;
+  }
 
   const previousPdf = job.mindmapPdf;
   const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
