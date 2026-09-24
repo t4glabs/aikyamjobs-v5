@@ -114,8 +114,20 @@ module.exports = {
       (event.state?.mindmapJsonInPayload && event.result.publishedAt) ||
       (event.state?.justPublished && event.result.mindmapJson);
     if (shouldRegenerate) {
+      strapi.log.info(
+        `[mindmap] job ${event.result.id} update triggered regeneration (mindmapJsonInPayload=${!!event.state?.mindmapJsonInPayload}, justPublished=${!!event.state?.justPublished}, publishedAt=${!!event.result.publishedAt})`
+      );
       await regenerateJobMindmap(strapi, event.result.id).catch((err) =>
         strapi.log.error('[mindmap] regenerateJobMindmap failed', err)
+      );
+    } else if (event.state?.mindmapJsonInPayload) {
+      // mindmapJson was part of this save, but the conditions above decided
+      // not to regenerate -- almost always because the row being written
+      // here is a draft (publishedAt still null), which is expected and not
+      // an error: publishing separately afterwards is what actually
+      // triggers generation in that case.
+      strapi.log.info(
+        `[mindmap] job ${event.result.id} saved mindmapJson but did not regenerate (publishedAt=${!!event.result.publishedAt}) — publish the job to generate the PDF`
       );
     }
   },

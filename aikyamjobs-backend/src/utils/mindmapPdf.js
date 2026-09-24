@@ -174,10 +174,17 @@ async function regenerateJobMindmap(strapi, jobId) {
       'salary', 'closingDate', 'impactArea', 'skills', 'applyMode', 'applicationUrl', 'applicationEmail',
     ],
   });
-  if (!job || !job.mindmapJson) return;
+  if (!job) {
+    strapi.log.warn(`[mindmap] job ${jobId} not found when regenerating — skipping`);
+    return;
+  }
+  if (!job.mindmapJson) {
+    strapi.log.info(`[mindmap] job ${jobId} (${job.slug}) has no mindmapJson set — nothing to generate`);
+    return;
+  }
   if (!looksLikeMindmapTree(job.mindmapJson)) {
     strapi.log.warn(
-      `[mindmap] job ${jobId} has mindmapJson set but it doesn't look like a valid tree (no root/label/title found) — skipping generation`
+      `[mindmap] job ${jobId} (${job.slug}) has mindmapJson set but it doesn't look like a valid tree (no root/label/title found) — skipping generation`
     );
     return;
   }
@@ -186,7 +193,20 @@ async function regenerateJobMindmap(strapi, jobId) {
   const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
 
   const company = job.company || null;
-  const companyMindmap = company && looksLikeMindmapTree(company.mindmapJson) ? company.mindmapJson : null;
+  let companyMindmap = null;
+  if (!company) {
+    strapi.log.info(`[mindmap] job ${jobId} (${job.slug}) has no company relation set — company section will be omitted`);
+  } else if (!company.mindmapJson) {
+    strapi.log.info(
+      `[mindmap] job ${jobId} (${job.slug}) company "${company.name}" (id ${company.id}) has no mindmapJson set — company section will be omitted`
+    );
+  } else if (!looksLikeMindmapTree(company.mindmapJson)) {
+    strapi.log.warn(
+      `[mindmap] job ${jobId} (${job.slug}) company "${company.name}" (id ${company.id}) has mindmapJson set but it doesn't look like a valid tree — company section will be omitted`
+    );
+  } else {
+    companyMindmap = company.mindmapJson;
+  }
 
   let uploaded;
   try {
@@ -199,13 +219,18 @@ async function regenerateJobMindmap(strapi, jobId) {
       brandColor: settings?.primaryColor,
     });
   } catch (err) {
-    strapi.log.error('[mindmap] PDF generation/upload failed', err);
+    strapi.log.error(`[mindmap] job ${jobId} (${job.slug}) PDF generation/upload failed`, err);
     return;
   }
 
   await strapi.entityService.update('api::job.job', jobId, {
     data: { mindmapPdf: uploaded.id },
   });
+
+  strapi.log.info(
+    `[mindmap] job ${jobId} (${job.slug}) regenerated PDF (upload id ${uploaded.id}) — sections: JD mindmap + JD` +
+      (companyMindmap ? ' + company mindmap + company profile' : company ? ' (company profile only, no company mindmap)' : '')
+  );
 
   if (previousPdf && previousPdf.id !== uploaded.id) {
     await strapi
