@@ -11,6 +11,7 @@ import Markdown from "@/components/Markdown";
 import JobApplyStatus from "@/components/apply/JobApplyStatus";
 import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
+import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
 
 export async function generateMetadata({
   params,
@@ -204,13 +205,9 @@ export default async function JobDetailPage({
                 <SaveJobButton jobSlug={job.attributes.slug} />
 
                 {job.attributes.mindmapPdf?.data && (
-                  <a
+                  <DownloadPdfLink
                     href={getStrapiMediaUrl(job.attributes.mindmapPdf.data.attributes.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    download
-                    aria-label="Download this job description as a PDF"
-                    title="Download JD as PDF"
+                    jobSlug={job.attributes.slug}
                     className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
                   >
                     <svg
@@ -227,7 +224,7 @@ export default async function JobDetailPage({
                       />
                     </svg>
                     PDF
-                  </a>
+                  </DownloadPdfLink>
                 )}
               </div>
 
