@@ -10,9 +10,11 @@ interface Props {
 }
 
 /**
- * "Save for later" — a full-width secondary button under the primary Apply
- * CTA (same shape/weight, just outlined), using the standard bookmark glyph
- * rather than a heart. Saved jobs are tied to the same applicant identity as
+ * "Save" — one half of the compact utility row that sits above the primary
+ * Apply / Application Assist CTA (see app/jobs/[slug]/page.tsx), deliberately
+ * smaller and more muted than that button so it reads as secondary despite
+ * coming first in document order. Uses the standard bookmark glyph rather
+ * than a heart. Saved jobs are tied to the same applicant identity as
  * applications (per Jinso's call — synced across devices), so a signed-out
  * visitor gets a small inline sign-in card instead of the button just working
  * immediately.
@@ -70,21 +72,23 @@ export default function SaveJobButton({ jobSlug }: Props) {
   }
 
   return (
-    <div className="mb-6">
+    <div className="flex-1 min-w-0">
       <button
         type="button"
         onClick={toggle}
         disabled={busy}
         aria-pressed={saved}
-        className={`flex w-full items-center justify-center gap-2 rounded-md border px-6 py-3 text-sm font-semibold transition disabled:opacity-60 ${
+        aria-label={saved ? 'Remove from saved jobs' : 'Save this job for later'}
+        title={saved ? 'Saved' : 'Save for later'}
+        className={`flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
           saved
             ? 'border-[var(--brand)] bg-[var(--brand-10)] text-[var(--brand)]'
-            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
         }`}
       >
         <svg
           viewBox="0 0 24 24"
-          className="h-4 w-4 flex-none"
+          className="h-3.5 w-3.5 flex-none"
           fill={saved ? 'currentColor' : 'none'}
           stroke="currentColor"
           strokeWidth="1.8"
@@ -95,7 +99,7 @@ export default function SaveJobButton({ jobSlug }: Props) {
             d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V20l-6-3.5L6 20V4.5Z"
           />
         </svg>
-        {saved ? 'Saved' : 'Save for later'}
+        {saved ? 'Saved' : 'Save'}
       </button>
 
       {showSignin && !signedIn && (
