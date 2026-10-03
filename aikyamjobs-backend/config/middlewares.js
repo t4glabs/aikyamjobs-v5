@@ -9,6 +9,11 @@ module.exports = [
           'connect-src': ["'self'", 'https:'],
           'img-src': ["'self'", 'data:', 'blob:', 'dl.airtable.com'],
           'media-src': ["'self'", 'data:', 'blob:'],
+          // Lets the admin panel's Analytics page iframe the Plausible shared
+          // dashboard -- without this, the CSP's default-src 'self' blocks
+          // any cross-origin frame outright (confirmed: browser console
+          // showed a frame-src CSP violation for analytics.aikyamhq.com).
+          'frame-src': ["'self'", 'https://analytics.aikyamhq.com'],
           upgradeInsecureRequests: null,
         },
       },
