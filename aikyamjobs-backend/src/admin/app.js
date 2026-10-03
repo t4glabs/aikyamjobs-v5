@@ -1,4 +1,4 @@
-import { Clock, CheckCircle } from '@strapi/icons';
+import { Clock, CheckCircle, ChartPie } from '@strapi/icons';
 
 export default {
   config: {},
@@ -21,6 +21,16 @@ export default {
         defaultMessage: 'Application Review',
       },
       Component: () => import('./pages/ApplicationReview'),
+      permissions: [],
+    });
+    app.addMenuLink({
+      to: '/analytics',
+      icon: ChartPie,
+      intlLabel: {
+        id: 'plausible-dashboard.plugin.name',
+        defaultMessage: 'Analytics',
+      },
+      Component: () => import('./pages/Analytics'),
       permissions: [],
     });
   },

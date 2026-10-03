@@ -1,0 +1,11 @@
+{
+  "name": "plausible-dashboard",
+  "version": "1.0.0",
+  "description": "Admin-only API that hands the Plausible shared-dashboard embed URL to the admin panel, so the share-link auth token never ships inside the admin JS bundle.",
+  "strapi": {
+    "kind": "plugin",
+    "name": "plausible-dashboard",
+    "displayName": "Plausible Dashboard"
+  },
+  "main": "strapi-server.js"
+}

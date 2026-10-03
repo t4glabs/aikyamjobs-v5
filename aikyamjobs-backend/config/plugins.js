@@ -7,6 +7,10 @@ module.exports = ({ env }) => ({
     enabled: true,
     resolve: './src/plugins/application-review',
   },
+  'plausible-dashboard': {
+    enabled: true,
+    resolve: './src/plugins/plausible-dashboard',
+  },
   upload: {
     config: {
       provider: 'local',
