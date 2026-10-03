@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { track } from '@/lib/analytics';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 // Set NEXT_PUBLIC_MEILISEARCH_URL and NEXT_PUBLIC_MEILISEARCH_KEY in .env.local
@@ -183,14 +184,22 @@ function SearchPageInner() {
   const inputRef    = useRef<HTMLInputElement>(null);
 
   const runSearch = useCallback(async (q: string, f: FilterType) => {
-    if (!q.trim()) { setStatus('idle'); setHits([]); return; }
+    const trimmed = q.trim();
+    if (!trimmed) { setStatus('idle'); setHits([]); return; }
     setStatus('loading');
     try {
-      const { hits: h, processingTimeMs, estimatedTotalHits } = await searchMeili(q.trim(), f);
+      const { hits: h, processingTimeMs, estimatedTotalHits } = await searchMeili(trimmed, f);
       setHits(h);
       setTotal(estimatedTotalHits);
       setTiming(processingTimeMs);
       setStatus('done');
+      // Zero-result searches are the actionable signal here (unmet demand to
+      // curate toward) -- a query that DID return hits isn't logged with its
+      // text, since that would mean recording search text for essentially
+      // every keystroke pause with no clear curation use for it.
+      if (estimatedTotalHits === 0) {
+        track('Zero Result Search', { query: trimmed, filter: f });
+      }
     } catch {
       setStatus('error');
     }

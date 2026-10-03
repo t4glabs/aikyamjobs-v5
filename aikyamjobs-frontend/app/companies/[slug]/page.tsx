@@ -6,6 +6,7 @@ import { getCompany, getStrapiMediaUrl } from "@/lib/api";
 import { Company, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import Markdown from "@/components/Markdown";
+import CompanyWebsiteLink from "@/components/CompanyWebsiteLink";
 
 export default async function CompanyDetailPage({
   params,
@@ -66,14 +67,13 @@ export default async function CompanyDetailPage({
             </div>
 
             {company.attributes.website && (
-              <a
+              <CompanyWebsiteLink
                 href={company.attributes.website}
-                target="_blank"
-                rel="noopener noreferrer"
+                companySlug={company.attributes.slug}
                 className="btn-brand inline-block px-6 py-2 rounded-md font-semibold mb-6"
               >
                 Visit Website →
-              </a>
+              </CompanyWebsiteLink>
             )}
 
             {company.attributes.description && (
