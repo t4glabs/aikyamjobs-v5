@@ -72,7 +72,13 @@ const Analytics = () => {
         subtitle="Live Plausible dashboard for aikyamjobs.org — embedded, not a copy."
       />
       <ContentLayout>
-        {errorMessage ? (
+        {/* Only replaces the whole page with the error state on a first-load
+            failure (misconfigured env vars, nothing to show yet). A failed
+            period-switch refetch keeps the last-good embed on screen --
+            the toast in fetchEmbedUrl already surfaces that one -- rather
+            than wiping out a perfectly working dashboard over a transient
+            error. */}
+        {errorMessage && !embedUrl ? (
           <Alert
             closeLabel="Close"
             title="Analytics isn't configured yet"
