@@ -99,11 +99,12 @@ const CvReviewQueue = ({ onSelect }) => {
         ) : queue.length === 0 ? (
           <EmptyStateLayout content="Nothing here right now." />
         ) : (
-          <Table colCount={5} rowCount={queue.length}>
+          <Table colCount={6} rowCount={queue.length}>
             <Thead>
               <Tr>
                 <Th><Typography variant="sigma">Applicant</Typography></Th>
                 <Th><Typography variant="sigma">Targeting</Typography></Th>
+                <Th><Typography variant="sigma">CV Mindmap</Typography></Th>
                 <Th><Typography variant="sigma">Submitted</Typography></Th>
                 <Th><Typography variant="sigma">Status</Typography></Th>
                 <Th><VisuallyHiddenLabel /></Th>
@@ -121,6 +122,14 @@ const CvReviewQueue = ({ onSelect }) => {
                   </Td>
                   <Td>
                     <Typography>{item.targetRoles}</Typography>
+                  </Td>
+                  <Td>
+                    <Badge
+                      backgroundColor={item.hasCvMindmap ? 'success100' : 'neutral150'}
+                      textColor={item.hasCvMindmap ? 'success700' : 'neutral600'}
+                    >
+                      {item.hasCvMindmap ? 'Added' : 'Missing'}
+                    </Badge>
                   </Td>
                   <Td><Typography>{formatDate(item.submittedAt)}</Typography></Td>
                   <Td>

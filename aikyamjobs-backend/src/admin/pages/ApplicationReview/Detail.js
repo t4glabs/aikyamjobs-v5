@@ -14,6 +14,7 @@ import { Textarea } from '@strapi/design-system/Textarea';
 import { Divider } from '@strapi/design-system/Divider';
 import { Alert } from '@strapi/design-system/Alert';
 import StarCandidateControl from './StarCandidateControl';
+import CvMindmapControl from './CvMindmapControl';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -160,6 +161,15 @@ const Detail = ({ id, onBack }) => {
             starCandidateNote={applicant.starCandidateNote}
             starCandidateMarkedByAdminEmail={applicant.starCandidateMarkedByAdminEmail}
             starCandidateMarkedAt={applicant.starCandidateMarkedAt}
+            onChange={(patch) =>
+              setData((prev) => (prev ? { ...prev, applicant: { ...prev.applicant, ...patch } } : prev))
+            }
+          />
+
+          <CvMindmapControl
+            applicantId={applicant.id}
+            cvMindmapJson={applicant.cvMindmapJson}
+            cvMindmapPdf={applicant.cvMindmapPdf}
             onChange={(patch) =>
               setData((prev) => (prev ? { ...prev, applicant: { ...prev.applicant, ...patch } } : prev))
             }

@@ -131,4 +131,4 @@ async function regenerateApplicantCvMindmap(strapi, applicantId) {
   strapi.log.info(`[cv-mindmap] applicant ${applicantId} regenerated CV mindmap PDF (upload id ${uploaded.id})`);
 }
 
-module.exports = { generateCvMindmapPdf, regenerateApplicantCvMindmap };
+module.exports = { generateCvMindmapPdf, regenerateApplicantCvMindmap, looksLikeMindmapTree };

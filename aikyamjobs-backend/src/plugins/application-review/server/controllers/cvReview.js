@@ -13,7 +13,7 @@ function absoluteMediaUrl(url) {
 async function loadFull(id) {
   return strapi.entityService.findOne('api::cv-review.cv-review', id, {
     populate: {
-      applicant: true,
+      applicant: { populate: { cvMindmapPdf: true } },
       cvUsed: { populate: { file: true } },
       reviewedBy: true,
     },
@@ -39,7 +39,7 @@ module.exports = {
     const [reviews, total] = await Promise.all([
       strapi.entityService.findMany('api::cv-review.cv-review', {
         filters,
-        populate: { applicant: { fields: ['name', 'email', 'isStarCandidate'] } },
+        populate: { applicant: { fields: ['name', 'email', 'isStarCandidate', 'cvMindmapJson'] } },
         sort: { submittedAt: 'desc' },
         start: (page - 1) * pageSize,
         limit: pageSize,
@@ -54,6 +54,7 @@ module.exports = {
         applicantName: r.applicant?.name || null,
         applicantEmail: r.applicant?.email || '(deleted applicant)',
         isStarCandidate: !!r.applicant?.isStarCandidate,
+        hasCvMindmap: !!r.applicant?.cvMindmapJson,
         targetRoles: r.targetRoles,
         submittedAt: r.submittedAt,
         reviewedAt: r.reviewedAt,
@@ -80,6 +81,10 @@ module.exports = {
         starCandidateNote: r.applicant?.starCandidateNote || null,
         starCandidateMarkedByAdminEmail: r.applicant?.starCandidateMarkedByAdminEmail || null,
         starCandidateMarkedAt: r.applicant?.starCandidateMarkedAt || null,
+        cvMindmapJson: r.applicant?.cvMindmapJson || null,
+        cvMindmapPdf: r.applicant?.cvMindmapPdf
+          ? { url: absoluteMediaUrl(r.applicant.cvMindmapPdf.url) }
+          : null,
       },
       cv: r.cvUsed
         ? {

@@ -17,7 +17,7 @@ async function loadFull(id) {
   return strapi.entityService.findOne('api::application.application', id, {
     populate: {
       job: { populate: { requirementChecklist: true, company: { fields: ['name'] } } },
-      applicant: true,
+      applicant: { populate: { cvMindmapPdf: true } },
       cvUsed: { populate: { file: true } },
       decisionBy: true,
     },
@@ -49,7 +49,7 @@ module.exports = {
         filters,
         populate: {
           job: { fields: ['title'], populate: { company: { fields: ['name'] } } },
-          applicant: { fields: ['name', 'email', 'isStarCandidate'] },
+          applicant: { fields: ['name', 'email', 'isStarCandidate', 'cvMindmapJson'] },
         },
         sort: { submittedAt: 'desc' },
         start: (page - 1) * pageSize,
@@ -67,6 +67,7 @@ module.exports = {
         applicantName: a.applicant?.name || null,
         applicantEmail: a.applicant?.email || '(deleted applicant)',
         isStarCandidate: !!a.applicant?.isStarCandidate,
+        hasCvMindmap: !!a.applicant?.cvMindmapJson,
         checklistPercent: a.checklistPercent,
         hasRequiredMissing: !!(a.checklistAnswers?.requiredMissing?.length),
         submittedAt: a.submittedAt,
@@ -116,6 +117,10 @@ module.exports = {
         starCandidateNote: app.applicant?.starCandidateNote || null,
         starCandidateMarkedByAdminEmail: app.applicant?.starCandidateMarkedByAdminEmail || null,
         starCandidateMarkedAt: app.applicant?.starCandidateMarkedAt || null,
+        cvMindmapJson: app.applicant?.cvMindmapJson || null,
+        cvMindmapPdf: app.applicant?.cvMindmapPdf
+          ? { url: absoluteMediaUrl(app.applicant.cvMindmapPdf.url) }
+          : null,
       },
       cv: app.cvUsed
         ? {

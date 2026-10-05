@@ -44,6 +44,14 @@ module.exports = {
         handler: 'applicantStar.setStar',
         config: { policies: ['admin::isAuthenticatedAdmin'] },
       },
+      // Lets HR add/edit the CV mindmap JSON directly from either Detail
+      // screen, instead of needing Content Manager open in a second tab.
+      {
+        method: 'POST',
+        path: '/applicants/:id/cv-mindmap',
+        handler: 'applicantCvMindmap.setCvMindmap',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
       // Bulk CV export for the candidate-sourcing experiment — literal path,
       // must stay above the generic GET /:id below (route array is matched
       // in declaration order, not by specificity).
