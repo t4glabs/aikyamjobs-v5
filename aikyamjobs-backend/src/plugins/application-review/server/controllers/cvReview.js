@@ -24,17 +24,28 @@ module.exports = {
   /**
    * The CV Improver queue. Defaults to pending (not yet reviewed); pass
    * ?status=reviewed|all to look back at past feedback.
+   *
+   * Newest-submitted first (see review.queue's comment for why this changed
+   * from oldest-first, and why pagination exists now). ?page=1&pageSize=20
+   * control pagination; defaults match that.
    */
   async queue(ctx) {
     const status = ctx.query.status || 'pending';
     const filters = status === 'all' ? {} : status === 'pending' ? { status: 'submitted' } : { status };
 
-    const reviews = await strapi.entityService.findMany('api::cv-review.cv-review', {
-      filters,
-      populate: { applicant: { fields: ['name', 'email', 'isStarCandidate'] } },
-      sort: { submittedAt: 'asc' },
-      limit: -1,
-    });
+    const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
+    const pageSize = Math.max(1, parseInt(ctx.query.pageSize, 10) || 20);
+
+    const [reviews, total] = await Promise.all([
+      strapi.entityService.findMany('api::cv-review.cv-review', {
+        filters,
+        populate: { applicant: { fields: ['name', 'email', 'isStarCandidate'] } },
+        sort: { submittedAt: 'desc' },
+        start: (page - 1) * pageSize,
+        limit: pageSize,
+      }),
+      strapi.entityService.count('api::cv-review.cv-review', { filters }),
+    ]);
 
     ctx.body = {
       queue: reviews.map((r) => ({
@@ -47,6 +58,7 @@ module.exports = {
         submittedAt: r.submittedAt,
         reviewedAt: r.reviewedAt,
       })),
+      pagination: { page, pageSize, total, pageCount: Math.max(1, Math.ceil(total / pageSize)) },
     };
   },
 

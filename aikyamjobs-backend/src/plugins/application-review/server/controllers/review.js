@@ -30,21 +30,33 @@ module.exports = {
    * ?status=approved|rejected_with_tips|rejected|all to look back at past
    * decisions — reviewers can reopen and correct a decision, so this isn't a
    * one-way queue.
+   *
+   * Newest-submitted first (was oldest-first, which buried new applications
+   * at the bottom of an unbounded, unpaginated list as the queue grew — the
+   * actual source of the "cluttered" feeling, not just a missing pager).
+   * ?page=1&pageSize=20 control pagination; defaults match that.
    */
   async queue(ctx) {
     const status = ctx.query.status || 'pending';
     const filters =
       status === 'all' ? {} : status === 'pending' ? { status: { $in: PENDING_STATUSES } } : { status };
 
-    const applications = await strapi.entityService.findMany('api::application.application', {
-      filters,
-      populate: {
-        job: { fields: ['title'], populate: { company: { fields: ['name'] } } },
-        applicant: { fields: ['name', 'email', 'isStarCandidate'] },
-      },
-      sort: { submittedAt: 'asc' },
-      limit: -1,
-    });
+    const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
+    const pageSize = Math.max(1, parseInt(ctx.query.pageSize, 10) || 20);
+
+    const [applications, total] = await Promise.all([
+      strapi.entityService.findMany('api::application.application', {
+        filters,
+        populate: {
+          job: { fields: ['title'], populate: { company: { fields: ['name'] } } },
+          applicant: { fields: ['name', 'email', 'isStarCandidate'] },
+        },
+        sort: { submittedAt: 'desc' },
+        start: (page - 1) * pageSize,
+        limit: pageSize,
+      }),
+      strapi.entityService.count('api::application.application', { filters }),
+    ]);
 
     ctx.body = {
       queue: applications.map((a) => ({
@@ -60,6 +72,7 @@ module.exports = {
         submittedAt: a.submittedAt,
         decisionAt: a.decisionAt,
       })),
+      pagination: { page, pageSize, total, pageCount: Math.max(1, Math.ceil(total / pageSize)) },
     };
   },
 

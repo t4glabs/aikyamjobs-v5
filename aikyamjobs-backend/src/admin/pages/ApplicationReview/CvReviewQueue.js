@@ -7,6 +7,7 @@ import {
 import { Main } from '@strapi/design-system/Main';
 import { HeaderLayout, ContentLayout, ActionLayout } from '@strapi/design-system/Layout';
 import { Box } from '@strapi/design-system/Box';
+import { Flex } from '@strapi/design-system/Flex';
 import { Typography } from '@strapi/design-system/Typography';
 import { Table, Thead, Tbody, Tr, Td, Th } from '@strapi/design-system/Table';
 import { Button } from '@strapi/design-system/Button';
@@ -29,19 +30,28 @@ const formatDate = (value) => {
   });
 };
 
+const PAGE_SIZE = 20;
+
 const CvReviewQueue = ({ onSelect }) => {
   const { get } = useFetchClient();
   const toggleNotification = useNotification();
   const [isLoading, setIsLoading] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
   const [queue, setQueue] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const fetchQueue = useCallback(
-    async (status) => {
+    async (status, p) => {
       setIsLoading(true);
       try {
-        const { data } = await get(`/admin/application-review/cv-reviews?status=${status}`);
+        const { data } = await get(
+          `/admin/application-review/cv-reviews?status=${status}&page=${p}&pageSize=${PAGE_SIZE}`
+        );
         setQueue(data.queue);
+        setPageCount(data.pagination?.pageCount || 1);
+        setTotal(data.pagination?.total || data.queue.length);
       } catch (error) {
         toggleNotification({ type: 'warning', message: 'Could not load CV Improver requests.' });
       } finally {
@@ -52,8 +62,15 @@ const CvReviewQueue = ({ onSelect }) => {
   );
 
   useEffect(() => {
-    fetchQueue(TABS[tabIndex].key);
-  }, [tabIndex, fetchQueue]);
+    fetchQueue(TABS[tabIndex].key, page);
+  }, [tabIndex, page, fetchQueue]);
+
+  // See Queue.js's identical handler for why the reset lives here rather
+  // than in a separate effect keyed on tabIndex (avoids a double-fetch race).
+  const handleTabChange = (index) => {
+    setTabIndex(index);
+    setPage(1);
+  };
 
   return (
     <Main>
@@ -66,7 +83,7 @@ const CvReviewQueue = ({ onSelect }) => {
           <TabGroup
             label="Filter by status"
             variant="simple"
-            onTabChange={(index) => setTabIndex(index)}
+            onTabChange={handleTabChange}
           >
             <Tabs>
               {TABS.map((t) => (
@@ -123,6 +140,33 @@ const CvReviewQueue = ({ onSelect }) => {
               ))}
             </Tbody>
           </Table>
+        )}
+        {pageCount > 1 && (
+          <Box paddingTop={4}>
+            <Flex justifyContent="space-between" alignItems="center">
+              <Typography variant="pi" textColor="neutral600">
+                Page {page} of {pageCount} — {total} total
+              </Typography>
+              <Flex gap={2}>
+                <Button
+                  variant="tertiary"
+                  size="S"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  ‹ Previous
+                </Button>
+                <Button
+                  variant="tertiary"
+                  size="S"
+                  disabled={page >= pageCount}
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                >
+                  Next ›
+                </Button>
+              </Flex>
+            </Flex>
+          </Box>
         )}
       </ContentLayout>
     </Main>
