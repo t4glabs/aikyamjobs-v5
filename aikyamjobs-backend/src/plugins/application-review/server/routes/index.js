@@ -52,6 +52,20 @@ module.exports = {
         handler: 'applicantCvMindmap.setCvMindmap',
         config: { policies: ['admin::isAuthenticatedAdmin'] },
       },
+      // Lets HR check/edit a Company's mindmap JSON from the Job edit
+      // screen (see src/admin/components/CompanyMindmapCheck.js).
+      {
+        method: 'GET',
+        path: '/companies/:id/mindmap',
+        handler: 'companyMindmap.getMindmapStatus',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
+      {
+        method: 'POST',
+        path: '/companies/:id/mindmap',
+        handler: 'companyMindmap.setMindmapStatus',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
       // Bulk CV export for the candidate-sourcing experiment — literal path,
       // must stay above the generic GET /:id below (route array is matched
       // in declaration order, not by specificity).

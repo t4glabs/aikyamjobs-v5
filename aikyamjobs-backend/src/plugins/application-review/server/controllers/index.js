@@ -5,6 +5,7 @@ const cvReview = require('./cvReview');
 const applicantStar = require('./applicantStar');
 const applicantExport = require('./applicantExport');
 const applicantCvMindmap = require('./applicantCvMindmap');
+const companyMindmap = require('./companyMindmap');
 
 module.exports = {
   review,
@@ -12,4 +13,5 @@ module.exports = {
   applicantStar,
   applicantExport,
   applicantCvMindmap,
+  companyMindmap,
 };
