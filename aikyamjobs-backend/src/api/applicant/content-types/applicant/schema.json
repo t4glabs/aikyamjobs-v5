@@ -72,6 +72,16 @@
     },
     "starCandidateMarkedAt": {
       "type": "datetime"
+    },
+    "cvMindmapJson": {
+      "type": "json",
+      "private": true,
+      "description": "Visual mindmap source data for this applicant's CV, same shape as Job.mindmapJson: { title, root: { label, details?, children?: [...] } }. Editorial/generation input only -- never sent to the public API. When set, a downloadable PDF is generated automatically into cvMindmapPdf, which IS public (so the applicant can download their own)."
+    },
+    "cvMindmapPdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"]
     }
   }
 }

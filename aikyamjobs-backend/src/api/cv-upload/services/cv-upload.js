@@ -119,4 +119,34 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
       remaining: Math.max(0, maxN - countedInWindow),
     };
   },
+
+  /**
+   * Read-only version of the same window/count math recordUpload enforces --
+   * no file write, no correction-vs-distinct logic, just "where do things
+   * stand right now." Powers the applicant-facing profile's "X of Y CV
+   * updates used, Z left" display, so that display can never drift from
+   * what recordUpload actually enforces (same settings, same query).
+   */
+  async getLimitStatus(applicantId) {
+    const settings =
+      (await strapi.entityService.findMany('api::site-setting.site-setting')) || {};
+    const maxN = settings.maxCvUploadsPer6Months || 3;
+    const windowDays = settings.cvUploadWindowDays || 180;
+    const windowMs = windowDays * 24 * 3600 * 1000;
+
+    const countedInWindow = await strapi.entityService.count('api::cv-upload.cv-upload', {
+      filters: {
+        applicant: applicantId,
+        counted: true,
+        uploadedAt: { $gt: new Date(Date.now() - windowMs) },
+      },
+    });
+
+    return {
+      max: maxN,
+      windowDays,
+      countedInWindow,
+      remaining: Math.max(0, maxN - countedInWindow),
+    };
+  },
 }));

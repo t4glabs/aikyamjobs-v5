@@ -6,6 +6,13 @@
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 const JWT_KEY = 'aikyam_apply_jwt';
 
+export interface CvLimitStatus {
+  max: number;
+  windowDays: number;
+  countedInWindow: number;
+  remaining: number;
+}
+
 export interface ApplicantProfile {
   id: number;
   email: string;
@@ -17,6 +24,8 @@ export interface ApplicantProfile {
     uploadedAt?: string;
     url?: string | null;
   } | null;
+  cvLimitStatus?: CvLimitStatus;
+  cvMindmapPdf?: { url: string } | null;
 }
 
 export interface CvUploadResult {

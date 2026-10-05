@@ -143,16 +143,26 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
     };
   },
 
-  /** Current applicant profile + CV-on-file (drives the "no re-upload" UX). */
+  /**
+   * Current applicant profile + CV-on-file (drives the "no re-upload" UX),
+   * plus the CV upload limit status and CV mindmap PDF download link for the
+   * profile page. Deliberately excludes isStarCandidate/starCandidateNote/etc
+   * -- those are editorial-only fields for reviewers, same reasoning as
+   * internalTags never reaching the public job API; an applicant has no
+   * legitimate reason to know whether they've been flagged as a star
+   * candidate.
+   */
   async me(ctx) {
     const { applicant } = ctx.state;
     const full = await strapi.entityService.findOne(
       'api::applicant.applicant',
       applicant.id,
-      { populate: { currentCv: { populate: { file: true } } } }
+      { populate: { currentCv: { populate: { file: true } }, cvMindmapPdf: true } }
     );
 
     const cv = full.currentCv;
+    const cvLimitStatus = await strapi.service('api::cv-upload.cv-upload').getLimitStatus(full.id);
+
     return {
       id: full.id,
       email: full.email,
@@ -166,6 +176,8 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
             url: absoluteMediaUrl(cv.file && cv.file.url),
           }
         : null,
+      cvLimitStatus,
+      cvMindmapPdf: full.cvMindmapPdf ? { url: absoluteMediaUrl(full.cvMindmapPdf.url) } : null,
     };
   },
 

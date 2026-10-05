@@ -1,44 +1,36 @@
-// Full "JD website as a PDF" renderer, v3. Every page in the document --
-// mindmap pages and prose pages alike -- shares one fixed page size and one
-// running header/footer, so the whole thing reads as a single consistent
-// document instead of different-sized PDFs stapled together. Mindmaps that
-// don't fit on one page paginate by top-level branch (root repeats on each
-// continuation page) rather than shrinking fonts to illegible sizes or
-// growing the page to a custom size that breaks consistency with the rest
-// of the document.
+// CV mindmap PDF renderer for an applicant's profile. Structurally much
+// simpler than mindmap-template.typ (job/company): just one section -- a
+// branded header, the candidate's name + one-line summary (the "basic
+// details"), then the mindmap tree itself, then a closing line. No prose
+// page, no second entity, no live-site link (applicants don't have a
+// public profile page to link back to).
 //
-// Reads JSON injected by mindmapPdf.js as an in-memory shadow file:
-//   {
-//     meta: { brandColor },
-//     job: { title, url, location, jobType, experienceLevel, salary,
-//            closingDate, impactArea, skills: [...], categories: [...],
-//            descriptionBlocks: [...], apply: { label, href } | none },
-//     jobMindmap: <tree> | none,
-//     company: { name, url, location, size, industry, website,
-//                descriptionBlocks: [...] } | none,
-//     companyMindmap: <tree> | none,
-//   }
+// The tree-layout engine (content-adaptive node width, per-branch
+// pagination) below is a deliberate copy of the one in mindmap-template.typ,
+// not a shared import -- kept self-contained so a future change to the JD/
+// company PDF can't accidentally regress this one, or vice versa, at the
+// cost of some duplication between the two files. If both ever need the
+// same layout change, update both.
 //
-// Page order: JD mindmap -> JD -> company mindmap -> company -> closing
-// line. Company sections included only when present.
+// Reads JSON injected by cvMindmapPdf.js as an in-memory shadow file:
+//   { meta: { brandColor }, cvMindmap: <tree> }
 //
-// `tree` (both mindmaps) tolerates two shapes seen in real editorial data:
+// `tree` tolerates the same two shapes as the JD/company mindmaps:
 //   1. { title, root: { label, details?, children?: [...] } }
 //   2. { title, children: [...] } -- top-level object IS the root, node
 //      text in `title` instead of `label`.
 
-#let data = json("mindmap-data.json")
+#let data = json("cv-mindmap-data.json")
 #let meta = data.at("meta", default: (:))
 #let brand = rgb(meta.at("brandColor", default: "#AE4634"))
 #let dark-text = rgb("#1F2937")
 #let gray-text = rgb("#6B7280")
 #let light-gray = rgb("#9CA3AF")
 #let hairline = rgb("#E5E7EB")
-#let soft-bg = rgb("#F9FAFB")
 
 #let palette = (rgb("#AE4634"), rgb("#2E6F5E"), rgb("#3F5D8A"), rgb("#8A5A3F"), rgb("#5A4F8A"), rgb("#3F7A8A"), rgb("#7A3F6E"))
 
-// ---------- One fixed page size for the entire document ----------
+// ---------- One fixed page size, matching the JD/company PDF ----------
 
 #let page-w = 29.7cm
 #let page-h = 21cm
@@ -47,12 +39,6 @@
 #let margin-bottom = 1.3cm
 #let content-w = page-w - 2 * margin-x
 #let content-h = page-h - margin-top - margin-bottom
-
-// Seeded to the first section's label directly rather than "" -- state
-// updates only affect the header on pages that *start* after the update
-// call, so page 1's header would otherwise show blank (the update placed
-// in page 1's own body is too late to affect page 1's own header).
-#let section-state = state("section-label", "JD Mindmap")
 
 #set page(
   width: page-w, height: page-h,
@@ -66,7 +52,7 @@
       column-gutter: 8pt,
       image("aikyamjobs-logo-dark.svg", height: 11pt),
       [],
-      section-state.get(),
+      [Candidate Mindmap],
     )
     #v(5pt)
     #line(length: 100%, stroke: 0.6pt + hairline)
@@ -80,13 +66,8 @@
 #set text(size: 10pt)
 
 // ---------- Mindmap layout (content-adaptive node width) ----------
-//
-// Node width is not a fixed constant per depth. Each node's real text (its
-// `details` paragraph if it has one, else its `label`) is measured at its
-// natural, unwrapped width, then divided by a target line count to get a
-// width that wraps that specific node's content into a clean, readable
-// number of lines -- clamped within a min/max band that widens with depth,
-// since deeper nodes tend to carry the longest prose.
+// See mindmap-template.typ for the long-form comment on why width is
+// measured per-node rather than a fixed constant per depth.
 
 #let clamped(arr, depth) = arr.at(calc.min(depth, arr.len() - 1))
 #let font-size(depth) = clamped((15pt, 11.5pt, 9.5pt), depth)
@@ -141,8 +122,6 @@
   ]
 }
 
-// Bottom-up: measure real rendered height (at this node's own ideal
-// width), stack children with exact gaps.
 #let compute-layout(node, depth, color) = {
   let w = ideal-width(node, depth)
   let box-content = make-box(node, depth, color, w)
@@ -174,7 +153,6 @@
   )
 }
 
-// Top-down: assign absolute coordinates, draw edges parent-right -> child-left.
 #let render(layout, x, subtree-top, depth) = {
   let node-y = subtree-top + layout.own-y
   place(top + left, dx: x, dy: node-y, layout.box)
@@ -193,7 +171,6 @@
   }
 }
 
-// Real rightmost extent actually used by a subtree once placed at `x`.
 #let subtree-max-right(layout, x, depth) = {
   let own-right = x + layout.box-width
   if layout.children.len() == 0 { return own-right }
@@ -201,9 +178,6 @@
   calc.max(own-right, ..layout.children.map(pc => subtree-max-right(pc.layout, child-x, depth + 1)))
 }
 
-// Positions a specific subset of top-level branches against the (shared)
-// root box -- used once per mindmap page, since which branches land on
-// which page changes per page but the root itself is identical everywhere.
 #let assemble-page-layout(root-box, root-sz, branch-group) = {
   let children-total = branch-group.map(l => l.height).sum() + sibling-gap * (calc.max(branch-group.len(), 1) - 1)
   let subtree-height = calc.max(root-sz.height, children-total)
@@ -223,12 +197,6 @@
   )
 }
 
-// Greedily packs top-level branches into pages so each page's stacked
-// height fits its budget (page 1 has less room than continuation pages,
-// since the JD/company title block sits above the canvas only there).
-// A single branch taller than a full budget still gets its own page alone
-// (rare, and render-mindmap-page below applies a uniform shrink-to-fit as
-// a last resort rather than letting it overflow).
 #let pack-branches(branch-layouts, first-budget, rest-budget) = {
   if branch-layouts.len() == 0 { return (() ,) }
   let pages = ()
@@ -251,11 +219,6 @@
   pages
 }
 
-// Renders one mindmap page's worth of branches against the shared root,
-// shrinking uniformly (preserving aspect ratio, so text never distorts)
-// only if this specific page's content doesn't fit the fixed content area
-// -- a safety net, not the normal path, since pack-branches already sizes
-// groups to fit.
 #let render-mindmap-page(root-box, root-sz, branch-group, available-w, available-h) = {
   let layout = assemble-page-layout(root-box, root-sz, branch-group)
   let canvas-w = if branch-group.len() == 0 {
@@ -273,11 +236,6 @@
   }
 }
 
-// A full mindmap section: lead-in block (title/link) on the first page,
-// then the tree paginated across as many same-size pages as it needs.
-// Caller is responsible for the section-state label and the pagebreak
-// into this section; this only breaks pages *between* its own mindmap
-// pages, not before its first one.
 #let render-mindmap-section(tree, lead-in) = {
   let root = tree.at("root", default: tree)
   let branches = root.at("children", default: ())
@@ -292,9 +250,8 @@
   // isolated content can differ slightly from how it renders in real page
   // flow (block spacing, leading), and with zero slack that's enough to
   // make Typst silently overflow the whole (unsplittable, place()-based)
-  // canvas box onto the next page -- confirmed by hand on the CV mindmap
-  // variant of this same algorithm: an 8pt margin on a 445pt budget was
-  // enough to trigger exactly that silent overflow.
+  // canvas box onto the next page -- confirmed by hand: an 8pt margin on a
+  // 445pt budget was enough to trigger exactly that.
   let page-safety-buffer = 24pt
   let first-budget = calc.max(content-h - lead-in-h - lead-in-gap - page-safety-buffer, root-sz.height)
   let rest-budget = content-h - page-safety-buffer
@@ -308,28 +265,9 @@
   }
 }
 
-// ---------- Prose (JD/company) sections ----------
-
-#let render-blocks(blocks) = {
-  for b in blocks {
-    if b.type == "heading" {
-      v(10pt)
-      text(size: clamped((13pt, 12.5pt, 12pt, 11.5pt), b.at("level", default: 2) - 1), weight: "bold", fill: dark-text)[#b.text]
-      v(4pt)
-    } else if b.type == "paragraph" {
-      par(text(size: 10pt, fill: dark-text.lighten(10%))[#b.text])
-      v(8pt)
-    } else if b.type == "list" {
-      list(..b.items.map(i => text(size: 10pt, fill: dark-text.lighten(10%))[#i]))
-      v(8pt)
-    } else if b.type == "quote" {
-      block(inset: (left: 10pt), stroke: (left: 2pt + brand))[
-        #text(size: 10pt, style: "italic", fill: gray-text)[#b.text]
-      ]
-      v(8pt)
-    }
-  }
-}
+// ---------- Lead-in: candidate name + one-line summary ("basic details") ----------
+// No "view on aikyamjobs.org" link here -- unlike a job or company, an
+// applicant has no public profile page to link back to.
 
 #let meta-row(items) = {
   let parts = items.filter(i => i != none)
@@ -338,135 +276,26 @@
   }).join()
 }
 
-#let cta-button(label, href) = link(href)[
-  #box(fill: brand, radius: 4pt, inset: (x: 18pt, y: 10pt))[
-    #text(fill: white, size: 10.5pt, weight: "bold")[#label →]
-  ]
-]
-
-// Two-column layout so text content sits at a readable measure rather than
-// stretching the full landscape width -- keeps the prose pages visually
-// consistent with the mindmap pages, which also don't use the full width
-// for every node.
-#let prose-col-w = content-w * 0.62
-
-#let job-lead-in(job) = [
-  #text(size: 20pt, weight: "bold", fill: dark-text)[#job.title]
-  #v(6pt)
-  #text(size: 9.5pt, fill: gray-text)[
-    #meta-row((
-      job.at("location", default: none),
-      if job.at("jobType", default: none) != none { job.jobType } else { none },
-      if job.at("experienceLevel", default: none) != none { job.experienceLevel + " level" } else { none },
-      job.at("salary", default: none),
-      if job.at("closingDate", default: none) != none { "Closes " + job.closingDate } else { none },
-    ))
-  ]
-  #if job.at("url", default: none) != none [
-    #v(4pt)
-    #link(job.url)[#text(size: 9pt, fill: brand, weight: "medium")[View this on aikyamjobs.org → #job.url]]
-  ]
-]
-
-#let job-content-page(job) = block(width: prose-col-w)[
-  #text(size: 15pt, weight: "bold", fill: dark-text)[Job Description]
-  #v(10pt)
-
-  #if job.at("apply", default: none) != none [
-    #cta-button(job.apply.label, job.apply.href)
-    #v(6pt)
-    #text(size: 8.5pt, fill: gray-text)[Want to save this for later instead? #link(job.url)[Open the live listing →]]
-    #v(16pt)
-  ]
-
-  #render-blocks(job.at("descriptionBlocks", default: ()))
-
-  #if job.at("skills", default: ()).len() > 0 [
-    #v(6pt)
-    #text(size: 11.5pt, weight: "bold", fill: dark-text)[Required Skills]
-    #v(6pt)
-    #block[
-      #for s in job.skills [
-        #box(fill: soft-bg, stroke: 0.6pt + hairline, radius: 3pt, inset: (x: 7pt, y: 4pt))[#text(size: 9pt, fill: dark-text)[#s]] #h(4pt)
-      ]
-    ]
-    #v(10pt)
-  ]
-
-  #if job.at("categories", default: ()).len() > 0 [
-    #text(size: 11.5pt, weight: "bold", fill: dark-text)[Tags]
-    #v(6pt)
-    #block[
-      #for c in job.categories [
-        #box(fill: soft-bg, stroke: 0.6pt + hairline, radius: 3pt, inset: (x: 7pt, y: 4pt))[#text(size: 9pt, fill: dark-text)[#c]] #h(4pt)
-      ]
-    ]
-  ]
-]
-
-#let company-lead-in(company) = [
-  #text(size: 20pt, weight: "bold", fill: dark-text)[#company.name]
-  #v(6pt)
-  #text(size: 9.5pt, fill: gray-text)[
-    #meta-row((
-      company.at("location", default: none),
-      company.at("size", default: none),
-      company.at("industry", default: none),
-    ))
-  ]
-  #if company.at("url", default: none) != none [
-    #v(4pt)
-    #link(company.url)[#text(size: 9pt, fill: brand, weight: "medium")[View this on aikyamjobs.org → #company.url]]
-  ]
-]
-
-#let company-content-page(company) = block(width: prose-col-w)[
-  #text(size: 15pt, weight: "bold", fill: dark-text)[About the Company]
-  #v(10pt)
-
-  #if company.at("website", default: none) != none [
-    #cta-button("Visit website", company.website)
-    #v(16pt)
-  ]
-
-  #render-blocks(company.at("descriptionBlocks", default: ()))
-
-  #v(10pt)
-  #text(size: 8.5pt, fill: gray-text)[See the full listing and open roles: #link(company.url)[#company.url]]
-]
-
-// ---------- Assembly: JD mindmap -> JD -> company mindmap -> company ----------
-
 #context {
-  let has-job-mindmap = data.at("jobMindmap", default: none) != none
-  let has-company-mindmap = data.at("companyMindmap", default: none) != none
-  let has-company = data.at("company", default: none) != none
+  let tree = data.cvMindmap
+  let root = tree.at("root", default: tree)
+  let name = node-label(root)
+  let summary = node-details(root)
 
-  if has-job-mindmap {
-    section-state.update("JD Mindmap")
-    render-mindmap-section(data.jobMindmap, job-lead-in(data.job))
-  }
+  let lead-in = [
+    #text(size: 20pt, weight: "bold", fill: dark-text)[#name]
+    #if summary != none [
+      #v(6pt)
+      #text(size: 9.5pt, fill: gray-text)[#summary]
+    ]
+  ]
 
-  section-state.update("Job Description")
-  if has-job-mindmap { pagebreak() }
-  job-content-page(data.job)
-
-  if has-company-mindmap {
-    section-state.update("Company Mindmap")
-    pagebreak()
-    render-mindmap-section(data.companyMindmap, company-lead-in(data.company))
-  }
-
-  if has-company {
-    section-state.update("Company Profile")
-    pagebreak()
-    company-content-page(data.company)
-  }
+  render-mindmap-section(tree, lead-in)
 
   v(1fr)
   align(center)[
     #text(size: 9pt, style: "italic", fill: gray-text)[
-      Hope this gives you a clear, complete picture of the role — if it feels like a fit, the link above takes you straight to the full listing.
+      A visual summary of this CV, generated for quick review — the original CV on file has the full detail.
     ]
   ]
 }

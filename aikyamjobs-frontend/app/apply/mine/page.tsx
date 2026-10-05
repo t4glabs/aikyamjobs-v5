@@ -9,6 +9,7 @@ import {
   getMyApplications,
   requestMagicLink,
   type MyApplication,
+  type ApplicantProfile,
 } from '@/lib/apply';
 import { track } from '@/lib/analytics';
 
@@ -32,6 +33,7 @@ export default function MyApplicationsPage() {
   const [signinBusy, setSigninBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applications, setApplications] = useState<MyApplication[]>([]);
+  const [profile, setProfile] = useState<ApplicantProfile | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -46,6 +48,7 @@ export default function MyApplicationsPage() {
         setStage('signin');
         return;
       }
+      setProfile(me.data);
       const res = await getMyApplications();
       if (!active) return;
       if (!res.ok) {
@@ -86,6 +89,84 @@ export default function MyApplicationsPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
+          {stage === 'list' && profile && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 mb-6">
+              <h1 className="text-lg font-semibold text-gray-900 mb-4">My profile</h1>
+
+              <div className="space-y-1 text-sm mb-5">
+                <p className="text-gray-900 font-medium">{profile.name || 'No name on file'}</p>
+                <p className="text-gray-600">{profile.email}</p>
+                {profile.phone && <p className="text-gray-600">{profile.phone}</p>}
+              </div>
+
+              <div className="border-t border-gray-100 pt-5">
+                <h2 className="text-sm font-semibold text-gray-900 mb-2">CV on file</h2>
+                {profile.currentCv ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-900 truncate">{profile.currentCv.originalName || 'Your CV'}</p>
+                      {profile.currentCv.uploadedAt && (
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Uploaded{' '}
+                          {new Date(profile.currentCv.uploadedAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    {profile.currentCv.url && (
+                      <a
+                        href={profile.currentCv.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-none text-xs font-semibold link-brand"
+                      >
+                        View →
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No CV on file yet — one gets added the first time you apply.</p>
+                )}
+
+                {profile.cvLimitStatus && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    {profile.cvLimitStatus.remaining > 0
+                      ? `${profile.cvLimitStatus.remaining} of ${profile.cvLimitStatus.max} CV updates left in the next ${Math.round(profile.cvLimitStatus.windowDays / 30)} months.`
+                      : `You've used all ${profile.cvLimitStatus.max} CV updates allowed in a ${Math.round(profile.cvLimitStatus.windowDays / 30)}-month window. Your current CV stays on file and still works for applying.`}
+                  </p>
+                )}
+
+                {profile.cvMindmapPdf && (
+                  <a
+                    href={profile.cvMindmapPdf.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    download
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-4 w-4 flex-none"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                      />
+                    </svg>
+                    Download CV mindmap (PDF)
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
             {stage === 'checking' && (
               <div className="flex items-center gap-3 py-8 justify-center text-gray-400">

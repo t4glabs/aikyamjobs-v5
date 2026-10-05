@@ -391,6 +391,8 @@ export interface ApiApplicantApplicant extends Schema.CollectionType {
       'oneToOne',
       'api::cv-upload.cv-upload'
     >;
+    cvMindmapJson: Attribute.JSON & Attribute.Private;
+    cvMindmapPdf: Attribute.Media<'files'>;
     cvReviews: Attribute.Relation<
       'api::applicant.applicant',
       'oneToMany',
