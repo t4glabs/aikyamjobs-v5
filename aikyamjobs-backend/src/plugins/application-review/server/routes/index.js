@@ -77,6 +77,12 @@ module.exports = {
       },
       {
         method: 'GET',
+        path: '/cv-export/zip',
+        handler: 'applicantExport.cvExportZip',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
+      {
+        method: 'GET',
         path: '/:id',
         handler: 'review.findOne',
         config: { policies: ['admin::isAuthenticatedAdmin'] },

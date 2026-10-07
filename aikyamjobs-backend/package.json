@@ -20,6 +20,7 @@
     "@strapi/plugin-i18n": "^4.25.14",
     "@strapi/plugin-users-permissions": "^4.25.14",
     "@strapi/strapi": "^4.25.14",
+    "archiver": "^8.0.0",
     "better-sqlite3": "^11.0.0",
     "form-data": "^4.0.5",
     "grammy": "^1.45.1",
