@@ -7,6 +7,11 @@ import { track } from '@/lib/analytics';
 
 interface Props {
   jobSlug: string;
+  // True when there's no sibling PDF button in the row (job has no
+  // mindmapPdf) -- this button should then take the full row width instead
+  // of just its usual half, same as a lone flex child would, but a CSS grid
+  // doesn't do that automatically so the parent has to say so explicitly.
+  solo?: boolean;
 }
 
 /**
@@ -19,7 +24,7 @@ interface Props {
  * visitor gets a small inline sign-in card instead of the button just working
  * immediately.
  */
-export default function SaveJobButton({ jobSlug }: Props) {
+export default function SaveJobButton({ jobSlug, solo }: Props) {
   const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -72,7 +77,13 @@ export default function SaveJobButton({ jobSlug }: Props) {
   }
 
   return (
-    <div className="flex-1 min-w-0">
+    // display:contents makes this wrapper invisible to layout -- its
+    // children (the button, and the sign-in box when shown) become direct
+    // items of the PARENT's grid instead of being trapped inside one half
+    // of a two-column row. See the sign-in box below for why it needs
+    // col-span-2 + order-last to actually land full-width underneath both
+    // buttons rather than squeezed into this button's own column.
+    <div className="contents">
       <button
         type="button"
         onClick={toggle}
@@ -80,7 +91,7 @@ export default function SaveJobButton({ jobSlug }: Props) {
         aria-pressed={saved}
         aria-label={saved ? 'Remove from saved jobs' : 'Save this job for later'}
         title={saved ? 'Saved' : 'Save for later'}
-        className={`flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
+        className={`flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${solo ? 'col-span-2' : ''} ${
           saved
             ? 'border-[var(--brand)] bg-[var(--brand-10)] text-[var(--brand)]'
             : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -103,7 +114,7 @@ export default function SaveJobButton({ jobSlug }: Props) {
       </button>
 
       {showSignin && !signedIn && (
-        <div className="mt-2 rounded-lg border border-gray-200 bg-white p-3">
+        <div className="col-span-2 order-last mt-2 rounded-lg border border-gray-200 bg-white p-3">
           {!sent ? (
             <form onSubmit={handleSignin} className="space-y-2">
               <p className="text-xs text-gray-500">Sign in to save this job.</p>

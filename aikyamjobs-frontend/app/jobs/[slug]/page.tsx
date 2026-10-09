@@ -201,14 +201,14 @@ export default async function JobDetailPage({
                   sits above Apply / Application Assist so the primary CTA
                   (and, on gated jobs, its explainer copy directly below it)
                   stays a single uninterrupted unit. */}
-              <div className="mb-4 flex gap-2">
-                <SaveJobButton jobSlug={job.attributes.slug} />
+              <div className="mb-4 grid grid-cols-2 gap-2">
+                <SaveJobButton jobSlug={job.attributes.slug} solo={!job.attributes.mindmapPdf?.data} />
 
                 {job.attributes.mindmapPdf?.data && (
                   <DownloadPdfLink
                     href={getStrapiMediaUrl(job.attributes.mindmapPdf.data.attributes.url)}
                     jobSlug={job.attributes.slug}
-                    className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+                    className="flex min-w-0 items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
                   >
                     <svg
                       viewBox="0 0 24 24"
