@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCourse, getStrapiMediaUrl } from "@/lib/api";
 import { Course, StrapiResponse } from "@/lib/types";
-import { fieldOfStudyLabel, courseTypeLabel, modeLabel } from "@/lib/courseLabels";
+import { courseTypeLabel, modeLabel } from "@/lib/courseLabels";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
@@ -31,7 +31,7 @@ export async function generateMetadata({
   const keywords = course.attributes.keywords || [
     course.attributes.title,
     provider?.attributes.name || '',
-    fieldOfStudyLabel(course.attributes.fieldOfStudy),
+    course.attributes.fieldOfStudy?.data?.attributes.name || '',
     courseTypeLabel(course.attributes.courseType),
     'aikyam jobs',
     'learn and grow',
@@ -65,6 +65,7 @@ export default async function CourseDetailPage({
 
   const course = courseResponse.data[0];
   const provider = course.attributes.provider?.data;
+  const fieldOfStudy = course.attributes.fieldOfStudy?.data;
 
   const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_URL || '';
   const content = strapiUrl
@@ -154,12 +155,14 @@ export default async function CourseDetailPage({
                 >
                   {courseTypeLabel(course.attributes.courseType)}
                 </Link>
-                <Link
-                  href={`/courses?fieldOfStudy=${encodeURIComponent(course.attributes.fieldOfStudy)}`}
-                  className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
-                >
-                  {fieldOfStudyLabel(course.attributes.fieldOfStudy)}
-                </Link>
+                {fieldOfStudy && (
+                  <Link
+                    href={`/courses?fieldOfStudy=${encodeURIComponent(fieldOfStudy.attributes.slug)}`}
+                    className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
+                  >
+                    {fieldOfStudy.attributes.name}
+                  </Link>
+                )}
               </div>
 
               {course.attributes.skills && course.attributes.skills.length > 0 && (

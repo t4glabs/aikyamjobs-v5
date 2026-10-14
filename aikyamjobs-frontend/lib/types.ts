@@ -117,19 +117,16 @@ export interface Blog {
   };
 }
 
-export type CourseFieldOfStudy =
-  | 'life-sciences'
-  | 'chemistry'
-  | 'physical-sciences'
-  | 'environment-and-sustainability'
-  | 'management'
-  | 'social-work'
-  | 'social-sciences'
-  | 'education'
-  | 'public-policy'
-  | 'data-and-technology'
-  | 'arts-and-humanities'
-  | 'health-sciences';
+export interface CourseFieldOfStudy {
+  id: number;
+  attributes: {
+    name: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  };
+}
 
 export type CourseType =
   | 'undergraduate'
@@ -168,7 +165,6 @@ export interface Course {
     intake?: string;
     eligibility?: string;
     importantDates?: string;
-    fieldOfStudy: CourseFieldOfStudy;
     courseType: CourseType;
     skills?: string[];
     excerpt?: string;
@@ -187,6 +183,9 @@ export interface Course {
     publishedAt: string;
     provider?: {
       data: CourseProvider | null;
+    };
+    fieldOfStudy?: {
+      data: CourseFieldOfStudy | null;
     };
   };
 }

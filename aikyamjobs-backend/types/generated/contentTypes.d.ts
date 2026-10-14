@@ -647,6 +647,48 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
   };
 }
 
+export interface ApiCourseFieldOfStudyCourseFieldOfStudy
+  extends Schema.CollectionType {
+  collectionName: 'course_field_of_studies';
+  info: {
+    description: 'Learn & Grow field-of-study taxonomy for courses (e.g. Chemistry, Public Policy). Admin-managed so new fields can be added without a code deploy.';
+    displayName: 'Course Field of Study';
+    pluralName: 'course-field-of-studies';
+    singularName: 'course-field-of-study';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    courses: Attribute.Relation<
+      'api::course-field-of-study.course-field-of-study',
+      'oneToMany',
+      'api::course.course'
+    >;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::course-field-of-study.course-field-of-study',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    name: Attribute.String & Attribute.Required;
+    publishedAt: Attribute.DateTime;
+    slug: Attribute.UID<
+      'api::course-field-of-study.course-field-of-study',
+      'name'
+    > &
+      Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::course-field-of-study.course-field-of-study',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCourseProviderCourseProvider extends Schema.CollectionType {
   collectionName: 'course_providers';
   info: {
@@ -734,23 +776,11 @@ export interface ApiCourseCourse extends Schema.CollectionType {
       }>;
     featured: Attribute.Boolean & Attribute.DefaultTo<false>;
     featureImage: Attribute.Media<'images'>;
-    fieldOfStudy: Attribute.Enumeration<
-      [
-        'life-sciences',
-        'chemistry',
-        'physical-sciences',
-        'environment-and-sustainability',
-        'management',
-        'social-work',
-        'social-sciences',
-        'education',
-        'public-policy',
-        'data-and-technology',
-        'arts-and-humanities',
-        'health-sciences'
-      ]
-    > &
-      Attribute.Required;
+    fieldOfStudy: Attribute.Relation<
+      'api::course.course',
+      'manyToOne',
+      'api::course-field-of-study.course-field-of-study'
+    >;
     importantDates: Attribute.Text;
     intake: Attribute.String;
     internalTags: Attribute.Relation<
@@ -1763,6 +1793,7 @@ declare module '@strapi/types' {
       'api::blog.blog': ApiBlogBlog;
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
+      'api::course-field-of-study.course-field-of-study': ApiCourseFieldOfStudyCourseFieldOfStudy;
       'api::course-provider.course-provider': ApiCourseProviderCourseProvider;
       'api::course.course': ApiCourseCourse;
       'api::cv-review.cv-review': ApiCvReviewCvReview;

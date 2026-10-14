@@ -2,16 +2,37 @@
 
 /**
  * Dev-only helper: seeds the Learn & Grow / Courses section with one provider
- * (Azim Premji University) and ten courses so /courses and /courses/[slug]
- * can be built and tested locally against real-shaped data. Also grants the
- * Public role find/findOne on course and course-provider, since new content
- * types default to no public API access (same manual step documented in
+ * (Azim Premji University), the admin-managed field-of-study taxonomy, and
+ * ten courses so /courses and /courses/[slug] can be built and tested locally
+ * against real-shaped data. Also grants the Public role find/findOne on
+ * course, course-provider and course-field-of-study, since new content types
+ * default to no public API access (same manual step documented in
  * scripts/MIGRATION_README.md, done here so local dev doesn't need the
  * admin UI). Safe to re-run. Run with the dev server stopped:
  *
  *   node scripts/seed-courses.js
  */
 const strapiFactory = require('@strapi/strapi');
+
+// Admin-managed via api::course-field-of-study — new ones can be added from
+// Strapi admin without a code deploy. Seeded with the full fixed list from
+// the Learn & Grow course authoring spec (plus physical-sciences and
+// social-sciences, added here to cover the rest of Azim Premji University's
+// catalogue) so the filter dropdown shows the complete taxonomy from day one.
+const FIELDS_OF_STUDY = [
+  { name: 'Life Sciences', slug: 'life-sciences' },
+  { name: 'Chemistry', slug: 'chemistry' },
+  { name: 'Physical Sciences', slug: 'physical-sciences' },
+  { name: 'Environment and Sustainability', slug: 'environment-and-sustainability' },
+  { name: 'Management', slug: 'management' },
+  { name: 'Social Work', slug: 'social-work' },
+  { name: 'Social Sciences', slug: 'social-sciences' },
+  { name: 'Education', slug: 'education' },
+  { name: 'Public Policy', slug: 'public-policy' },
+  { name: 'Data and Technology', slug: 'data-and-technology' },
+  { name: 'Arts and Humanities', slug: 'arts-and-humanities' },
+  { name: 'Health Sciences', slug: 'health-sciences' },
+];
 
 const PROVIDER_SLUG = 'azim-premji-university';
 
@@ -554,6 +575,18 @@ Published fee figures are not stated on the source page. Need-based financial as
 
   const app = await strapiFactory().load();
   try {
+    const fieldOfStudyIdBySlug = {};
+    for (const field of FIELDS_OF_STUDY) {
+      const existingField = await app.db
+        .query('api::course-field-of-study.course-field-of-study')
+        .findOne({ where: { slug: field.slug } });
+      const record = existingField
+        ? await app.entityService.update('api::course-field-of-study.course-field-of-study', existingField.id, { data: field })
+        : await app.entityService.create('api::course-field-of-study.course-field-of-study', { data: { ...field, publishedAt: new Date() } });
+      fieldOfStudyIdBySlug[field.slug] = record.id;
+    }
+    console.log(`Fields of study ready: ${FIELDS_OF_STUDY.length}`);
+
     const existingProvider = await app.db
       .query('api::course-provider.course-provider')
       .findOne({ where: { slug: PROVIDER_SLUG } });
@@ -564,8 +597,10 @@ Published fee figures are not stated on the source page. Need-based financial as
     console.log(`Provider ready: ${provider.name} (id ${provider.id})`);
 
     for (const courseInput of COURSES) {
+      const { fieldOfStudy, ...rest } = courseInput;
       const data = {
-        ...courseInput,
+        ...rest,
+        fieldOfStudy: fieldOfStudyIdBySlug[fieldOfStudy],
         provider: provider.id,
         applicationUrl: APPLY_URL,
         applicationEmail: PROVIDER.admissionsEmail,
@@ -588,6 +623,8 @@ Published fee figures are not stated on the source page. Need-based financial as
       'api::course.course.findOne',
       'api::course-provider.course-provider.find',
       'api::course-provider.course-provider.findOne',
+      'api::course-field-of-study.course-field-of-study.find',
+      'api::course-field-of-study.course-field-of-study.findOne',
     ];
     for (const action of actions) {
       const existingPermission = await app

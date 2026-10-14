@@ -180,7 +180,7 @@ export async function getCourses(filters?: {
   page?: number;
   pageSize?: number;
 }) {
-  let query = '/courses?populate[provider][populate]=*&populate[featureImage]=*&populate[socialImage]=*';
+  let query = '/courses?populate[provider][populate]=*&populate[fieldOfStudy]=*&populate[featureImage]=*&populate[socialImage]=*';
 
   if (filters?.search) {
     // skills is a json column — Strapi can't $containsi into it, so search
@@ -191,7 +191,7 @@ export async function getCourses(filters?: {
   }
 
   if (filters?.fieldOfStudy) {
-    query += `&filters[fieldOfStudy][$eq]=${encodeURIComponent(filters.fieldOfStudy)}`;
+    query += `&filters[fieldOfStudy][slug][$eq]=${encodeURIComponent(filters.fieldOfStudy)}`;
   }
 
   if (filters?.courseType) {
@@ -218,9 +218,13 @@ export async function getCourses(filters?: {
 }
 
 export async function getCourse(slug: string) {
-  return fetchAPI(`/courses?filters[slug][$eq]=${slug}&populate[provider][populate]=*&populate[featureImage]=*&populate[socialImage]=*`);
+  return fetchAPI(`/courses?filters[slug][$eq]=${slug}&populate[provider][populate]=*&populate[fieldOfStudy]=*&populate[featureImage]=*&populate[socialImage]=*`);
 }
 
 export async function getCourseProviders() {
   return fetchAPI('/course-providers?populate[logo]=*&sort=name:asc&pagination[pageSize]=200');
+}
+
+export async function getCourseFieldsOfStudy() {
+  return fetchAPI('/course-field-of-studies?sort=name:asc&pagination[pageSize]=200');
 }

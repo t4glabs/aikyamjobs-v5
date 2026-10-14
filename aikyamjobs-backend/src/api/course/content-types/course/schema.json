@@ -53,22 +53,10 @@
       "description": "Application open/close dates, if published by the partner."
     },
     "fieldOfStudy": {
-      "type": "enumeration",
-      "enum": [
-        "life-sciences",
-        "chemistry",
-        "physical-sciences",
-        "environment-and-sustainability",
-        "management",
-        "social-work",
-        "social-sciences",
-        "education",
-        "public-policy",
-        "data-and-technology",
-        "arts-and-humanities",
-        "health-sciences"
-      ],
-      "required": true
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course-field-of-study.course-field-of-study",
+      "inversedBy": "courses"
     },
     "courseType": {
       "type": "enumeration",

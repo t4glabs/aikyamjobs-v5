@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "course_field_of_studies",
+  "info": {
+    "singularName": "course-field-of-study",
+    "pluralName": "course-field-of-studies",
+    "displayName": "Course Field of Study",
+    "description": "Learn & Grow field-of-study taxonomy for courses (e.g. Chemistry, Public Policy). Admin-managed so new fields can be added without a code deploy."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "courses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::course.course",
+      "mappedBy": "fieldOfStudy"
+    }
+  }
+}

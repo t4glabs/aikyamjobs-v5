@@ -2,9 +2,9 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
-import { getCourses, getCourseProviders, getStrapiMediaUrl } from "@/lib/api";
-import { Course, CourseProvider, StrapiResponse } from "@/lib/types";
-import { FIELD_OF_STUDY_OPTIONS, COURSE_TYPE_OPTIONS, MODE_OPTIONS, fieldOfStudyLabel, courseTypeLabel, modeLabel } from "@/lib/courseLabels";
+import { getCourses, getCourseProviders, getCourseFieldsOfStudy, getStrapiMediaUrl } from "@/lib/api";
+import { Course, CourseProvider, CourseFieldOfStudy, StrapiResponse } from "@/lib/types";
+import { COURSE_TYPE_OPTIONS, MODE_OPTIONS, courseTypeLabel, modeLabel } from "@/lib/courseLabels";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
 
@@ -29,18 +29,24 @@ export default async function CoursesPage({
   const provider = typeof params.provider === 'string' ? params.provider : undefined;
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
 
-  const [coursesResponse, providersResponse]: [StrapiResponse<Course[]>, StrapiResponse<CourseProvider[]>] = await Promise.all([
+  const [coursesResponse, providersResponse, fieldsOfStudyResponse]: [
+    StrapiResponse<Course[]>,
+    StrapiResponse<CourseProvider[]>,
+    StrapiResponse<CourseFieldOfStudy[]>
+  ] = await Promise.all([
     getCourses({ search, fieldOfStudy, courseType, mode, provider, page, pageSize: 12 }),
     getCourseProviders(),
+    getCourseFieldsOfStudy(),
   ]);
 
   const courses = coursesResponse.data;
   const pagination = coursesResponse.meta.pagination;
   const providers = providersResponse.data;
+  const fieldsOfStudy = fieldsOfStudyResponse.data;
 
   const activeFilters = [
     search && { key: 'search', label: search },
-    fieldOfStudy && { key: 'fieldOfStudy', label: fieldOfStudyLabel(fieldOfStudy) },
+    fieldOfStudy && { key: 'fieldOfStudy', label: fieldsOfStudy.find((f) => f.attributes.slug === fieldOfStudy)?.attributes.name || fieldOfStudy },
     courseType && { key: 'courseType', label: courseTypeLabel(courseType) },
     mode && { key: 'mode', label: modeLabel(mode) },
     provider && { key: 'provider', label: providers.find((p) => p.attributes.slug === provider)?.attributes.name || provider },
@@ -99,8 +105,8 @@ export default async function CoursesPage({
                   className="h-10 w-full rounded-md border border-gray-300 bg-white px-2.5 text-sm text-gray-900 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
                 >
                   <option value="">All fields</option>
-                  {FIELD_OF_STUDY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  {fieldsOfStudy.map((f) => (
+                    <option key={f.id} value={f.attributes.slug}>{f.attributes.name}</option>
                   ))}
                 </select>
               </label>
@@ -194,6 +200,7 @@ export default async function CoursesPage({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => {
                 const courseProvider = course.attributes.provider?.data;
+                const courseFieldOfStudy = course.attributes.fieldOfStudy?.data;
                 return (
                   <div
                     key={course.id}
@@ -270,12 +277,14 @@ export default async function CoursesPage({
                       >
                         {courseTypeLabel(course.attributes.courseType)}
                       </Link>
-                      <Link
-                        href={`/courses?fieldOfStudy=${encodeURIComponent(course.attributes.fieldOfStudy)}`}
-                        className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
-                      >
-                        {fieldOfStudyLabel(course.attributes.fieldOfStudy)}
-                      </Link>
+                      {courseFieldOfStudy && (
+                        <Link
+                          href={`/courses?fieldOfStudy=${encodeURIComponent(courseFieldOfStudy.attributes.slug)}`}
+                          className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
+                        >
+                          {courseFieldOfStudy.attributes.name}
+                        </Link>
+                      )}
                       {course.attributes.skills?.slice(0, 1).map((skill, index) => (
                         <Link
                           key={index}
