@@ -20,6 +20,12 @@
 
   --state-open:    #3E6B54;
   --state-closing: #8C6A22;
+
+  /* Self-hosted via @fontsource (see app/layout.tsx) — not next/font/google,
+     which depends on reaching Google's font CDN at build time and has proven
+     unreliable on the VPS's Turbopack build. */
+  --font-figtree:   'Figtree', sans-serif;
+  --font-plex-mono: 'IBM Plex Mono', monospace;
 }
 
 @theme inline {

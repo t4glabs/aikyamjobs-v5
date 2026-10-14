@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
-import { Figtree, IBM_Plex_Mono } from "next/font/google";
+import "@fontsource/figtree/300.css";
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/500.css";
+import "@fontsource/figtree/600.css";
+import "@fontsource/figtree/700.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
-
-const figtree = Figtree({
-  variable: "--font-figtree",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
 
 export async function generateMetadata(): Promise<Metadata> {
   const settingsResponse = await getSiteSettings().catch(() => null);
@@ -70,7 +64,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${figtree.variable} ${plexMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       style={{ '--brand': primaryColor } as React.CSSProperties}
     >
       <body className="min-h-full flex flex-col">
