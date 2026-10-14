@@ -1,0 +1,140 @@
+{
+  "kind": "collectionType",
+  "collectionName": "courses",
+  "info": {
+    "singularName": "course",
+    "pluralName": "courses",
+    "displayName": "Course",
+    "description": "Learn & Grow: courses and degree programmes from partner institutions"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "description": "Programme Title, exactly as the partner uses it, e.g. 'BSc in Chemistry'."
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "provider": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course-provider.course-provider",
+      "inversedBy": "courses"
+    },
+    "duration": {
+      "type": "string",
+      "description": "e.g. '4 years'"
+    },
+    "location": {
+      "type": "string",
+      "description": "Campus / location"
+    },
+    "mode": {
+      "type": "enumeration",
+      "enum": ["full-time", "part-time", "online"],
+      "default": "full-time"
+    },
+    "intake": {
+      "type": "string",
+      "description": "Start month and year, e.g. 'July 2027'"
+    },
+    "eligibility": {
+      "type": "text"
+    },
+    "importantDates": {
+      "type": "text",
+      "description": "Application open/close dates, if published by the partner."
+    },
+    "fieldOfStudy": {
+      "type": "enumeration",
+      "enum": [
+        "life-sciences",
+        "chemistry",
+        "physical-sciences",
+        "environment-and-sustainability",
+        "management",
+        "social-work",
+        "social-sciences",
+        "education",
+        "public-policy",
+        "data-and-technology",
+        "arts-and-humanities",
+        "health-sciences"
+      ],
+      "required": true
+    },
+    "courseType": {
+      "type": "enumeration",
+      "enum": [
+        "undergraduate",
+        "postgraduate",
+        "postgraduate-diploma",
+        "executive-education",
+        "certificate",
+        "fellowship",
+        "workshop"
+      ],
+      "required": true
+    },
+    "skills": {
+      "type": "json",
+      "description": "Topics / skills gained — used for search and the skills filter, same shape as Job.skills."
+    },
+    "excerpt": {
+      "type": "text",
+      "maxLength": 300,
+      "description": "Short excerpt for the Learn & Grow listing card."
+    },
+    "content": {
+      "type": "richtext",
+      "required": true,
+      "description": "About the Programme, Curriculum Overview, Programme Highlights, Career Pathways and Fees & Financial Aid, as one markdown body."
+    },
+    "applicationUrl": {
+      "type": "string"
+    },
+    "applicationEmail": {
+      "type": "email"
+    },
+    "applicationPhone": {
+      "type": "string"
+    },
+    "featureImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "socialImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "metaTitle": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "metaDescription": {
+      "type": "text",
+      "maxLength": 160
+    },
+    "keywords": {
+      "type": "json"
+    },
+    "internalTags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::internal-tag.internal-tag"
+    }
+  }
+}

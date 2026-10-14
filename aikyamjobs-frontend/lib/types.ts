@@ -117,6 +117,80 @@ export interface Blog {
   };
 }
 
+export type CourseFieldOfStudy =
+  | 'life-sciences'
+  | 'chemistry'
+  | 'physical-sciences'
+  | 'environment-and-sustainability'
+  | 'management'
+  | 'social-work'
+  | 'social-sciences'
+  | 'education'
+  | 'public-policy'
+  | 'data-and-technology'
+  | 'arts-and-humanities'
+  | 'health-sciences';
+
+export type CourseType =
+  | 'undergraduate'
+  | 'postgraduate'
+  | 'postgraduate-diploma'
+  | 'executive-education'
+  | 'certificate'
+  | 'fellowship'
+  | 'workshop';
+
+export interface CourseProvider {
+  id: number;
+  attributes: {
+    name: string;
+    slug: string;
+    shortDescription?: string;
+    logo?: any;
+    website?: string;
+    location?: string;
+    admissionsEmail?: string;
+    admissionsPhone?: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  };
+}
+
+export interface Course {
+  id: number;
+  attributes: {
+    title: string;
+    slug: string;
+    duration?: string;
+    location?: string;
+    mode?: 'full-time' | 'part-time' | 'online';
+    intake?: string;
+    eligibility?: string;
+    importantDates?: string;
+    fieldOfStudy: CourseFieldOfStudy;
+    courseType: CourseType;
+    skills?: string[];
+    excerpt?: string;
+    content: string;
+    applicationUrl?: string;
+    applicationEmail?: string;
+    applicationPhone?: string;
+    featureImage?: any;
+    socialImage?: any;
+    featured?: boolean;
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords?: string[];
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+    provider?: {
+      data: CourseProvider | null;
+    };
+  };
+}
+
 export interface SiteSettings {
   id: number;
   attributes: {

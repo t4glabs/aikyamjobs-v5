@@ -647,6 +647,149 @@ export interface ApiCompanyCompany extends Schema.CollectionType {
   };
 }
 
+export interface ApiCourseProviderCourseProvider extends Schema.CollectionType {
+  collectionName: 'course_providers';
+  info: {
+    description: 'Partner institutions offering courses in the Learn & Grow section (universities, training institutes, etc.)';
+    displayName: 'Course Provider';
+    pluralName: 'course-providers';
+    singularName: 'course-provider';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    admissionsEmail: Attribute.Email;
+    admissionsPhone: Attribute.String;
+    courses: Attribute.Relation<
+      'api::course-provider.course-provider',
+      'oneToMany',
+      'api::course.course'
+    >;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::course-provider.course-provider',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    location: Attribute.String;
+    logo: Attribute.Media<'images'>;
+    name: Attribute.String & Attribute.Required;
+    publishedAt: Attribute.DateTime;
+    shortDescription: Attribute.Text;
+    slug: Attribute.UID<'api::course-provider.course-provider', 'name'> &
+      Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::course-provider.course-provider',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    website: Attribute.String;
+  };
+}
+
+export interface ApiCourseCourse extends Schema.CollectionType {
+  collectionName: 'courses';
+  info: {
+    description: 'Learn & Grow: courses and degree programmes from partner institutions';
+    displayName: 'Course';
+    pluralName: 'courses';
+    singularName: 'course';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    applicationEmail: Attribute.Email;
+    applicationPhone: Attribute.String;
+    applicationUrl: Attribute.String;
+    content: Attribute.RichText & Attribute.Required;
+    courseType: Attribute.Enumeration<
+      [
+        'undergraduate',
+        'postgraduate',
+        'postgraduate-diploma',
+        'executive-education',
+        'certificate',
+        'fellowship',
+        'workshop'
+      ]
+    > &
+      Attribute.Required;
+    createdAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::course.course',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    duration: Attribute.String;
+    eligibility: Attribute.Text;
+    excerpt: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 300;
+      }>;
+    featured: Attribute.Boolean & Attribute.DefaultTo<false>;
+    featureImage: Attribute.Media<'images'>;
+    fieldOfStudy: Attribute.Enumeration<
+      [
+        'life-sciences',
+        'chemistry',
+        'physical-sciences',
+        'environment-and-sustainability',
+        'management',
+        'social-work',
+        'social-sciences',
+        'education',
+        'public-policy',
+        'data-and-technology',
+        'arts-and-humanities',
+        'health-sciences'
+      ]
+    > &
+      Attribute.Required;
+    importantDates: Attribute.Text;
+    intake: Attribute.String;
+    internalTags: Attribute.Relation<
+      'api::course.course',
+      'manyToMany',
+      'api::internal-tag.internal-tag'
+    >;
+    keywords: Attribute.JSON;
+    location: Attribute.String;
+    metaDescription: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 160;
+      }>;
+    metaTitle: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 60;
+      }>;
+    mode: Attribute.Enumeration<['full-time', 'part-time', 'online']> &
+      Attribute.DefaultTo<'full-time'>;
+    provider: Attribute.Relation<
+      'api::course.course',
+      'manyToOne',
+      'api::course-provider.course-provider'
+    >;
+    publishedAt: Attribute.DateTime;
+    skills: Attribute.JSON;
+    slug: Attribute.UID<'api::course.course', 'title'> & Attribute.Required;
+    socialImage: Attribute.Media<'images'>;
+    title: Attribute.String & Attribute.Required;
+    updatedAt: Attribute.DateTime;
+    updatedBy: Attribute.Relation<
+      'api::course.course',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCvReviewCvReview extends Schema.CollectionType {
   collectionName: 'cv_reviews';
   info: {
@@ -1620,6 +1763,8 @@ declare module '@strapi/types' {
       'api::blog.blog': ApiBlogBlog;
       'api::category.category': ApiCategoryCategory;
       'api::company.company': ApiCompanyCompany;
+      'api::course-provider.course-provider': ApiCourseProviderCourseProvider;
+      'api::course.course': ApiCourseCourse;
       'api::cv-review.cv-review': ApiCvReviewCvReview;
       'api::cv-upload.cv-upload': ApiCvUploadCvUpload;
       'api::internal-tag.internal-tag': ApiInternalTagInternalTag;

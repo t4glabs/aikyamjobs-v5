@@ -169,3 +169,58 @@ export async function getSiteSettings() {
 export async function getPage(slug: string) {
   return fetchAPI(`/pages?filters[slug][$eq]=${slug}`);
 }
+
+export async function getCourses(filters?: {
+  search?: string;
+  fieldOfStudy?: string;
+  courseType?: string;
+  mode?: string;
+  provider?: string;
+  featured?: boolean;
+  page?: number;
+  pageSize?: number;
+}) {
+  let query = '/courses?populate[provider][populate]=*&populate[featureImage]=*&populate[socialImage]=*';
+
+  if (filters?.search) {
+    // skills is a json column — Strapi can't $containsi into it, so search
+    // only covers title and excerpt (same limitation as getJobs' title-only search).
+    const term = encodeURIComponent(filters.search);
+    query += `&filters[$or][0][title][$containsi]=${term}`;
+    query += `&filters[$or][1][excerpt][$containsi]=${term}`;
+  }
+
+  if (filters?.fieldOfStudy) {
+    query += `&filters[fieldOfStudy][$eq]=${encodeURIComponent(filters.fieldOfStudy)}`;
+  }
+
+  if (filters?.courseType) {
+    query += `&filters[courseType][$eq]=${encodeURIComponent(filters.courseType)}`;
+  }
+
+  if (filters?.mode) {
+    query += `&filters[mode][$eq]=${encodeURIComponent(filters.mode)}`;
+  }
+
+  if (filters?.provider) {
+    query += `&filters[provider][slug][$eq]=${encodeURIComponent(filters.provider)}`;
+  }
+
+  if (filters?.featured) {
+    query += `&filters[featured][$eq]=true`;
+  }
+
+  query += `&pagination[page]=${filters?.page || 1}`;
+  query += `&pagination[pageSize]=${filters?.pageSize || 12}`;
+  query += `&sort=createdAt:desc`;
+
+  return fetchAPI(query);
+}
+
+export async function getCourse(slug: string) {
+  return fetchAPI(`/courses?filters[slug][$eq]=${slug}&populate[provider][populate]=*&populate[featureImage]=*&populate[socialImage]=*`);
+}
+
+export async function getCourseProviders() {
+  return fetchAPI('/course-providers?populate[logo]=*&sort=name:asc&pagination[pageSize]=200');
+}

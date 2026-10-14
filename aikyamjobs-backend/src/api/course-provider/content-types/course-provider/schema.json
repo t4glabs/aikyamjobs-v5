@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "course_providers",
+  "info": {
+    "singularName": "course-provider",
+    "pluralName": "course-providers",
+    "displayName": "Course Provider",
+    "description": "Partner institutions offering courses in the Learn & Grow section (universities, training institutes, etc.)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "shortDescription": {
+      "type": "text",
+      "description": "One-sentence intro to the partner, reused across all of its course posts."
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "website": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "admissionsEmail": {
+      "type": "email"
+    },
+    "admissionsPhone": {
+      "type": "string"
+    },
+    "courses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::course.course",
+      "mappedBy": "provider"
+    }
+  }
+}
