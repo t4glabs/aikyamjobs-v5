@@ -148,7 +148,7 @@ export default async function CourseDetailPage({
                 className="prose mb-8 text-gray-800 leading-relaxed"
               />
 
-              <div className="flex flex-wrap gap-1.5 mb-6">
+              <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5 mb-6">
                 <Link
                   href={`/courses?courseType=${encodeURIComponent(course.attributes.courseType)}`}
                   className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
