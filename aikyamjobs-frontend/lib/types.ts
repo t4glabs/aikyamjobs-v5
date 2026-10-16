@@ -163,6 +163,7 @@ export interface Course {
     location?: string;
     mode?: 'full-time' | 'part-time' | 'online';
     intake?: string;
+    medium?: string;
     eligibility?: string;
     importantDates?: string;
     courseType: CourseType;

@@ -790,6 +790,7 @@ export interface ApiCourseCourse extends Schema.CollectionType {
     >;
     keywords: Attribute.JSON;
     location: Attribute.String;
+    medium: Attribute.String;
     metaDescription: Attribute.Text &
       Attribute.SetMinMaxLength<{
         maxLength: 160;

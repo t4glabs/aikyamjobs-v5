@@ -251,6 +251,13 @@ export default async function CourseDetailPage({
                   </div>
                 )}
 
+                {course.attributes.medium && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Medium</h4>
+                    <p className="text-gray-700">{course.attributes.medium}</p>
+                  </div>
+                )}
+
                 {course.attributes.importantDates && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Important Dates</h4>

@@ -45,6 +45,10 @@
       "type": "string",
       "description": "Start month and year, e.g. 'July 2027'"
     },
+    "medium": {
+      "type": "string",
+      "description": "Language(s) of instruction, e.g. 'English' or 'Hindi, English'. Free text, not a fixed list — varies too much by provider."
+    },
     "eligibility": {
       "type": "text"
     },
