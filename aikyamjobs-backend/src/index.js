@@ -1,6 +1,7 @@
 'use strict';
 
 const { startBot } = require('./telegram/bot');
+const registerUploadMimeAllowlist = require('./upload-mime-allowlist');
 
 module.exports = {
   /**
@@ -19,6 +20,7 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
+    registerUploadMimeAllowlist(strapi);
     await startBot(strapi);
   },
 };
