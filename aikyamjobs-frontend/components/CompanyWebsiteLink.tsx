@@ -1,6 +1,7 @@
 'use client';
 
 import { track } from '@/lib/analytics';
+import { isSafeHref } from '@/lib/url-safety';
 
 interface Props {
   href: string;
@@ -19,6 +20,7 @@ interface Props {
  * analytics-reports-to-partners practice) rather than just a sitewide count.
  */
 export default function CompanyWebsiteLink({ href, companySlug, children, className }: Props) {
+  if (!isSafeHref(href)) return null;
   return (
     <a
       href={href}

@@ -1,6 +1,7 @@
 'use client';
 
 import { track } from '@/lib/analytics';
+import { isSafeHref } from '@/lib/url-safety';
 
 interface Props {
   href: string;
@@ -15,6 +16,7 @@ interface Props {
  * External Apply Click event the gated flow's result page fires.
  */
 export default function ExternalApplyLink({ href, jobSlug, children, className }: Props) {
+  if (!isSafeHref(href)) return null;
   const isMailto = href.startsWith('mailto:');
   return (
     <a

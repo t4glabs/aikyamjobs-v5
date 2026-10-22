@@ -1,6 +1,7 @@
 'use client';
 
 import { track } from '@/lib/analytics';
+import { isSafeHref } from '@/lib/url-safety';
 
 interface Props {
   href: string;
@@ -15,6 +16,7 @@ interface Props {
  * same way external job applies do.
  */
 export default function ExternalCourseLink({ href, courseSlug, children, className }: Props) {
+  if (!isSafeHref(href)) return null;
   const isMailto = href.startsWith('mailto:');
   return (
     <a

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCourse, getStrapiMediaUrl } from "@/lib/api";
 import { Course, StrapiResponse } from "@/lib/types";
 import { courseTypeLabel, modeLabel } from "@/lib/courseLabels";
+import { isSafeHref } from "@/lib/url-safety";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
@@ -287,7 +288,7 @@ export default async function CourseDetailPage({
                       {provider.attributes.shortDescription}
                     </p>
                   )}
-                  {provider.attributes.website && (
+                  {isSafeHref(provider.attributes.website) && (
                     <a
                       href={provider.attributes.website}
                       target="_blank"

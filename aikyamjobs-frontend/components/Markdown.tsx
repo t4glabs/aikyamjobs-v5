@@ -3,6 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getStrapiMediaUrl } from '@/lib/api';
+import { isSafeHref } from '@/lib/url-safety';
 
 interface MarkdownProps {
   content: string;
@@ -15,8 +16,10 @@ export default function Markdown({ content, className = '' }: MarkdownProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          a: ({ node, ...props }) => (
-            <a {...props} target="_blank" rel="noopener noreferrer" />
+          a: ({ node, href, ...props }) => (
+            isSafeHref(href)
+              ? <a {...props} href={href} target="_blank" rel="noopener noreferrer" />
+              : <span {...props} />
           ),
           // eslint-disable-next-line @next/next/no-img-element
           img: ({ node, src, alt, ...props }) => (
