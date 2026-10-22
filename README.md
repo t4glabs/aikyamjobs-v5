@@ -48,11 +48,13 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed production setup instructions.
 
 ### Quick Overview
 
-1. **Beta Deployment**: \`beta.aikyamjobs.org\`
-2. **Production**: \`aikyamjobs.org\`
-
-Backend runs on port 1338 (to avoid conflicts with Ghost)
-Frontend runs as a systemd service
+Both Strapi (port 1338) and Next.js (port 3001) run under **PM2**, not systemd
+(process names `aikyamjobs-beta-backend` / `aikyamjobs-beta-frontend`). Nginx
+serves the live `aikyamjobs.org` domain directly from this same deployment —
+the `beta.aikyamjobs.org` nginx site referenced in DEPLOYMENT.md's original
+plan no longer exists; see the note at the top of that file for the current
+actual setup. Backend runs on port 1338 to avoid conflicts with the other
+Ghost sites on the same VPS.
 
 ## 📦 Key Features
 

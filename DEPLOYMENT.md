@@ -1,5 +1,41 @@
 # Aikyam Jobs v5 - Production Deployment Guide
 
+> ## ⚠️ ACTUAL CURRENT STATE (confirmed 2026-10-22 — read this before the plan below)
+>
+> The separate "Production Environment (Later)" migration described in this
+> file (new `/var/www/aikyamjobs` directory, ports 1339/3002) **was never
+> carried out**. What actually happened: the nginx site originally named
+> `beta.aikyamjobs.org` was renamed/consolidated to serve the bare
+> `aikyamjobs.org` domain directly, in place, on **2026-06-10**, while the app
+> itself kept running from `/var/www/beta-aikyamjobs` on the same ports
+> (1338/3001) under the same PM2 process names
+> (`aikyamjobs-beta-backend`/`aikyamjobs-beta-frontend`). There is only ever
+> one deployment, not two.
+>
+> Confirmed live facts (as of 2026-10-22):
+> - Nginx site file: `/etc/nginx/sites-available/aikyamjobs.org` (**not**
+>   `beta.aikyamjobs.org` — that file no longer exists).
+> - Upstream names in that file: `main_aikyamjobs_backend` (127.0.0.1:1338),
+>   `main_aikyamjobs_frontend` ([::1]:3001) — different names than the
+>   `deployment-configs/nginx-aikyamjobs.conf` template once used.
+> - That live file has **no `/api` prefix-stripping rewrite** (proxies
+>   `/api/*` straight through, which matches Strapi's own default
+>   `/api`-prefixed REST routes) and has separate top-level `location` blocks
+>   for Strapi's admin-panel-internal routes: `/content-manager`,
+>   `/content-type-builder`, `/upload`, `/i18n`, `/email`,
+>   `/users-permissions` — all required for the Strapi admin SPA to work
+>   (see the project_infra memory's nginx-routing-gotcha note).
+> - `root` in that file points to `/var/www/main-aikyamjobs/system/nginx-root`,
+>   which doesn't exist (the real app is in `/var/www/beta-aikyamjobs`) — this
+>   is currently harmless since every path is explicitly proxied, but would
+>   matter if a `root`-served fallback were ever needed.
+>
+> `deployment-configs/nginx-aikyamjobs.conf` in this repo reflects the real,
+> current live file (confirmed by direct comparison). Treat the rest of this
+> document below as the original historical plan — the step-by-step beta/prod
+> split it describes did not happen as written, but the PM2/build/restart
+> *mechanics* for ongoing deploys are still accurate.
+
 ## Overview
 
 **Beta Environment:**
