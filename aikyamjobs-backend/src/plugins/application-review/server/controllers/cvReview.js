@@ -108,6 +108,12 @@ module.exports = {
    * (default OFF), independent of the job-application email toggle.
    */
   async decide(ctx) {
+    // Route policy (admin::isAuthenticatedAdmin) already gates entry, so this
+    // should be unreachable -- but without it, a missing ctx.state.user would
+    // silently write decisionByAdminEmail: null instead of failing, losing
+    // the audit trail for who made the decision.
+    if (!ctx.state.user) return ctx.forbidden();
+
     const { leadWithThese, fixBeforeSending } = ctx.request.body || {};
 
     const r = await loadFull(ctx.params.id);

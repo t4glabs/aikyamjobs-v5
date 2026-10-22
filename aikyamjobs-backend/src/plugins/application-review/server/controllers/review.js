@@ -174,6 +174,12 @@ module.exports = {
    * is lost by trialling this with sending switched off.
    */
   async decide(ctx) {
+    // Route policy (admin::isAuthenticatedAdmin) already gates entry, so this
+    // should be unreachable -- but without it, a missing ctx.state.user would
+    // silently write decisionByAdminEmail: null instead of failing, losing
+    // the audit trail for who made the decision.
+    if (!ctx.state.user) return ctx.forbidden();
+
     const { reviewerChecked, leadWithThese, fixBeforeSending, personalTouch, decisionNote, decision } =
       ctx.request.body || {};
 
