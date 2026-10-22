@@ -1,6 +1,11 @@
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('import-ghost.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 /**
  * Ghost to Strapi Import Script
  * Imports job posts from Ghost export to Strapi

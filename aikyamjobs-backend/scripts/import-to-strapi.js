@@ -1,6 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('import-to-strapi.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // This script imports data to Strapi via the API
 // You need to get an API token from Strapi admin first
 // Go to Settings -> API Tokens -> Create new API Token with "Full access"

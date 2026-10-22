@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const TurndownService = require('turndown');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('convert-html-to-markdown.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // This script converts HTML content to Markdown for better editing in Strapi
 // Usage: STRAPI_API_TOKEN=your_token node scripts/convert-html-to-markdown.js
 

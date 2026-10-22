@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('migrate-images-batch.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Improved image migration with better error handling and batch processing
 // Usage: STRAPI_API_TOKEN=your_token node scripts/migrate-images-batch.js
 

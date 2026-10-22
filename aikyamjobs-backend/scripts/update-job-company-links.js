@@ -1,6 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('update-job-company-links.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // This script updates existing jobs with company relationships
 // Usage: STRAPI_API_TOKEN=your_token node scripts/update-job-company-links.js
 

@@ -3,6 +3,11 @@ const path = require('path');
 const FormData = require('form-data');
 const axios = require('axios');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('upload-images-axios.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Image migration using axios for proper FormData handling
 // Usage: STRAPI_API_TOKEN=your_token node scripts/upload-images-axios.js
 

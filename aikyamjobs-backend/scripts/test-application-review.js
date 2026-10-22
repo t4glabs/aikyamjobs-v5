@@ -11,6 +11,11 @@
 const strapiFactory = require('@strapi/strapi');
 const assert = require('assert');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('test-application-review.js is a LOCAL dev test helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 function fakeCtx({ params = {}, body = {}, adminEmail = 'test-admin@local.dev', adminFirstname = 'Test' } = {}) {
   const ctx = {
     params,

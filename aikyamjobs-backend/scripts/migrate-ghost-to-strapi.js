@@ -1,6 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('migrate-ghost-to-strapi.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Load the Ghost export data
 const ghostData = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../aikyamjobs_migration_export.json'), 'utf8')

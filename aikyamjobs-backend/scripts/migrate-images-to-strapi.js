@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('migrate-images-to-strapi.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // This script uploads Ghost images to Strapi and updates all references
 // Usage: STRAPI_API_TOKEN=your_token node scripts/migrate-images-to-strapi.js
 

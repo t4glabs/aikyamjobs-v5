@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('link-job-categories.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Links jobs with their categories based on migration data
 // Usage: STRAPI_API_TOKEN=your_token node scripts/link-job-categories.js
 

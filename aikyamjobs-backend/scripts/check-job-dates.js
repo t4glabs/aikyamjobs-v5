@@ -1,5 +1,10 @@
 const  fs = require('fs');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('check-job-dates.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Read migration data
 const migration = JSON.parse(fs.readFileSync('migration-processed.json', 'utf8'));
 

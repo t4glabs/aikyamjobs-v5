@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('create-missing-categories.js is a local one-off migration helper and refuses to run with NODE_ENV=production.');
+  process.exit(1);
+}
+
 // Creates categories that exist in migration data but not in Strapi
 // Usage: STRAPI_API_TOKEN=your_token node scripts/create-missing-categories.js
 
