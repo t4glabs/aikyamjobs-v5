@@ -16,5 +16,11 @@ module.exports = {
       handler: 'applicant.verify',
       config: { auth: false },
     },
+    {
+      method: 'POST',
+      path: '/apply/auth/logout',
+      handler: 'applicant.logout',
+      config: { auth: false },
+    },
   ],
 };

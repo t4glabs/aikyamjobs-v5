@@ -19,7 +19,26 @@ module.exports = [
       },
     },
   },
-  'strapi::cors',
+  {
+    name: 'strapi::cors',
+    config: {
+      // Explicit origins (not the '*' default) so the applicant httpOnly-cookie
+      // auth flow works: browsers reject credentialed cross-origin responses
+      // when Access-Control-Allow-Origin is a literal '*', which is what
+      // Strapi's default origin:'*' + credentials:true combination actually
+      // sends. Needed cross-origin in local dev (frontend :3000/:3001, Strapi
+      // :1337/:1338); in production nginx proxies both under one domain, so
+      // this is same-origin there and wouldn't strictly need the list, but
+      // listing it explicitly costs nothing and removes any ambiguity.
+      origin: [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://beta.aikyamjobs.org',
+        'https://aikyamjobs.org',
+      ],
+      credentials: true,
+    },
+  },
   'strapi::poweredBy',
   'strapi::logger',
   'strapi::query',

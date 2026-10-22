@@ -1,10 +1,14 @@
 // Client-side helper for the gated application flow. Talks straight to the
-// Strapi /apply/* endpoints (like the search page talks to Meili) and keeps the
-// applicant's magic-link JWT in localStorage. Safe to import in client
-// components only — every function guards `window`.
+// Strapi /apply/* endpoints (like the search page talks to Meili). The actual
+// session is an httpOnly cookie set by the backend on verify — never
+// JS-readable, so an XSS elsewhere on the site can't steal it. `getToken()`
+// et al. below read/write a separate, non-sensitive "do we think we're
+// signed in" marker, used only to decide whether it's worth making the real
+// (server-authoritative) /apply/me call — never used as a credential itself.
+// Safe to import in client components only — every function guards `window`.
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
-const JWT_KEY = 'aikyam_apply_jwt';
+const SESSION_FLAG_KEY = 'aikyam_signed_in';
 
 export interface CvLimitStatus {
   max: number;
@@ -37,13 +41,18 @@ export interface CvUploadResult {
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(JWT_KEY);
+  return window.localStorage.getItem(SESSION_FLAG_KEY);
 }
-export function setToken(token: string) {
-  window.localStorage.setItem(JWT_KEY, token);
+export function setToken() {
+  window.localStorage.setItem(SESSION_FLAG_KEY, '1');
 }
 export function clearToken() {
-  window.localStorage.removeItem(JWT_KEY);
+  window.localStorage.removeItem(SESSION_FLAG_KEY);
+  // Fire-and-forget: the actual credential is the httpOnly cookie, which JS
+  // can't clear directly. Not awaited so sign-out feels instant; harmless if
+  // it races with navigation since the server-side clear doesn't depend on
+  // the client sticking around.
+  fetch(`${STRAPI_URL}/api/apply/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
 }
 export function isSignedIn(): boolean {
   return !!getToken();
@@ -62,16 +71,17 @@ export async function request<T>(
 ): Promise<ApiResult<T>> {
   const headers: Record<string, string> = {};
   if (!isForm) headers['Content-Type'] = 'application/json';
-  if (auth) {
-    const token = getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
 
   let res: Response;
   try {
     res = await fetch(`${STRAPI_URL}/api${path}`, {
       method,
       headers,
+      // The session lives in an httpOnly cookie now, not a header we attach
+      // manually — 'include' is what makes the browser send it (and honor
+      // Set-Cookie on the verify/logout responses) even when STRAPI_URL is a
+      // different origin than the page, as it is in local dev.
+      credentials: auth ? 'include' : 'same-origin',
       body: isForm ? (body as BodyInit) : body ? JSON.stringify(body) : undefined,
     });
   } catch {
@@ -99,11 +109,15 @@ export function requestMagicLink(input: { email: string; name?: string; redirect
 }
 
 export async function verifyMagicLink(input: { email: string; token: string }) {
-  const res = await request<{ jwt: string; applicant: ApplicantProfile }>(
+  // auth: true here isn't "I already have a session" -- it's "please include
+  // credentials so the Set-Cookie on this response actually gets stored,"
+  // which request() needs for a cross-origin fetch (local dev) same as any
+  // other authenticated call.
+  const res = await request<{ ok: boolean; applicant: ApplicantProfile }>(
     '/apply/auth/verify',
-    { method: 'POST', body: input }
+    { method: 'POST', body: input, auth: true }
   );
-  if (res.ok) setToken(res.data.jwt);
+  if (res.ok) setToken();
   return res;
 }
 

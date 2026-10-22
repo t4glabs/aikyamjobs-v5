@@ -7,7 +7,29 @@ const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 
 const TOKEN_TTL_MIN = 20;
 const JWT_TTL = '30d';
+const JWT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
+const SESSION_COOKIE = 'aikyam_apply_jwt';
+
+function setSessionCookie(ctx, token) {
+  ctx.cookies.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: JWT_TTL_MS,
+    path: '/',
+  });
+}
+
+function clearSessionCookie(ctx) {
+  ctx.cookies.set(SESSION_COOKIE, '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 0,
+    path: '/',
+  });
+}
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -137,10 +159,22 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
       { expiresIn: JWT_TTL }
     );
 
+    // httpOnly cookie, not the response body -- an XSS elsewhere on the site
+    // can't read this the way it could read a token handed back in JSON and
+    // stashed in localStorage. See is-applicant.js for how this gets read
+    // back on subsequent requests.
+    setSessionCookie(ctx, jwtToken);
+
     return {
-      jwt: jwtToken,
+      ok: true,
       applicant: { id: applicant.id, email: applicant.email, name: applicant.name },
     };
+  },
+
+  /** Clears the session cookie. Safe to call with no session (no-op). */
+  async logout(ctx) {
+    clearSessionCookie(ctx);
+    return { ok: true };
   },
 
   /**
