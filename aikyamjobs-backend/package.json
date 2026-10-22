@@ -31,5 +31,8 @@
     "react-router-dom": "^5.3.4",
     "styled-components": "^5.3.11",
     "turndown": "^7.2.4"
+  },
+  "overrides": {
+    "@casl/ability": "^6.7.5"
   }
 }

@@ -21,8 +21,11 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
       {
+        // Covers the bare production domain in case PUBLIC_URL is ever
+        // pointed at it directly instead of beta.aikyamjobs.org.
         protocol: 'https',
-        hostname: '**',
+        hostname: 'aikyamjobs.org',
+        pathname: '/uploads/**',
       },
     ],
   },
