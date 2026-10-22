@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { track } from '@/lib/analytics';
+import { meiliHighlightTags, renderHighlighted } from '@/lib/highlight';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 // Set NEXT_PUBLIC_MEILISEARCH_URL and NEXT_PUBLIC_MEILISEARCH_KEY in .env.local
@@ -46,8 +47,7 @@ async function searchMeili(query: string, filter: FilterType): Promise<{ hits: S
     q: query,
     limit: 40,
     attributesToHighlight: ['title', 'excerpt', 'company'],
-    highlightPreTag: '<mark class="bg-[#F7E7E2] text-[#8E3527] rounded-sm px-0.5">',
-    highlightPostTag: '</mark>',
+    ...meiliHighlightTags,
   };
 
   if (filter !== 'all') {
@@ -92,9 +92,9 @@ function formatDate(iso?: string) {
 }
 
 // ── Result card ───────────────────────────────────────────────────────────────
+const MARK_CLASS = 'bg-[#F7E7E2] text-[#8E3527] rounded-sm px-0.5';
+
 function ResultCard({ hit }: { hit: SearchHit }) {
-  const title   = hit._formatted?.title   || hit.title;
-  const excerpt = hit._formatted?.excerpt || hit.excerpt;
   const company = hit._formatted?.company || hit.company;
 
   return (
@@ -115,25 +115,22 @@ function ResultCard({ hit }: { hit: SearchHit }) {
       </div>
 
       {/* Title */}
-      <h3
-        className="text-base font-semibold text-gray-900 group-hover:text-gray-700 leading-snug"
-        dangerouslySetInnerHTML={{ __html: title }}
-      />
+      <h3 className="text-base font-semibold text-gray-900 group-hover:text-gray-700 leading-snug">
+        {renderHighlighted(hit._formatted?.title, hit.title, MARK_CLASS)}
+      </h3>
 
       {/* Company (for jobs) */}
       {company && hit.type === 'job' && (
-        <p
-          className="text-sm text-gray-500 -mt-1"
-          dangerouslySetInnerHTML={{ __html: company }}
-        />
+        <p className="text-sm text-gray-500 -mt-1">
+          {renderHighlighted(hit._formatted?.company, hit.company || '', MARK_CLASS)}
+        </p>
       )}
 
       {/* Excerpt */}
-      {excerpt && (
-        <p
-          className="text-sm text-gray-500 leading-relaxed line-clamp-2"
-          dangerouslySetInnerHTML={{ __html: excerpt }}
-        />
+      {(hit._formatted?.excerpt || hit.excerpt) && (
+        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">
+          {renderHighlighted(hit._formatted?.excerpt, hit.excerpt, MARK_CLASS)}
+        </p>
       )}
 
       {/* Meta chips */}

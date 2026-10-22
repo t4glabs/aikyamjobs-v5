@@ -1,6 +1,44 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getSiteSettings } from "@/lib/api";
+import { isSafeHref } from "@/lib/url-safety";
+
+// footerCreditsLine is editor-authored and expected to be plain text plus an
+// occasional "<a href=...>text</a>" credit link (see the `[&_a]` styling
+// below) -- never arbitrary HTML. Rather than dangerouslySetInnerHTML the raw
+// value (which would let a compromised editor inject a site-wide <script>),
+// pull out only well-formed, protocol-safe <a> tags as real React elements
+// and render everything else as plain text.
+function renderCreditsLine(raw: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const anchorPattern = /<a\s+[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  const stripTags = (text: string) => text.replace(/<[^>]*>/g, '');
+
+  while ((match = anchorPattern.exec(raw)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(stripTags(raw.slice(lastIndex, match.index)));
+    }
+    const [, href, text] = match;
+    if (isSafeHref(href)) {
+      nodes.push(
+        <a key={key++} href={href} target="_blank" rel="noopener noreferrer">
+          {stripTags(text)}
+        </a>
+      );
+    } else {
+      nodes.push(stripTags(text));
+    }
+    lastIndex = anchorPattern.lastIndex;
+  }
+  if (lastIndex < raw.length) {
+    nodes.push(stripTags(raw.slice(lastIndex)));
+  }
+  return nodes;
+}
 
 export default async function Footer() {
   const settingsResponse = await getSiteSettings().catch(() => null);
@@ -80,7 +118,7 @@ export default async function Footer() {
             aikyam / <span lang="ml">ഐക്യം</span> / <span lang="hi">ऐक्यम</span> | noun. unity
           </p>
           {creditsLine && (
-            <p className="mt-1.5" dangerouslySetInnerHTML={{ __html: creditsLine }} />
+            <p className="mt-1.5">{renderCreditsLine(creditsLine)}</p>
           )}
         </div>
       </div>

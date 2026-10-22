@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { meiliHighlightTags, renderHighlighted } from '@/lib/highlight';
 
 const MEILI_URL = process.env.NEXT_PUBLIC_MEILISEARCH_URL || 'https://search.aikyamfellows.org';
 const MEILI_KEY = process.env.NEXT_PUBLIC_MEILISEARCH_KEY || '';
@@ -33,8 +34,7 @@ async function quickSearch(query: string): Promise<Hit[]> {
       q: query,
       limit: 12,
       attributesToHighlight: ['title'],
-      highlightPreTag: '<mark class="bg-[#F7E7E2] text-[#8E3527]">',
-      highlightPostTag: '</mark>',
+      ...meiliHighlightTags,
     }),
   });
   if (!res.ok) return [];
@@ -142,10 +142,9 @@ export default function HomeSearch() {
                   onClick={() => setOpen(false)}
                   className="flex flex-col px-4 py-2.5 hover:bg-gray-50 transition-colors"
                 >
-                  <span
-                    className="text-sm font-medium text-gray-900 leading-snug"
-                    dangerouslySetInnerHTML={{ __html: hit._formatted?.title || hit.title }}
-                  />
+                  <span className="text-sm font-medium text-gray-900 leading-snug">
+                    {renderHighlighted(hit._formatted?.title, hit.title, 'bg-[#F7E7E2] text-[#8E3527]')}
+                  </span>
                   <span className="text-xs text-gray-400 mt-0.5 truncate">
                     {type === 'job'     && [hit.company, hit.location, hit.jobType].filter(Boolean).join(' · ')}
                     {type === 'company' && [hit.industry, hit.location].filter(Boolean).join(' · ')}
