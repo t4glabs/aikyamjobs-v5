@@ -119,7 +119,16 @@ module.exports = {
       const fileUrl = a.currentCv?.file?.url;
       if (!fileUrl) continue;
 
-      const localPath = path.join(strapi.dirs.static.public, fileUrl);
+      const publicRoot = path.resolve(strapi.dirs.static.public);
+      const localPath = path.resolve(path.join(publicRoot, fileUrl));
+      // Defense-in-depth: fileUrl comes from Strapi's own upload service, not
+      // per-request input, so this isn't currently reachable with an
+      // attacker-controlled path -- but a future change elsewhere shouldn't
+      // be able to turn this into a traversal read outside the public dir.
+      if (!(localPath === publicRoot || localPath.startsWith(publicRoot + path.sep))) {
+        strapi.log.warn(`[cv-export] applicant ${a.id}: file.url resolved outside the public dir (${fileUrl}) — skipped`);
+        continue;
+      }
       if (!fs.existsSync(localPath)) {
         strapi.log.warn(`[cv-export] applicant ${a.id}: CV file missing on disk at ${localPath} — skipped`);
         continue;
