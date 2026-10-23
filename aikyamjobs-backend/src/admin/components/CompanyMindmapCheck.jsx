@@ -14,27 +14,47 @@ import { useFetchClient, useNotification, useForm } from '@strapi/strapi/admin';
  * null (no panel at all) anywhere else.
  *
  * Strapi 5 removed the old injectContentManagerComponent/
- * useCMEditViewDataManager pair this used to run on. `model`/`documentId`
- * now come from the panel's own props (EditViewContext); the live,
- * not-yet-saved form value of the `company` relation field (needed so HR
- * sees mindmap status the moment they pick a company, before saving) comes
- * from the new useForm selector hook instead of modifiedData.
+ * useCMEditViewDataManager pair this used to run on. `model`/`documentId`/
+ * `document` now come from the panel's own props (EditViewContext).
+ *
+ * Resolving the currently-selected company is trickier than it looks in v5:
+ * `document.company` is the *saved* relation (flat object, correct for the
+ * common case of just opening an existing job), but `useForm`'s live
+ * `form.values.company` is NOT the full relation value the way v4's
+ * modifiedData.company was -- it's a diff of pending edits,
+ * `{ connect?: [...], disconnect?: [...] }`, that only has anything in it
+ * once the user actually changes the field in this session. Reading only
+ * the live form value (the original, v4-era approach) meant the panel
+ * found nothing for any job whose company was set in a prior save --
+ * i.e. almost every real job. Fixed by treating the live pending edit as an
+ * override on top of the saved document state, not the sole source.
  *
  * Company's mindmapJson is `private: true` (never sent in the relation
  * picker's payload), so this always re-fetches the real status from the
  * server rather than trusting whatever the Job form's own relation data
  * happens to carry.
  */
-const CompanyMindmapCheck = ({ model, documentId }) => {
-  const companyValue = useForm('CompanyMindmapCheck', (form) => form.values?.company);
+function resolveCompanyId(document, pendingCompany) {
+  const connected = pendingCompany?.connect;
+  if (Array.isArray(connected) && connected.length > 0) {
+    // Last connect wins -- matches a single-select relation always
+    // replacing, never accumulating, a pending pick.
+    return connected[connected.length - 1].id;
+  }
+  const savedCompanyId = document?.company?.id ?? null;
+  const disconnected = pendingCompany?.disconnect;
+  if (Array.isArray(disconnected) && savedCompanyId != null) {
+    if (disconnected.some((d) => d.id === savedCompanyId)) return null;
+  }
+  return savedCompanyId;
+}
+
+const CompanyMindmapCheck = ({ model, documentId, document }) => {
+  const pendingCompany = useForm('CompanyMindmapCheck', (form) => form.values?.company);
   const { get, post } = useFetchClient();
   const { toggleNotification } = useNotification();
 
-  // Strapi represents even a manyToOne relation's live form value as an
-  // array (confirmed by hand: form.values.company was [{ id, name, ... }]),
-  // same shape the generic relation-picker component uses internally for
-  // every relation cardinality.
-  const companyId = companyValue?.[0]?.id || null;
+  const companyId = resolveCompanyId(document, pendingCompany);
   const jobId = documentId || null;
 
   const [status, setStatus] = useState(null); // { companyName, mindmapJson } | null
