@@ -18,44 +18,50 @@ import { useFetchClient, useNotification, useForm } from '@strapi/strapi/admin';
  * `document` now come from the panel's own props (EditViewContext).
  *
  * Resolving the currently-selected company is trickier than it looks in v5:
- * `document.company` is the *saved* relation (flat object, correct for the
- * common case of just opening an existing job), but `useForm`'s live
- * `form.values.company` is NOT the full relation value the way v4's
- * modifiedData.company was -- it's a diff of pending edits,
+ * the `document` prop LOOKS like it should carry the saved relation (and
+ * does for most fields), but confirmed empirically that Strapi 5's Content
+ * Manager document-fetch endpoint returns every relation field as a bare
+ * `{ count: N }` -- never populated -- regardless of draft/published status.
+ * So `document.company` is never usable here. The saved company is instead
+ * fetched from our own `/jobs/:jobId/company` endpoint (companyMindmap.js's
+ * getJobCompany, via the Document Service, where populate actually works).
+ *
+ * `useForm`'s live `form.values.company` is also NOT the full relation value
+ * the way v4's modifiedData.company was -- it's a diff of pending edits,
  * `{ connect?: [...], disconnect?: [...] }`, that only has anything in it
- * once the user actually changes the field in this session. Reading only
- * the live form value (the original, v4-era approach) meant the panel
- * found nothing for any job whose company was set in a prior save --
- * i.e. almost every real job. Fixed by treating the live pending edit as an
- * override on top of the saved document state, not the sole source.
+ * once the user actually changes the field in this session. Treating that
+ * as an override on top of the server-fetched saved company (rather than the
+ * sole source) covers both the common case (just opening an existing job)
+ * and the live-edit-before-save case.
  *
  * Company's mindmapJson is `private: true` (never sent in the relation
  * picker's payload), so this always re-fetches the real status from the
  * server rather than trusting whatever the Job form's own relation data
  * happens to carry.
  */
-function resolveCompanyId(document, pendingCompany) {
+function resolveCompanyId(savedCompanyId, pendingCompany) {
   const connected = pendingCompany?.connect;
   if (Array.isArray(connected) && connected.length > 0) {
     // Last connect wins -- matches a single-select relation always
     // replacing, never accumulating, a pending pick.
     return connected[connected.length - 1].id;
   }
-  const savedCompanyId = document?.company?.id ?? null;
   const disconnected = pendingCompany?.disconnect;
   if (Array.isArray(disconnected) && savedCompanyId != null) {
     if (disconnected.some((d) => d.id === savedCompanyId)) return null;
   }
-  return savedCompanyId;
+  return savedCompanyId ?? null;
 }
 
-const CompanyMindmapCheck = ({ model, documentId, document }) => {
+const CompanyMindmapCheck = ({ model, documentId }) => {
   const pendingCompany = useForm('CompanyMindmapCheck', (form) => form.values?.company);
   const { get, post } = useFetchClient();
   const { toggleNotification } = useNotification();
 
-  const companyId = resolveCompanyId(document, pendingCompany);
   const jobId = documentId || null;
+  const [savedCompanyId, setSavedCompanyId] = useState(null);
+
+  const companyId = resolveCompanyId(savedCompanyId, pendingCompany);
 
   const [status, setStatus] = useState(null); // { companyName, mindmapJson } | null
   const [loading, setLoading] = useState(false);
@@ -63,6 +69,24 @@ const CompanyMindmapCheck = ({ model, documentId, document }) => {
   const [text, setText] = useState('');
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!jobId || model !== 'api::job.job') {
+      setSavedCompanyId(null);
+      return;
+    }
+    let cancelled = false;
+    get(`/admin/application-review/jobs/${jobId}/company`)
+      .then(({ data }) => {
+        if (!cancelled) setSavedCompanyId(data?.companyId ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSavedCompanyId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId, model, get]);
 
   const load = useCallback(async () => {
     if (!companyId) {

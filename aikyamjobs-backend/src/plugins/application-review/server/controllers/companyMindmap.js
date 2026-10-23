@@ -20,6 +20,27 @@ const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
  * save step.
  */
 module.exports = {
+  /**
+   * Resolves a Job's currently-saved company relation (id + name), by the
+   * Job's own documentId. Exists because Strapi 5's Content Manager edit-view
+   * document endpoint -- the one that actually feeds `document` into a
+   * custom side panel like CompanyMindmapCheck -- doesn't return populated
+   * relation data at all, only a bare `{ count: N }` for any relation field,
+   * regardless of draft/published status. Fetching it ourselves server-side
+   * (where the Document Service gives real, populated data, same as
+   * everywhere else in this plugin) sidesteps that entirely rather than
+   * trying to reverse-engineer the admin's own internal relations API.
+   */
+  async getJobCompany(ctx) {
+    const job = await strapi.documents('api::job.job').findOne({
+      documentId: ctx.params.jobId,
+      populate: { company: { fields: ['name'] } },
+    });
+    if (!job) return ctx.notFound();
+
+    ctx.body = job.company ? { companyId: job.company.id, companyName: job.company.name } : { companyId: null };
+  },
+
   async getMindmapStatus(ctx) {
     const documentId = await idToDocumentId(strapi, 'api::company.company', ctx.params.id);
     if (!documentId) return ctx.notFound();

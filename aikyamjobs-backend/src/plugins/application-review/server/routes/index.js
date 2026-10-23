@@ -52,6 +52,17 @@ module.exports = {
         handler: 'applicantCvMindmap.setCvMindmap',
         config: { policies: ['admin::isAuthenticatedAdmin'] },
       },
+      // Resolves a Job's currently-saved company (id + name) server-side —
+      // needed because the Content Manager's own document-fetch endpoint
+      // never populates relation fields (always `{ count }`), so the Job
+      // edit view's `document` prop can't tell CompanyMindmapCheck which
+      // company is actually saved on an existing job.
+      {
+        method: 'GET',
+        path: '/jobs/:jobId/company',
+        handler: 'companyMindmap.getJobCompany',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
       // Lets HR check/edit a Company's mindmap JSON from the Job edit
       // screen (see src/admin/components/CompanyMindmapCheck.js).
       {
