@@ -79,13 +79,12 @@ function scoreChecklist(items, checked) {
  * approach.
  */
 function applyGateToJob(job, settings) {
-  if (!job || !job.attributes) return;
-  const a = job.attributes;
-  const resolved = resolveApplyMode(a, settings);
-  a.resolvedApplyMode = resolved;
+  if (!job) return;
+  const resolved = resolveApplyMode(job, settings);
+  job.resolvedApplyMode = resolved;
   if (resolved === 'gated') {
-    delete a.applicationUrl;
-    delete a.applicationEmail;
+    delete job.applicationUrl;
+    delete job.applicationEmail;
   }
 }
 
@@ -104,9 +103,9 @@ function applyGateToJob(job, settings) {
  * legitimate case where a nested job needs them — so just always remove them.
  */
 function stripApplyContactFields(job) {
-  if (!job || !job.attributes) return;
-  delete job.attributes.applicationUrl;
-  delete job.attributes.applicationEmail;
+  if (!job) return;
+  delete job.applicationUrl;
+  delete job.applicationEmail;
 }
 
 /**
@@ -117,7 +116,7 @@ function stripApplyContactFields(job) {
 function gateNestedJobs(entryOrEntries) {
   const entries = Array.isArray(entryOrEntries) ? entryOrEntries : [entryOrEntries];
   for (const entry of entries) {
-    const jobsData = entry && entry.attributes && entry.attributes.jobs && entry.attributes.jobs.data;
+    const jobsData = entry && entry.jobs;
     if (Array.isArray(jobsData)) {
       jobsData.forEach((job) => stripApplyContactFields(job));
     } else if (jobsData && typeof jobsData === 'object') {
