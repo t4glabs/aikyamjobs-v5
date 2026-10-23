@@ -1,16 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  useFetchClient,
-  useNotification,
-  LoadingIndicatorPage,
-} from '@strapi/helper-plugin';
-import { Main } from '@strapi/design-system/Main';
-import { HeaderLayout, ContentLayout } from '@strapi/design-system/Layout';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Typography } from '@strapi/design-system/Typography';
-import { Button } from '@strapi/design-system/Button';
-import { Alert } from '@strapi/design-system/Alert';
+import { Main, Box, Flex, Typography, Button, Alert } from '@strapi/design-system';
+
+import { Page, Layouts, useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 // This instance's Goal Conversions panel throws an internal server error on
 // the "All time" range (confirmed by hand -- likely a CE performance limit
@@ -33,7 +24,7 @@ const IFRAME_HEIGHT = 2200;
 
 const Analytics = () => {
   const { get } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [isLoading, setIsLoading] = useState(true);
   const [embedUrl, setEmbedUrl] = useState(null);
   const [period, setPeriod] = useState('28d');
@@ -62,16 +53,16 @@ const Analytics = () => {
   }, [period]);
 
   if (isLoading && !embedUrl && !errorMessage) {
-    return <LoadingIndicatorPage />;
+    return <Page.Loading />;
   }
 
   return (
     <Main>
-      <HeaderLayout
+      <Layouts.Header
         title="Analytics"
         subtitle="Live Plausible dashboard for aikyamjobs.org — embedded, not a copy."
       />
-      <ContentLayout>
+      <Layouts.Content>
         {/* Only replaces the whole page with the error state on a first-load
             failure (misconfigured env vars, nothing to show yet). A failed
             period-switch refetch keeps the last-good embed on screen --
@@ -138,7 +129,7 @@ const Analytics = () => {
             </Box>
           </>
         )}
-      </ContentLayout>
+      </Layouts.Content>
     </Main>
   );
 };

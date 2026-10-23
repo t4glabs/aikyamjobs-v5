@@ -37,13 +37,12 @@ export default {
 
     // Lets HR check/add a Company's mindmap JSON right from the Job edit
     // screen, instead of needing Content Manager open on the Company in a
-    // second tab. Renders on every content type's edit view (that's how
-    // this injection zone works) but the component itself only shows
-    // anything on api::job.job.
-    app.injectContentManagerComponent('editView', 'right-links', {
-      name: 'company-mindmap-check',
-      slug: 'company-mindmap-check',
-      Component: CompanyMindmapCheck,
-    });
+    // second tab. Registered as an edit-view side panel, which runs on
+    // every content type's edit view -- the component itself only shows
+    // anything on api::job.job (see its own model check).
+    app.getPlugin('content-manager').apis.addEditViewSidePanel((panels) => [
+      ...panels,
+      CompanyMindmapCheck,
+    ]);
   },
 };

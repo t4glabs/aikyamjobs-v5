@@ -1,6 +1,7 @@
 'use strict';
 
 const { sendCvReviewEmail } = require('../../../../utils/cvReviewEmail');
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -11,7 +12,11 @@ function absoluteMediaUrl(url) {
 }
 
 async function loadFull(id) {
-  return strapi.entityService.findOne('api::cv-review.cv-review', id, {
+  const documentId = await idToDocumentId(strapi, 'api::cv-review.cv-review', id);
+  if (!documentId) return null;
+  return strapi.documents('api::cv-review.cv-review').findOne({
+    documentId,
+
     populate: {
       applicant: { populate: { cvMindmapPdf: true } },
       cvUsed: { populate: { file: true } },
@@ -37,14 +42,17 @@ module.exports = {
     const pageSize = Math.max(1, parseInt(ctx.query.pageSize, 10) || 20);
 
     const [reviews, total] = await Promise.all([
-      strapi.entityService.findMany('api::cv-review.cv-review', {
+      strapi.documents('api::cv-review.cv-review').findMany({
         filters,
-        populate: { applicant: { fields: ['name', 'email', 'isStarCandidate', 'cvMindmapJson'] } },
+        // No `fields` allowlist -- cvMindmapJson is `private: true`, and
+        // Strapi 5's Document Service rejects explicitly selecting a private
+        // field via `fields` even for internal server-side calls.
+        populate: { applicant: true },
         sort: { submittedAt: 'desc' },
         start: (page - 1) * pageSize,
         limit: pageSize,
       }),
-      strapi.entityService.count('api::cv-review.cv-review', { filters }),
+      strapi.documents('api::cv-review.cv-review').count({ filters }),
     ]);
 
     ctx.body = {
@@ -119,18 +127,20 @@ module.exports = {
     const r = await loadFull(ctx.params.id);
     if (!r) return ctx.notFound();
 
-    const updated = await strapi.entityService.update('api::cv-review.cv-review', r.id, {
+    const updated = await strapi.documents('api::cv-review.cv-review').update({
+      documentId: r.documentId,
+
       data: {
         status: 'reviewed',
         leadWithThese: leadWithThese || null,
         fixBeforeSending: fixBeforeSending || null,
         decisionByAdminEmail: ctx.state.user?.email || null,
         reviewedAt: new Date(),
-      },
+      }
     });
 
     let emailSent = false;
-    const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
     if (settings?.autoSendCvReviewEmails) {
       try {
         await sendCvReviewEmail({
@@ -140,7 +150,8 @@ module.exports = {
           reviewerEmail: ctx.state.user?.email || null,
         });
         emailSent = true;
-        await strapi.entityService.update('api::cv-review.cv-review', r.id, {
+        await strapi.documents('api::cv-review.cv-review').update({
+          documentId: r.documentId,
           data: { decisionEmailSent: true },
         });
       } catch (err) {

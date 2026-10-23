@@ -38,16 +38,18 @@ async function findOrCreateSubscriber(chatId, from) {
   });
 
   if (existing) {
-    await strapi.entityService.update('api::telegram-subscriber.telegram-subscriber', existing.id, {
+    await strapi.documents('api::telegram-subscriber.telegram-subscriber').update({
+      documentId: existing.documentId,
+
       data: {
         username: from?.username || null,
         firstName: from?.first_name || null,
-      },
+      }
     });
     return existing;
   }
 
-  const created = await strapi.entityService.create('api::telegram-subscriber.telegram-subscriber', {
+  const created = await strapi.documents('api::telegram-subscriber.telegram-subscriber').create({
     data: {
       chatId,
       username: from?.username || null,
@@ -176,7 +178,8 @@ async function toggleSubscription(chatId, from, categoryId) {
     ? currentIds.filter((id) => id !== categoryId)
     : [...currentIds, categoryId];
 
-  await strapi.entityService.update('api::telegram-subscriber.telegram-subscriber', subscriber.id, {
+  await strapi.documents('api::telegram-subscriber.telegram-subscriber').update({
+    documentId: subscriber.documentId,
     data: { categories: nextIds },
   });
 
@@ -420,11 +423,13 @@ async function notifyJobPublished(jobId) {
     return;
   }
 
-  const job = await strapi.entityService.findOne('api::job.job', jobId, {
+  const job = await strapi.documents('api::job.job').findOne({
+    documentId: jobId,
+    status: 'published',
     populate: ['company', 'categories'],
   });
 
-  if (!job || !job.publishedAt) return;
+  if (!job) return;
 
   const botInstance = getBot();
   const siteUrl = process.env.SITE_URL || 'https://aikyamjobs.org';

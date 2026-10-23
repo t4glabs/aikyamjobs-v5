@@ -3,6 +3,7 @@
 const { createCoreService } = require('@strapi/strapi').factories;
 const { errors } = require('@strapi/utils');
 const { ApplicationError } = errors;
+const { idToDocumentId } = require('../../../utils/resolveDocumentId');
 
 module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => ({
   /**
@@ -19,7 +20,7 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
    */
   async recordUpload(applicantId, file) {
     const settings =
-      (await strapi.entityService.findMany('api::site-setting.site-setting')) || {};
+      (await strapi.documents('api::site-setting.site-setting').findMany()) || {};
     const maxN = settings.maxCvUploadsPer6Months || 3;
     const minGapHours =
       settings.cvUploadMinGapHours != null ? settings.cvUploadMinGapHours : 24;
@@ -31,15 +32,12 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
 
     const uploadService = strapi.plugin('upload').service('upload');
 
-    const [latestCounted] = await strapi.entityService.findMany(
-      'api::cv-upload.cv-upload',
-      {
-        filters: { applicant: applicantId, counted: true },
-        sort: { uploadedAt: 'desc' },
-        populate: { file: true },
-        limit: 1,
-      }
-    );
+    const [latestCounted] = await strapi.documents('api::cv-upload.cv-upload').findMany({
+      filters: { applicant: applicantId, counted: true },
+      sort: { uploadedAt: 'desc' },
+      populate: { file: true },
+      limit: 1,
+    });
 
     const isCorrection =
       latestCounted &&
@@ -48,16 +46,13 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
     // Enforce the distinct-upload limit BEFORE storing the file, so a rejected
     // attempt never leaves an orphan in /uploads.
     if (!isCorrection) {
-      const countedInWindow = await strapi.entityService.count(
-        'api::cv-upload.cv-upload',
-        {
-          filters: {
-            applicant: applicantId,
-            counted: true,
-            uploadedAt: { $gt: new Date(now - windowMs) },
-          },
-        }
-      );
+      const countedInWindow = await strapi.documents('api::cv-upload.cv-upload').count({
+        filters: {
+          applicant: applicantId,
+          counted: true,
+          uploadedAt: { $gt: new Date(now - windowMs) },
+        },
+      });
       if (countedInWindow >= maxN) {
         const months = Math.round(windowDays / 30);
         throw new ApplicationError(
@@ -74,13 +69,13 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
       if (latestCounted.file && latestCounted.file.id) {
         await uploadService.remove(latestCounted.file).catch(() => {});
       }
-      record = await strapi.entityService.update(
-        'api::cv-upload.cv-upload',
-        latestCounted.id,
-        { data: { file: media.id, originalName: media.name }, populate: { file: true } }
-      );
+      record = await strapi.documents('api::cv-upload.cv-upload').update({
+        documentId: latestCounted.documentId,
+        data: { file: media.id, originalName: media.name },
+        populate: { file: true },
+      });
     } else {
-      record = await strapi.entityService.create('api::cv-upload.cv-upload', {
+      record = await strapi.documents('api::cv-upload.cv-upload').create({
         data: {
           applicant: applicantId,
           file: media.id,
@@ -92,20 +87,19 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
       });
     }
 
-    await strapi.entityService.update('api::applicant.applicant', applicantId, {
+    const applicantDocumentId = await idToDocumentId(strapi, 'api::applicant.applicant', applicantId);
+    await strapi.documents('api::applicant.applicant').update({
+      documentId: applicantDocumentId,
       data: { currentCv: record.id },
     });
 
-    const countedInWindow = await strapi.entityService.count(
-      'api::cv-upload.cv-upload',
-      {
-        filters: {
-          applicant: applicantId,
-          counted: true,
-          uploadedAt: { $gt: new Date(now - windowMs) },
-        },
-      }
-    );
+    const countedInWindow = await strapi.documents('api::cv-upload.cv-upload').count({
+      filters: {
+        applicant: applicantId,
+        counted: true,
+        uploadedAt: { $gt: new Date(now - windowMs) },
+      },
+    });
 
     return {
       cvUpload: {
@@ -129,12 +123,12 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
    */
   async getLimitStatus(applicantId) {
     const settings =
-      (await strapi.entityService.findMany('api::site-setting.site-setting')) || {};
+      (await strapi.documents('api::site-setting.site-setting').findMany()) || {};
     const maxN = settings.maxCvUploadsPer6Months || 3;
     const windowDays = settings.cvUploadWindowDays || 180;
     const windowMs = windowDays * 24 * 3600 * 1000;
 
-    const countedInWindow = await strapi.entityService.count('api::cv-upload.cv-upload', {
+    const countedInWindow = await strapi.documents('api::cv-upload.cv-upload').count({
       filters: {
         applicant: applicantId,
         counted: true,

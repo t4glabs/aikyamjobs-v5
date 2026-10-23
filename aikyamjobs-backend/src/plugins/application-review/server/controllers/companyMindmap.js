@@ -2,6 +2,7 @@
 
 const { looksLikeMindmapTree } = require('../../../../utils/cvMindmapPdf');
 const { regenerateJobMindmap } = require('../../../../utils/mindmapPdf');
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
 
 /**
  * Lets HR check/edit a Company's mindmap JSON directly from the Job edit
@@ -20,8 +21,14 @@ const { regenerateJobMindmap } = require('../../../../utils/mindmapPdf');
  */
 module.exports = {
   async getMindmapStatus(ctx) {
-    const company = await strapi.entityService.findOne('api::company.company', ctx.params.id, {
-      fields: ['name', 'mindmapJson'],
+    const documentId = await idToDocumentId(strapi, 'api::company.company', ctx.params.id);
+    if (!documentId) return ctx.notFound();
+
+    // No `fields` allowlist -- mindmapJson is `private: true`, and Strapi
+    // 5's Document Service rejects explicitly selecting a private field via
+    // `fields` even for internal server-side calls.
+    const company = await strapi.documents('api::company.company').findOne({
+      documentId,
     });
     if (!company) return ctx.notFound();
 
@@ -43,10 +50,11 @@ module.exports = {
       );
     }
 
-    const company = await strapi.entityService.findOne('api::company.company', ctx.params.id);
-    if (!company) return ctx.notFound();
+    const documentId = await idToDocumentId(strapi, 'api::company.company', ctx.params.id);
+    if (!documentId) return ctx.notFound();
 
-    await strapi.entityService.update('api::company.company', company.id, {
+    await strapi.documents('api::company.company').update({
+      documentId,
       data: { mindmapJson },
     });
 

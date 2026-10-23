@@ -11,7 +11,7 @@ async function findRecommendedJobs(strapi, { applicant, excludeJobId, limit = 2 
   const tags = Array.isArray(applicant && applicant.interestTags) ? applicant.interestTags : [];
   if (!tags.length) return [];
 
-  const candidates = await strapi.entityService.findMany('api::job.job', {
+  const candidates = await strapi.documents('api::job.job').findMany({
     filters: {
       id: { $ne: excludeJobId },
       applyMode: 'gated',

@@ -56,9 +56,11 @@ async function uploadCvMindmapPdf(strapi, { slug, ...rest }) {
     const [uploaded] = await strapi.plugin('upload').service('upload').upload({
       data: {},
       files: {
-        path: tmpPath,
-        name: `${slug || 'applicant'}-cv-mindmap.pdf`,
-        type: 'application/pdf',
+        // See mindmapPdf.js's uploadMindmapPdf for why these are
+        // filepath/originalFilename/mimetype, not v4's path/name/type.
+        filepath: tmpPath,
+        originalFilename: `${slug || 'applicant'}-cv-mindmap.pdf`,
+        mimetype: 'application/pdf',
         size: buffer.length,
       },
     });
@@ -76,9 +78,13 @@ async function uploadCvMindmapPdf(strapi, { slug, ...rest }) {
  * committed, and a Typst bug should never block saving an applicant.
  */
 async function regenerateApplicantCvMindmap(strapi, applicantId) {
-  const applicant = await strapi.entityService.findOne('api::applicant.applicant', applicantId, {
+  // No `fields` allowlist -- cvMindmapJson is `private: true`, and Strapi 5's
+  // Document Service rejects explicitly selecting a private field via
+  // `fields` even for internal server-side calls (v4's entityService allowed
+  // it). Omitting `fields` returns everything, private fields included.
+  const applicant = await strapi.documents('api::applicant.applicant').findOne({
+    documentId: applicantId,
     populate: { cvMindmapPdf: true },
-    fields: ['name', 'email', 'cvMindmapJson'],
   });
   if (!applicant) {
     strapi.log.warn(`[cv-mindmap] applicant ${applicantId} not found when regenerating — skipping`);
@@ -96,7 +102,7 @@ async function regenerateApplicantCvMindmap(strapi, applicantId) {
   }
 
   const previousPdf = applicant.cvMindmapPdf;
-  const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
 
   // Slug-ish filename from the applicant's name/email -- applicants have no
   // real `slug` field (they're not public content), so this is cosmetic
@@ -116,7 +122,8 @@ async function regenerateApplicantCvMindmap(strapi, applicantId) {
     return;
   }
 
-  await strapi.entityService.update('api::applicant.applicant', applicantId, {
+  await strapi.documents('api::applicant.applicant').update({
+    documentId: applicantId,
     data: { cvMindmapPdf: uploaded.id },
   });
 

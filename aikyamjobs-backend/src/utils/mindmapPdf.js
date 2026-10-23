@@ -131,9 +131,17 @@ async function uploadMindmapPdf(strapi, { slug, ...rest }) {
     const [uploaded] = await strapi.plugin('upload').service('upload').upload({
       data: {},
       files: {
-        path: tmpPath,
-        name: `${slug || 'job'}-mindmap.pdf`,
-        type: 'application/pdf',
+        // Strapi 5's upload service (enhanceAndValidateFile in
+        // @strapi/upload) reads `filepath`/`originalFilename`/`mimetype` off
+        // the file object -- not v4's `path`/`name`/`type`. Without a real
+        // `mimetype`, it falls back to `detectedMimeType` (only set by the
+        // HTTP upload path's own content-sniffing, which a hand-built
+        // descriptor like this never goes through) and then to a hardcoded
+        // "application/octet-stream", which our own upload-mime-allowlist.js
+        // then rejects.
+        filepath: tmpPath,
+        originalFilename: `${slug || 'job'}-mindmap.pdf`,
+        mimetype: 'application/pdf',
         size: buffer.length,
       },
     });
@@ -162,17 +170,24 @@ async function uploadMindmapPdf(strapi, { slug, ...rest }) {
  * re-saving the job (same as any other JD-mindmap edit) does.
  */
 async function regenerateJobMindmap(strapi, jobId) {
-  const job = await strapi.entityService.findOne('api::job.job', jobId, {
+  const job = await strapi.documents('api::job.job').findOne({
+    documentId: jobId,
+    status: 'published',
+
     populate: {
       mindmapPdf: true,
       requirementChecklist: true,
       categories: { fields: ['name'] },
-      company: { fields: ['name', 'slug', 'description', 'location', 'size', 'industry', 'website', 'mindmapJson'] },
+      // No `fields` restriction on company -- mindmapJson is `private: true`,
+      // and Strapi 5's Document Service rejects explicitly selecting a
+      // private field via `fields` even for internal server-side calls
+      // (v4's entityService allowed it). Omitting `fields` returns
+      // everything, private fields included.
+      company: true,
     },
-    fields: [
-      'slug', 'title', 'mindmapJson', 'description', 'location', 'jobType', 'experienceLevel',
-      'salary', 'closingDate', 'impactArea', 'skills', 'applyMode', 'applicationUrl', 'applicationEmail',
-    ],
+
+    // Same reasoning as above: job.mindmapJson is private, so this can't use
+    // a `fields` allowlist at all -- fetch the whole job instead.
   });
   if (!job) {
     strapi.log.warn(`[mindmap] job ${jobId} not found when regenerating — skipping`);
@@ -190,7 +205,7 @@ async function regenerateJobMindmap(strapi, jobId) {
   }
 
   const previousPdf = job.mindmapPdf;
-  const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
 
   const company = job.company || null;
   let companyMindmap = null;
@@ -223,7 +238,8 @@ async function regenerateJobMindmap(strapi, jobId) {
     return;
   }
 
-  await strapi.entityService.update('api::job.job', jobId, {
+  await strapi.documents('api::job.job').update({
+    documentId: jobId,
     data: { mindmapPdf: uploaded.id },
   });
 
@@ -239,6 +255,8 @@ async function regenerateJobMindmap(strapi, jobId) {
       .remove(previousPdf)
       .catch((err) => strapi.log.error('[mindmap] failed to remove previous mindmap PDF', err));
   }
+
+  return true;
 }
 
 module.exports = { generateMindmapPdf, regenerateJobMindmap };

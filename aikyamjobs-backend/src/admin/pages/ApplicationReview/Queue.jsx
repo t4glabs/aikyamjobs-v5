@@ -1,23 +1,27 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  useFetchClient,
-  useNotification,
-  LoadingIndicatorPage,
-} from '@strapi/helper-plugin';
-import { Main } from '@strapi/design-system/Main';
-import { HeaderLayout, ContentLayout, ActionLayout } from '@strapi/design-system/Layout';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Typography } from '@strapi/design-system/Typography';
-import { Table, Thead, Tbody, Tr, Td, Th } from '@strapi/design-system/Table';
-import { Button } from '@strapi/design-system/Button';
-import { Badge } from '@strapi/design-system/Badge';
-import { Tabs, Tab, TabGroup } from '@strapi/design-system/Tabs';
-import { EmptyStateLayout } from '@strapi/design-system/EmptyStateLayout';
+  Main,
+  Box,
+  Flex,
+  Typography,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Td,
+  Th,
+  Button,
+  Badge,
+  Tabs,
+  EmptyStateLayout,
+} from '@strapi/design-system';
+
+import { Page, Layouts, useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const TABS = [
   { key: 'pending', label: 'Needs review' },
-  { key: 'reviewed', label: 'Reviewed' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected_with_tips', label: 'Not a match' },
   { key: 'all', label: 'All' },
 ];
 
@@ -32,11 +36,11 @@ const formatDate = (value) => {
 
 const PAGE_SIZE = 20;
 
-const CvReviewQueue = ({ onSelect }) => {
+const Queue = ({ onSelect }) => {
   const { get } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [isLoading, setIsLoading] = useState(true);
-  const [tabIndex, setTabIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState(TABS[0].key);
   const [queue, setQueue] = useState([]);
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
@@ -47,13 +51,13 @@ const CvReviewQueue = ({ onSelect }) => {
       setIsLoading(true);
       try {
         const { data } = await get(
-          `/admin/application-review/cv-reviews?status=${status}&page=${p}&pageSize=${PAGE_SIZE}`
+          `/admin/application-review/queue?status=${status}&page=${p}&pageSize=${PAGE_SIZE}`
         );
         setQueue(data.queue);
         setPageCount(data.pagination?.pageCount || 1);
         setTotal(data.pagination?.total || data.queue.length);
       } catch (error) {
-        toggleNotification({ type: 'warning', message: 'Could not load CV Improver requests.' });
+        toggleNotification({ type: 'warning', message: 'Could not load applications.' });
       } finally {
         setIsLoading(false);
       }
@@ -62,48 +66,49 @@ const CvReviewQueue = ({ onSelect }) => {
   );
 
   useEffect(() => {
-    fetchQueue(TABS[tabIndex].key, page);
-  }, [tabIndex, page, fetchQueue]);
+    fetchQueue(activeTab, page);
+  }, [activeTab, page, fetchQueue]);
 
-  // See Queue.js's identical handler for why the reset lives here rather
-  // than in a separate effect keyed on tabIndex (avoids a double-fetch race).
-  const handleTabChange = (index) => {
-    setTabIndex(index);
+  // Tab change always resets to page 1 in the SAME state update as the tab
+  // switch itself (not a separate effect reacting to activeTab) -- otherwise
+  // two fetches fire back-to-back (one for the new tab at the old page, one
+  // for the reset to page 1), and whichever response lands second wins,
+  // which isn't guaranteed to be the page-1 one.
+  const handleTabChange = (value) => {
+    setActiveTab(value);
     setPage(1);
   };
 
   return (
     <Main>
-      <HeaderLayout
-        title="CV Improver"
-        subtitle="General CV feedback requests, not tied to any specific job — read the CV, note what's working and what to fix."
+      <Layouts.Header
+        title="Application Review"
+        subtitle="Score a CV against a job's requirements, leave notes, and decide — good match or not, either way the applicant hears back."
       />
-      <ActionLayout
+      <Layouts.Action
         startActions={
-          <TabGroup
-            label="Filter by status"
-            variant="simple"
-            onTabChange={handleTabChange}
-          >
-            <Tabs>
+          <Tabs.Root value={activeTab} onValueChange={handleTabChange} variant="simple">
+            <Tabs.List aria-label="Filter by status">
               {TABS.map((t) => (
-                <Tab key={t.key}>{t.label}</Tab>
+                <Tabs.Trigger key={t.key} value={t.key}>{t.label}</Tabs.Trigger>
               ))}
-            </Tabs>
-          </TabGroup>
+            </Tabs.List>
+          </Tabs.Root>
         }
       />
-      <ContentLayout>
+      <Layouts.Content>
         {isLoading ? (
-          <LoadingIndicatorPage />
+          <Page.Loading />
         ) : queue.length === 0 ? (
           <EmptyStateLayout content="Nothing here right now." />
         ) : (
-          <Table colCount={6} rowCount={queue.length}>
+          <Table colCount={8} rowCount={queue.length}>
             <Thead>
               <Tr>
                 <Th><Typography variant="sigma">Applicant</Typography></Th>
-                <Th><Typography variant="sigma">Targeting</Typography></Th>
+                <Th><Typography variant="sigma">Job</Typography></Th>
+                <Th><Typography variant="sigma">Self-score</Typography></Th>
+                <Th><Typography variant="sigma">Flags</Typography></Th>
                 <Th><Typography variant="sigma">CV Mindmap</Typography></Th>
                 <Th><Typography variant="sigma">Submitted</Typography></Th>
                 <Th><Typography variant="sigma">Status</Typography></Th>
@@ -121,7 +126,18 @@ const CvReviewQueue = ({ onSelect }) => {
                     <Typography variant="pi" textColor="neutral600">{item.applicantEmail}</Typography>
                   </Td>
                   <Td>
-                    <Typography>{item.targetRoles}</Typography>
+                    <Typography>{item.jobTitle}</Typography>
+                    {item.companyName && (
+                      <Typography variant="pi" textColor="neutral600">{item.companyName}</Typography>
+                    )}
+                  </Td>
+                  <Td><Typography>{item.checklistPercent}%</Typography></Td>
+                  <Td>
+                    {item.hasRequiredMissing && (
+                      <Badge backgroundColor="warning100" textColor="warning700">
+                        Missing essentials
+                      </Badge>
+                    )}
                   </Td>
                   <Td>
                     <Badge
@@ -134,15 +150,27 @@ const CvReviewQueue = ({ onSelect }) => {
                   <Td><Typography>{formatDate(item.submittedAt)}</Typography></Td>
                   <Td>
                     <Badge
-                      backgroundColor={item.status === 'reviewed' ? 'success100' : 'primary100'}
-                      textColor={item.status === 'reviewed' ? 'success700' : 'primary700'}
+                      backgroundColor={
+                        item.status === 'approved'
+                          ? 'success100'
+                          : item.status === 'rejected_with_tips'
+                            ? 'neutral150'
+                            : 'primary100'
+                      }
+                      textColor={
+                        item.status === 'approved'
+                          ? 'success700'
+                          : item.status === 'rejected_with_tips'
+                            ? 'neutral700'
+                            : 'primary700'
+                      }
                     >
                       {item.status}
                     </Badge>
                   </Td>
                   <Td>
                     <Button variant="tertiary" onClick={() => onSelect(item.id)}>
-                      {item.reviewedAt ? 'View / edit' : 'Review'}
+                      {item.decisionAt ? 'View / edit' : 'Review'}
                     </Button>
                   </Td>
                 </Tr>
@@ -177,7 +205,7 @@ const CvReviewQueue = ({ onSelect }) => {
             </Flex>
           </Box>
         )}
-      </ContentLayout>
+      </Layouts.Content>
     </Main>
   );
 };
@@ -188,4 +216,4 @@ const VisuallyHiddenLabel = () => (
   </Box>
 );
 
-export default CvReviewQueue;
+export default Queue;

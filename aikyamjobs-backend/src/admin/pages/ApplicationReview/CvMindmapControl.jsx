@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Typography } from '@strapi/design-system/Typography';
-import { Button } from '@strapi/design-system/Button';
-import { Textarea } from '@strapi/design-system/Textarea';
-import { Badge } from '@strapi/design-system/Badge';
+import { Box, Flex, Typography, Button, Textarea, Badge, Field } from '@strapi/design-system';
+
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 /**
  * Shared between Detail.js (job applications) and CvReviewDetail.js (CV
@@ -19,7 +15,7 @@ import { Badge } from '@strapi/design-system/Badge';
  */
 const CvMindmapControl = ({ applicantId, cvMindmapJson, cvMindmapPdf, onChange }) => {
   const { post } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(() => (cvMindmapJson ? JSON.stringify(cvMindmapJson, null, 2) : ''));
   const [error, setError] = useState(null);
@@ -101,13 +97,10 @@ const CvMindmapControl = ({ applicantId, cvMindmapJson, cvMindmapPdf, onChange }
     <Box background="neutral0" hasRadius borderColor="neutral150" padding={5}>
       <Flex direction="column" alignItems="stretch" gap={3}>
         <Typography variant="delta">CV mindmap JSON</Typography>
-        <Textarea
-          label="Paste the generated JSON"
-          name="cvMindmapJson"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={14}
-        />
+        <Field.Root name="cvMindmapJson">
+          <Field.Label>Paste the generated JSON</Field.Label>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={14} />
+        </Field.Root>
         {error && (
           <Typography variant="pi" textColor="danger600">{error}</Typography>
         )}

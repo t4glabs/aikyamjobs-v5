@@ -2,6 +2,7 @@
 
 const { scoreChecklist } = require('../../../../utils/apply');
 const { sendDecisionEmail } = require('../../../../utils/decisionEmail');
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -14,7 +15,11 @@ function absoluteMediaUrl(url) {
 }
 
 async function loadFull(id) {
-  return strapi.entityService.findOne('api::application.application', id, {
+  const documentId = await idToDocumentId(strapi, 'api::application.application', id);
+  if (!documentId) return null;
+  return strapi.documents('api::application.application').findOne({
+    documentId,
+
     populate: {
       job: { populate: { requirementChecklist: true, company: { fields: ['name'] } } },
       applicant: { populate: { cvMindmapPdf: true } },
@@ -45,17 +50,20 @@ module.exports = {
     const pageSize = Math.max(1, parseInt(ctx.query.pageSize, 10) || 20);
 
     const [applications, total] = await Promise.all([
-      strapi.entityService.findMany('api::application.application', {
+      strapi.documents('api::application.application').findMany({
         filters,
         populate: {
           job: { fields: ['title'], populate: { company: { fields: ['name'] } } },
-          applicant: { fields: ['name', 'email', 'isStarCandidate', 'cvMindmapJson'] },
+          // No `fields` allowlist -- cvMindmapJson is `private: true`, and
+          // Strapi 5's Document Service rejects explicitly selecting a
+          // private field via `fields` even for internal server-side calls.
+          applicant: true,
         },
         sort: { submittedAt: 'desc' },
         start: (page - 1) * pageSize,
         limit: pageSize,
       }),
-      strapi.entityService.count('api::application.application', { filters }),
+      strapi.documents('api::application.application').count({ filters }),
     ]);
 
     ctx.body = {
@@ -156,7 +164,10 @@ module.exports = {
 
   /** The reveal step: the applicant's itemised self-score, on demand. */
   async applicantAnswers(ctx) {
-    const app = await strapi.entityService.findOne('api::application.application', ctx.params.id, {
+    const documentId = await idToDocumentId(strapi, 'api::application.application', ctx.params.id);
+    if (!documentId) return ctx.notFound();
+    const app = await strapi.documents('api::application.application').findOne({
+      documentId,
       fields: ['checklistAnswers'],
     });
     if (!app) return ctx.notFound();
@@ -193,7 +204,9 @@ module.exports = {
     const checklist = app.job?.requirementChecklist || [];
     const snapshot = scoreChecklist(checklist, reviewerChecked);
 
-    const updated = await strapi.entityService.update('api::application.application', app.id, {
+    const updated = await strapi.documents('api::application.application').update({
+      documentId: app.documentId,
+
       data: {
         status: decision,
         reviewerChecklistAnswers: snapshot,
@@ -206,11 +219,11 @@ module.exports = {
         decisionNote: decisionNote || null,
         decisionByAdminEmail: ctx.state.user?.email || null,
         decisionAt: new Date(),
-      },
+      }
     });
 
     let emailSent = false;
-    const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
     if (settings?.autoSendDecisionEmails) {
       try {
         await sendDecisionEmail({
@@ -221,7 +234,8 @@ module.exports = {
           reviewerEmail: ctx.state.user?.email || null,
         });
         emailSent = true;
-        await strapi.entityService.update('api::application.application', app.id, {
+        await strapi.documents('api::application.application').update({
+          documentId: app.documentId,
           data: { decisionEmailSent: true },
         });
       } catch (err) {

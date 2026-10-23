@@ -2,6 +2,8 @@
 
 const { startBot } = require('./telegram/bot');
 const registerUploadMimeAllowlist = require('./upload-mime-allowlist');
+const registerJobDocumentMiddleware = require('./document-middlewares/job');
+const registerApplicantDocumentMiddleware = require('./document-middlewares/applicant');
 
 module.exports = {
   /**
@@ -10,7 +12,10 @@ module.exports = {
    *
    * This gives you an opportunity to extend code.
    */
-  register(/*{ strapi }*/) {},
+  register({ strapi }) {
+    registerJobDocumentMiddleware(strapi);
+    registerApplicantDocumentMiddleware(strapi);
+  },
 
   /**
    * An asynchronous bootstrap function that runs before

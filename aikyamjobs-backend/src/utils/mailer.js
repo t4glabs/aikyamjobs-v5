@@ -71,7 +71,7 @@ async function sendEmail({ to, subject, text, html, from, replyTo }) {
  * Reply-To), but nothing silently redirects to a specific hardcoded person.
  */
 async function getNotifyEmail() {
-  const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
   const email = settings && settings.applicationsNotifyEmail;
   if (!email) {
     strapi.log.warn('[mailer] Site Settings > applicationsNotifyEmail is not configured.');

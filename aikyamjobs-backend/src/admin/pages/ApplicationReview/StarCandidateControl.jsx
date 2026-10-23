@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Typography } from '@strapi/design-system/Typography';
-import { Button } from '@strapi/design-system/Button';
-import { Textarea } from '@strapi/design-system/Textarea';
+import { Box, Flex, Typography, Button, Textarea, Field } from '@strapi/design-system';
+
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -30,7 +27,7 @@ const StarCandidateControl = ({
   onChange,
 }) => {
   const { post } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -98,13 +95,11 @@ const StarCandidateControl = ({
         </Flex>
       ) : (
         <Flex direction="column" alignItems="stretch" gap={3}>
-          <Textarea
-            label="Why are they a good candidate?"
-            hint="Required — this is what future reviewers will see."
-            name="starNote"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
+          <Field.Root name="starNote" hint="Required — this is what future reviewers will see.">
+            <Field.Label>Why are they a good candidate?</Field.Label>
+            <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
+            <Field.Hint />
+          </Field.Root>
           <Flex gap={3}>
             <Button
               variant="secondary"

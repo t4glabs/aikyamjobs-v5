@@ -29,7 +29,7 @@ function absoluteMediaUrl(url) {
  * (cvExportZip) below, so the two can never drift on who's actually included.
  */
 async function findExportCandidates(since) {
-  const applicants = await strapi.entityService.findMany('api::applicant.applicant', {
+  const applicants = await strapi.documents('api::applicant.applicant').findMany({
     filters: {
       currentCv: { id: { $notNull: true } },
       $or: [{ applications: { id: { $notNull: true } } }, { cvReviews: { id: { $notNull: true } } }],

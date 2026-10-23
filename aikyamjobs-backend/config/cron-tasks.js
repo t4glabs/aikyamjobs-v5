@@ -52,8 +52,8 @@ module.exports = {
           }
 
           // Step 2: unpublish (set to draft)
-          await strapi.entityService.update('api::job.job', job.id, {
-            data: { publishedAt: null },
+          await strapi.documents('api::job.job').unpublish({
+            documentId: job.documentId,
           });
 
           strapi.log.info(`Auto-unpublished expired job: ${job.title} (ID: ${job.id})${expiredTag ? ' + tagged expired-job' : ''}`);

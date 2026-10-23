@@ -3,7 +3,7 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 
 async function findJobBySlug(strapi, jobSlug) {
-  const [job] = await strapi.entityService.findMany('api::job.job', {
+  const [job] = await strapi.documents('api::job.job').findMany({
     filters: { slug: jobSlug },
     fields: ['id'],
     limit: 1,
@@ -18,7 +18,7 @@ module.exports = createCoreController('api::saved-job.saved-job', ({ strapi }) =
    */
   async mine(ctx) {
     const { applicant } = ctx.state;
-    const saved = await strapi.entityService.findMany('api::saved-job.saved-job', {
+    const saved = await strapi.documents('api::saved-job.saved-job').findMany({
       filters: { applicant: applicant.id },
       sort: { createdAt: 'desc' },
       populate: {
@@ -60,7 +60,7 @@ module.exports = createCoreController('api::saved-job.saved-job', ({ strapi }) =
       where: { applicant: applicant.id, job: job.id },
     });
     if (!existing) {
-      await strapi.entityService.create('api::saved-job.saved-job', {
+      await strapi.documents('api::saved-job.saved-job').create({
         data: { applicant: applicant.id, job: job.id },
       });
     }
@@ -76,7 +76,9 @@ module.exports = createCoreController('api::saved-job.saved-job', ({ strapi }) =
       where: { applicant: applicant.id, job: job.id },
     });
     if (existing) {
-      await strapi.entityService.delete('api::saved-job.saved-job', existing.id);
+      await strapi.documents('api::saved-job.saved-job').delete({
+        documentId: existing.documentId,
+      });
     }
     return { saved: false };
   },

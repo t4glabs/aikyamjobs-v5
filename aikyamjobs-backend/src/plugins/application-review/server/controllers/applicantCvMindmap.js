@@ -1,6 +1,7 @@
 'use strict';
 
 const { looksLikeMindmapTree } = require('../../../../utils/cvMindmapPdf');
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -35,21 +36,25 @@ module.exports = {
       );
     }
 
-    const applicant = await strapi.entityService.findOne('api::applicant.applicant', ctx.params.id);
-    if (!applicant) return ctx.notFound();
+    const documentId = await idToDocumentId(strapi, 'api::applicant.applicant', ctx.params.id);
+    if (!documentId) return ctx.notFound();
 
-    await strapi.entityService.update('api::applicant.applicant', applicant.id, {
+    await strapi.documents('api::applicant.applicant').update({
+      documentId,
       data: { cvMindmapJson },
     });
 
-    // Re-fetch rather than trust the update() return value -- the lifecycle
-    // hook's own nested update (setting cvMindmapPdf once the PDF is built)
-    // happens as part of this same call chain, so by now it's already
-    // reflected in the DB, but not necessarily in what update() itself
-    // returned.
-    const fresh = await strapi.entityService.findOne('api::applicant.applicant', applicant.id, {
+    // Re-fetch rather than trust the update() return value -- the document
+    // middleware's own nested update (setting cvMindmapPdf once the PDF is
+    // built) happens as part of this same call chain, so by now it's
+    // already reflected in the DB, but not necessarily in what update()
+    // itself returned.
+    // No `fields` allowlist -- cvMindmapJson is `private: true`, and Strapi
+    // 5's Document Service rejects explicitly selecting a private field via
+    // `fields` even for internal server-side calls.
+    const fresh = await strapi.documents('api::applicant.applicant').findOne({
+      documentId,
       populate: { cvMindmapPdf: true },
-      fields: ['cvMindmapJson'],
     });
 
     ctx.body = {

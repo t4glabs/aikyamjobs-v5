@@ -2,6 +2,7 @@
 
 const { createCoreController } = require('@strapi/strapi').factories;
 const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
+const { idToDocumentId } = require('../../../utils/resolveDocumentId');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -60,7 +61,8 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
       return ctx.badRequest('Please describe what roles or domains you are targeting.');
     }
 
-    const full = await strapi.entityService.findOne('api::applicant.applicant', applicant.id, {
+    const full = await strapi.documents('api::applicant.applicant').findOne({
+      documentId: applicant.documentId,
       populate: { currentCv: { populate: { file: true } } },
     });
     if (!full.currentCv) {
@@ -82,7 +84,7 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
       return;
     }
 
-    const cvReview = await strapi.entityService.create('api::cv-review.cv-review', {
+    const cvReview = await strapi.documents('api::cv-review.cv-review').create({
       data: {
         applicant: applicant.id,
         cvUsed: full.currentCv.id,
@@ -109,9 +111,13 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
    */
   async read(ctx) {
     const { applicant } = ctx.state;
-    const cvReview = await strapi.entityService.findOne('api::cv-review.cv-review', ctx.params.id, {
-      populate: { applicant: true },
-    });
+    const documentId = await idToDocumentId(strapi, 'api::cv-review.cv-review', ctx.params.id);
+    const cvReview = documentId
+      ? await strapi.documents('api::cv-review.cv-review').findOne({
+          documentId,
+          populate: { applicant: true },
+        })
+      : null;
 
     if (!cvReview || cvReview.applicant?.id !== applicant.id) {
       return ctx.notFound();
@@ -138,7 +144,7 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
    */
   async mine(ctx) {
     const { applicant } = ctx.state;
-    const reviews = await strapi.entityService.findMany('api::cv-review.cv-review', {
+    const reviews = await strapi.documents('api::cv-review.cv-review').findMany({
       filters: { applicant: applicant.id },
       sort: { submittedAt: 'desc' },
     });

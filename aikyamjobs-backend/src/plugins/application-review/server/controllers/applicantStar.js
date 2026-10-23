@@ -1,5 +1,7 @@
 'use strict';
 
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
+
 /**
  * Marking/unmarking a "star candidate" lives on the Applicant, not on any
  * one Application or CV Review — the whole point is that whoever reviews
@@ -21,10 +23,12 @@ module.exports = {
       return ctx.badRequest('A short note on why they stand out is required to mark someone as a star candidate.');
     }
 
-    const applicant = await strapi.entityService.findOne('api::applicant.applicant', ctx.params.id);
-    if (!applicant) return ctx.notFound();
+    const documentId = await idToDocumentId(strapi, 'api::applicant.applicant', ctx.params.id);
+    if (!documentId) return ctx.notFound();
 
-    const updated = await strapi.entityService.update('api::applicant.applicant', applicant.id, {
+    const updated = await strapi.documents('api::applicant.applicant').update({
+      documentId,
+
       data: {
         isStarCandidate: !!isStarCandidate,
         ...(isStarCandidate
@@ -34,7 +38,7 @@ module.exports = {
               starCandidateMarkedAt: new Date(),
             }
           : {}),
-      },
+      }
     });
 
     ctx.body = {

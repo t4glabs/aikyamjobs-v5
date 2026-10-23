@@ -80,7 +80,7 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
     }
 
     if (!applicant) {
-      await strapi.entityService.create('api::applicant.applicant', {
+      await strapi.documents('api::applicant.applicant').create({
         data: {
           email: normEmail,
           name: name || null,
@@ -89,7 +89,9 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
         },
       });
     } else {
-      await strapi.entityService.update('api::applicant.applicant', applicant.id, {
+      await strapi.documents('api::applicant.applicant').update({
+        documentId: applicant.documentId,
+
         data: {
           magicTokenHash: tokenHash,
           magicTokenExpiresAt: expiresAt,
@@ -149,7 +151,8 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
       return ctx.unauthorized('Invalid link');
     }
 
-    await strapi.entityService.update('api::applicant.applicant', applicant.id, {
+    await strapi.documents('api::applicant.applicant').update({
+      documentId: applicant.documentId,
       data: { magicTokenHash: null, magicTokenExpiresAt: null, lastLoginAt: new Date() },
     });
 
@@ -188,11 +191,10 @@ module.exports = createCoreController('api::applicant.applicant', ({ strapi }) =
    */
   async me(ctx) {
     const { applicant } = ctx.state;
-    const full = await strapi.entityService.findOne(
-      'api::applicant.applicant',
-      applicant.id,
-      { populate: { currentCv: { populate: { file: true } }, cvMindmapPdf: true } }
-    );
+    const full = await strapi.documents('api::applicant.applicant').findOne({
+      documentId: applicant.documentId,
+      populate: { currentCv: { populate: { file: true } }, cvMindmapPdf: true },
+    });
 
     const cv = full.currentCv;
     const cvLimitStatus = await strapi.service('api::cv-upload.cv-upload').getLimitStatus(full.id);

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Button } from '@strapi/design-system/Button';
+import { Box, Flex, Button } from '@strapi/design-system';
 import Queue from './Queue';
 import Detail from './Detail';
 import CvReviewQueue from './CvReviewQueue';
 import CvReviewDetail from './CvReviewDetail';
+
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const SECTIONS = [
   { key: 'applications', label: 'Applications' },
@@ -21,7 +20,7 @@ const SECTIONS = [
 // upload), just as one .zip of the actual files instead of a list of links.
 function DownloadCvsButton() {
   const { get } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [downloading, setDownloading] = useState(false);
 
   const download = async () => {

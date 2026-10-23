@@ -1,18 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  useFetchClient,
-  useNotification,
-  LoadingIndicatorPage,
-} from '@strapi/helper-plugin';
-import { Main } from '@strapi/design-system/Main';
-import { HeaderLayout, ContentLayout } from '@strapi/design-system/Layout';
-import { Box } from '@strapi/design-system/Box';
-import { Typography } from '@strapi/design-system/Typography';
-import { Table, Thead, Tbody, Tr, Td, Th } from '@strapi/design-system/Table';
-import { Button } from '@strapi/design-system/Button';
-import { Badge } from '@strapi/design-system/Badge';
-import { EmptyStateLayout } from '@strapi/design-system/EmptyStateLayout';
+  Main,
+  Box,
+  Typography,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Td,
+  Th,
+  Button,
+  Badge,
+  EmptyStateLayout,
+} from '@strapi/design-system';
+
+import { Page, Layouts, useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -25,7 +28,7 @@ const formatDate = (value) => {
 
 const FollowUps = () => {
   const { get, post } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
   const [isLoading, setIsLoading] = useState(true);
   const [thresholdDays, setThresholdDays] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -71,12 +74,12 @@ const FollowUps = () => {
   };
 
   if (isLoading) {
-    return <LoadingIndicatorPage />;
+    return <Page.Loading />;
   }
 
   return (
     <Main>
-      <HeaderLayout
+      <Layouts.Header
         title="Follow-ups"
         subtitle={
           thresholdDays !== null
@@ -86,7 +89,7 @@ const FollowUps = () => {
             : undefined
         }
       />
-      <ContentLayout>
+      <Layouts.Content>
         {queue.length === 0 ? (
           <EmptyStateLayout content="Nothing due for follow-up right now." />
         ) : (
@@ -134,7 +137,7 @@ const FollowUps = () => {
             </Tbody>
           </Table>
         )}
-      </ContentLayout>
+      </Layouts.Content>
     </Main>
   );
 };

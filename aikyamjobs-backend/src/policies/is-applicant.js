@@ -1,6 +1,7 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
+const { idToDocumentId } = require('../utils/resolveDocumentId');
 
 // Strapi's policy context is a shallow copy of Koa's ctx (see
 // createPolicyContext in @strapi/utils), which drops ctx.cookies -- it's
@@ -43,10 +44,9 @@ module.exports = async (policyContext, config, { strapi }) => {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     if (!payload || payload.type !== 'applicant' || !payload.sub) return false;
 
-    const applicant = await strapi.entityService.findOne(
-      'api::applicant.applicant',
-      payload.sub
-    );
+    const documentId = await idToDocumentId(strapi, 'api::applicant.applicant', payload.sub);
+    if (!documentId) return false;
+    const applicant = await strapi.documents('api::applicant.applicant').findOne({ documentId });
     if (!applicant) return false;
 
     policyContext.state.applicant = applicant;

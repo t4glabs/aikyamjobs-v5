@@ -1,5 +1,7 @@
 'use strict';
 
+const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 const OPT_OUT_TAG = 'no-further-followup';
 const AUTO_EXPIRED_TAG = 'expired-job';
@@ -13,14 +15,17 @@ module.exports = {
     const thresholdMs = thresholdDays * DAY_MS;
     const now = Date.now();
 
-    const draftJobs = await strapi.entityService.findMany('api::job.job', {
+    // No `fields`/`sort` on unpublishedAt/lastFollowUpAt -- both are
+    // `private: true`, and Strapi 5's Document Service rejects referencing a
+    // private field via `fields` or `sort` even for internal server-side
+    // calls. The final `.sort()` below (by effectiveDate) already fully
+    // reorders the result, so dropping this DB-level sort changes nothing.
+    const draftJobs = await strapi.documents('api::job.job').findMany({
       filters: { publishedAt: null },
-      fields: ['title', 'slug', 'closingDate', 'unpublishedAt', 'lastFollowUpAt'],
       populate: {
         company: { fields: ['name', 'slug'] },
         internalTags: { fields: ['name'] },
       },
-      sort: { unpublishedAt: 'asc' },
       limit: -1,
     });
 
@@ -52,7 +57,11 @@ module.exports = {
   async markFollowedUp(ctx) {
     const { id } = ctx.params;
 
-    const job = await strapi.entityService.findOne('api::job.job', id, {
+    const documentId = await idToDocumentId(strapi, 'api::job.job', id);
+    if (!documentId) return ctx.notFound();
+
+    const job = await strapi.documents('api::job.job').findOne({
+      documentId,
       fields: ['publishedAt'],
     });
 
@@ -64,7 +73,8 @@ module.exports = {
       return ctx.badRequest('Job is currently published — nothing to follow up on.');
     }
 
-    const updated = await strapi.entityService.update('api::job.job', id, {
+    const updated = await strapi.documents('api::job.job').update({
+      documentId,
       data: { lastFollowUpAt: new Date() },
     });
 

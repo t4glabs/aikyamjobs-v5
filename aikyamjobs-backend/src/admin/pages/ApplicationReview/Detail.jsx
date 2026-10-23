@@ -1,20 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useFetchClient, useNotification, LoadingIndicatorPage } from '@strapi/helper-plugin';
-import { Main } from '@strapi/design-system/Main';
-import { HeaderLayout, ContentLayout } from '@strapi/design-system/Layout';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Grid, GridItem } from '@strapi/design-system/Grid';
-import { Typography } from '@strapi/design-system/Typography';
-import { Button } from '@strapi/design-system/Button';
-import { TextButton } from '@strapi/design-system/TextButton';
-import { Badge } from '@strapi/design-system/Badge';
-import { Checkbox } from '@strapi/design-system/Checkbox';
-import { Textarea } from '@strapi/design-system/Textarea';
-import { Divider } from '@strapi/design-system/Divider';
-import { Alert } from '@strapi/design-system/Alert';
+import {
+  Main,
+  Box,
+  Flex,
+  Grid,
+  Typography,
+  Button,
+  TextButton,
+  Badge,
+  Checkbox,
+  Textarea,
+  Divider,
+  Alert,
+  Field,
+} from '@strapi/design-system';
 import StarCandidateControl from './StarCandidateControl';
 import CvMindmapControl from './CvMindmapControl';
+
+import { Page, Layouts, useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -27,7 +30,7 @@ const formatDate = (value) => {
 
 const Detail = ({ id, onBack }) => {
   const { get, post } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -112,7 +115,7 @@ const Detail = ({ id, onBack }) => {
 
   const reviewerCount = useMemo(() => reviewerChecked.filter(Boolean).length, [reviewerChecked]);
 
-  if (isLoading || !data) return <LoadingIndicatorPage />;
+  if (isLoading || !data) return <Page.Loading />;
 
   const { job, applicant, cv, applicantChecklist, decision, previousDecisionSummary } = data;
   const alreadyDecided = !!decision;
@@ -120,12 +123,12 @@ const Detail = ({ id, onBack }) => {
 
   return (
     <Main>
-      <HeaderLayout
+      <Layouts.Header
         title={`${applicant.isStarCandidate ? '⭐ ' : ''}${applicant.name || applicant.email}`}
         subtitle={`${job.title}${job.companyName ? ` · ${job.companyName}` : ''}`}
         navigationAction={<TextButton onClick={onBack}>← Back to queue</TextButton>}
       />
-      <ContentLayout>
+      <Layouts.Content>
         <Flex direction="column" alignItems="stretch" gap={6}>
           {previousDecisionSummary && (
             <Alert variant="default" title="This is a reapplication">
@@ -177,22 +180,22 @@ const Detail = ({ id, onBack }) => {
 
           {/* Applicant + CV */}
           <Box background="neutral0" hasRadius borderColor="neutral150" padding={5}>
-            <Grid gap={4}>
-              <GridItem col={4}>
+            <Grid.Root gap={4}>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">Applicant</Typography>
                 <Typography variant="omega" fontWeight="semiBold" as="p">
                   {applicant.name || '—'}
                 </Typography>
                 <Typography variant="pi" textColor="neutral600" as="p">{applicant.email}</Typography>
-              </GridItem>
-              <GridItem col={4}>
+              </Grid.Item>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">Submitted</Typography>
                 <Typography variant="omega" as="p">{formatDate(data.submittedAt)}</Typography>
                 <Typography variant="pi" textColor="neutral600" as="p">
                   Consent given: {data.consent ? 'yes' : 'no'}
                 </Typography>
-              </GridItem>
-              <GridItem col={4}>
+              </Grid.Item>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">CV on file</Typography>
                 <Typography as="p">
                   {cv ? (
@@ -203,8 +206,8 @@ const Detail = ({ id, onBack }) => {
                     '—'
                   )}
                 </Typography>
-              </GridItem>
-            </Grid>
+              </Grid.Item>
+            </Grid.Root>
           </Box>
 
           {/* Applicant's aggregate score — safe to show upfront, per-item hidden until reveal */}
@@ -232,8 +235,8 @@ const Detail = ({ id, onBack }) => {
                   <Box key={i} padding={3} background="neutral100" hasRadius>
                     <Flex justifyContent="space-between" alignItems="center">
                       <Checkbox
-                        value={reviewerChecked[i]}
-                        onValueChange={(val) => {
+                        checked={reviewerChecked[i]}
+                        onCheckedChange={(val) => {
                           const next = [...reviewerChecked];
                           next[i] = val;
                           setReviewerChecked(next);
@@ -277,35 +280,38 @@ const Detail = ({ id, onBack }) => {
           </Box>
 
           {/* Reviewer notes */}
-          <Grid gap={4}>
-            <GridItem col={6}>
-              <Textarea
-                label="Lead with these"
-                hint="A couple of strengths worth pointing at — one per line. Used in both the approval and no-match emails."
+          <Grid.Root gap={4}>
+            <Grid.Item col={6}>
+              <Field.Root
                 name="leadWithThese"
-                value={leadWithThese}
-                onChange={(e) => setLeadWithThese(e.target.value)}
-              />
-            </GridItem>
-            <GridItem col={6}>
-              <Textarea
-                label="Fix before sending"
-                hint="Concrete edits — what's missing, not what to invent, one per line. This becomes the no-match email if it's not a fit."
+                hint="A couple of strengths worth pointing at — one per line. Used in both the approval and no-match emails."
+              >
+                <Field.Label>Lead with these</Field.Label>
+                <Textarea value={leadWithThese} onChange={(e) => setLeadWithThese(e.target.value)} />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+            <Grid.Item col={6}>
+              <Field.Root
                 name="fixBeforeSending"
-                value={fixBeforeSending}
-                onChange={(e) => setFixBeforeSending(e.target.value)}
-              />
-            </GridItem>
-            <GridItem col={12}>
-              <Textarea
-                label="Personal touch (optional)"
-                hint="A specific detail that shows you actually read their CV, e.g. 'I really liked reading about the certification course mentioned.' Only appears in the no-match email — leave blank to skip that line."
+                hint="Concrete edits — what's missing, not what to invent, one per line. This becomes the no-match email if it's not a fit."
+              >
+                <Field.Label>Fix before sending</Field.Label>
+                <Textarea value={fixBeforeSending} onChange={(e) => setFixBeforeSending(e.target.value)} />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+            <Grid.Item col={12}>
+              <Field.Root
                 name="personalTouch"
-                value={personalTouch}
-                onChange={(e) => setPersonalTouch(e.target.value)}
-              />
-            </GridItem>
-          </Grid>
+                hint="A specific detail that shows you actually read their CV, e.g. 'I really liked reading about the certification course mentioned.' Only appears in the no-match email — leave blank to skip that line."
+              >
+                <Field.Label>Personal touch (optional)</Field.Label>
+                <Textarea value={personalTouch} onChange={(e) => setPersonalTouch(e.target.value)} />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+          </Grid.Root>
 
           <Divider />
 
@@ -343,7 +349,7 @@ const Detail = ({ id, onBack }) => {
             Either way, the decision is saved immediately below and the applicant's results page updates.
           </Typography>
         </Flex>
-      </ContentLayout>
+      </Layouts.Content>
     </Main>
   );
 };

@@ -5,6 +5,7 @@ const { resolveApplyMode, scoreChecklist } = require('../../../utils/apply');
 const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 const { findRecommendedJobs } = require('../../../utils/recommendations');
 const { sendDecisionEmail } = require('../../../utils/decisionEmail');
+const { idToDocumentId } = require('../../../utils/resolveDocumentId');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -111,11 +112,15 @@ module.exports = createCoreController('api::application.application', ({ strapi 
 
     let job;
     if (jobId) {
-      job = await strapi.entityService.findOne('api::job.job', jobId, {
-        populate: { requirementChecklist: true, company: { fields: ['name'] } },
-      });
+      const jobDocumentId = await idToDocumentId(strapi, 'api::job.job', jobId);
+      job = jobDocumentId
+        ? await strapi.documents('api::job.job').findOne({
+            documentId: jobDocumentId,
+            populate: { requirementChecklist: true, company: { fields: ['name'] } },
+          })
+        : null;
     } else if (jobSlug) {
-      const [j] = await strapi.entityService.findMany('api::job.job', {
+      const [j] = await strapi.documents('api::job.job').findMany({
         filters: { slug: jobSlug },
         populate: { requirementChecklist: true, company: { fields: ['name'] } },
         limit: 1,
@@ -124,16 +129,15 @@ module.exports = createCoreController('api::application.application', ({ strapi 
     }
     if (!job) return ctx.notFound('Job not found');
 
-    const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
     if (resolveApplyMode(job, settings) !== 'gated') {
       return ctx.badRequest('This job is not accepting applications through aikyamjobs.');
     }
 
-    const full = await strapi.entityService.findOne(
-      'api::applicant.applicant',
-      applicant.id,
-      { populate: { currentCv: { populate: { file: true } } } }
-    );
+    const full = await strapi.documents('api::applicant.applicant').findOne({
+      documentId: applicant.documentId,
+      populate: { currentCv: { populate: { file: true } } },
+    });
     if (!full.currentCv) {
       return ctx.badRequest('Please upload your CV before applying.');
     }
@@ -162,7 +166,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
         return;
       }
 
-      const settingsForRetry = await strapi.entityService.findMany('api::site-setting.site-setting');
+      const settingsForRetry = await strapi.documents('api::site-setting.site-setting').findMany();
       if (!settingsForRetry?.allowReapplyAfterRejection) {
         ctx.status = 409;
         ctx.body = {
@@ -232,11 +236,12 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       data.decisionBy = null;
       data.decisionByAdminEmail = null;
       data.decisionEmailSent = false;
-      application = await strapi.entityService.update('api::application.application', existing.id, {
+      application = await strapi.documents('api::application.application').update({
+        documentId: existing.documentId,
         data,
       });
     } else {
-      application = await strapi.entityService.create('api::application.application', { data });
+      application = await strapi.documents('api::application.application').create({ data });
     }
 
     // Phase-3 groundwork: learn interest tags (best effort, non-blocking).
@@ -255,7 +260,8 @@ module.exports = createCoreController('api::application.application', ({ strapi 
         reviewerFirstName: null,
       })
         .then(() =>
-          strapi.entityService.update('api::application.application', application.id, {
+          strapi.documents('api::application.application').update({
+            documentId: application.documentId,
             data: { decisionEmailSent: true },
           })
         )
@@ -288,12 +294,17 @@ module.exports = createCoreController('api::application.application', ({ strapi 
    */
   async read(ctx) {
     const { applicant } = ctx.state;
-    const application = await strapi.entityService.findOne('api::application.application', ctx.params.id, {
-      populate: {
-        applicant: true,
-        job: { populate: { company: { fields: ['name'] } }, fields: ['title', 'slug', 'applicationUrl', 'applicationEmail'] },
-      },
-    });
+    const documentId = await idToDocumentId(strapi, 'api::application.application', ctx.params.id);
+    const application = documentId
+      ? await strapi.documents('api::application.application').findOne({
+          documentId,
+
+          populate: {
+            applicant: true,
+            job: { populate: { company: { fields: ['name'] } }, fields: ['title', 'slug', 'applicationUrl', 'applicationEmail'] },
+          },
+        })
+      : null;
 
     if (!application || application.applicant?.id !== applicant.id) {
       return ctx.notFound();
@@ -329,7 +340,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
 
     let canReapply = false;
     if (isFinalNegative) {
-      const settings = await strapi.entityService.findMany('api::site-setting.site-setting');
+      const settings = await strapi.documents('api::site-setting.site-setting').findMany();
       canReapply = !!settings?.allowReapplyAfterRejection;
     }
 
@@ -365,7 +376,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
     const { applicant } = ctx.state;
     const { jobSlug } = ctx.params;
 
-    const [job] = await strapi.entityService.findMany('api::job.job', {
+    const [job] = await strapi.documents('api::job.job').findMany({
       filters: { slug: jobSlug },
       fields: ['id'],
       limit: 1,
@@ -393,7 +404,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
    */
   async mine(ctx) {
     const { applicant } = ctx.state;
-    const applications = await strapi.entityService.findMany('api::application.application', {
+    const applications = await strapi.documents('api::application.application').findMany({
       filters: { applicant: applicant.id },
       sort: { submittedAt: 'desc' },
       populate: {

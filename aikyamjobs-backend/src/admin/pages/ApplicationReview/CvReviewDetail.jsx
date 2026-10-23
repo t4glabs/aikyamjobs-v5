@@ -1,18 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useFetchClient, useNotification, LoadingIndicatorPage } from '@strapi/helper-plugin';
-import { Main } from '@strapi/design-system/Main';
-import { HeaderLayout, ContentLayout } from '@strapi/design-system/Layout';
-import { Box } from '@strapi/design-system/Box';
-import { Flex } from '@strapi/design-system/Flex';
-import { Grid, GridItem } from '@strapi/design-system/Grid';
-import { Typography } from '@strapi/design-system/Typography';
-import { Button } from '@strapi/design-system/Button';
-import { TextButton } from '@strapi/design-system/TextButton';
-import { Textarea } from '@strapi/design-system/Textarea';
-import { Divider } from '@strapi/design-system/Divider';
-import { Alert } from '@strapi/design-system/Alert';
+import {
+  Main,
+  Box,
+  Flex,
+  Grid,
+  Typography,
+  Button,
+  TextButton,
+  Textarea,
+  Divider,
+  Alert,
+  Field,
+} from '@strapi/design-system';
 import StarCandidateControl from './StarCandidateControl';
 import CvMindmapControl from './CvMindmapControl';
+
+import { Page, Layouts, useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -25,7 +28,7 @@ const formatDate = (value) => {
 
 const CvReviewDetail = ({ id, onBack }) => {
   const { get, post } = useFetchClient();
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
 
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -70,19 +73,19 @@ const CvReviewDetail = ({ id, onBack }) => {
     }
   };
 
-  if (isLoading || !data) return <LoadingIndicatorPage />;
+  if (isLoading || !data) return <Page.Loading />;
 
   const { applicant, cv, targetRoles, reviewedAt, decisionEmailSent, decisionByAdminEmail } = data;
   const alreadyReviewed = data.status === 'reviewed';
 
   return (
     <Main>
-      <HeaderLayout
+      <Layouts.Header
         title={`${applicant.isStarCandidate ? '⭐ ' : ''}${applicant.name || applicant.email}`}
         subtitle="CV Improver request"
         navigationAction={<TextButton onClick={onBack}>← Back to queue</TextButton>}
       />
-      <ContentLayout>
+      <Layouts.Content>
         <Flex direction="column" alignItems="stretch" gap={6}>
           {alreadyReviewed && (
             <Alert variant="success" title={`Already reviewed — ${new Date(reviewedAt).toLocaleString('en-IN')}`}>
@@ -116,22 +119,22 @@ const CvReviewDetail = ({ id, onBack }) => {
 
           {/* Applicant + CV */}
           <Box background="neutral0" hasRadius borderColor="neutral150" padding={5}>
-            <Grid gap={4}>
-              <GridItem col={4}>
+            <Grid.Root gap={4}>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">Applicant</Typography>
                 <Typography variant="omega" fontWeight="semiBold" as="p">
                   {applicant.name || '—'}
                 </Typography>
                 <Typography variant="pi" textColor="neutral600" as="p">{applicant.email}</Typography>
-              </GridItem>
-              <GridItem col={4}>
+              </Grid.Item>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">Submitted</Typography>
                 <Typography variant="omega" as="p">{formatDate(data.submittedAt)}</Typography>
                 <Typography variant="pi" textColor="neutral600" as="p">
                   Consent given: {data.consent ? 'yes' : 'no'}
                 </Typography>
-              </GridItem>
-              <GridItem col={4}>
+              </Grid.Item>
+              <Grid.Item col={4}>
                 <Typography variant="sigma" textColor="neutral600">CV on file</Typography>
                 <Typography as="p">
                   {cv ? (
@@ -142,8 +145,8 @@ const CvReviewDetail = ({ id, onBack }) => {
                     '—'
                   )}
                 </Typography>
-              </GridItem>
-            </Grid>
+              </Grid.Item>
+            </Grid.Root>
           </Box>
 
           {/* What they're targeting */}
@@ -153,26 +156,28 @@ const CvReviewDetail = ({ id, onBack }) => {
           </Box>
 
           {/* Reviewer notes */}
-          <Grid gap={4}>
-            <GridItem col={6}>
-              <Textarea
-                label="What's currently good"
-                hint="A couple of strengths worth pointing at, for the feedback email."
+          <Grid.Root gap={4}>
+            <Grid.Item col={6}>
+              <Field.Root
                 name="leadWithThese"
-                value={leadWithThese}
-                onChange={(e) => setLeadWithThese(e.target.value)}
-              />
-            </GridItem>
-            <GridItem col={6}>
-              <Textarea
-                label="What needs changes"
-                hint="Concrete edits given what they said they're targeting — not a generic checklist."
+                hint="A couple of strengths worth pointing at, for the feedback email."
+              >
+                <Field.Label>What's currently good</Field.Label>
+                <Textarea value={leadWithThese} onChange={(e) => setLeadWithThese(e.target.value)} />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+            <Grid.Item col={6}>
+              <Field.Root
                 name="fixBeforeSending"
-                value={fixBeforeSending}
-                onChange={(e) => setFixBeforeSending(e.target.value)}
-              />
-            </GridItem>
-          </Grid>
+                hint="Concrete edits given what they said they're targeting — not a generic checklist."
+              >
+                <Field.Label>What needs changes</Field.Label>
+                <Textarea value={fixBeforeSending} onChange={(e) => setFixBeforeSending(e.target.value)} />
+                <Field.Hint />
+              </Field.Root>
+            </Grid.Item>
+          </Grid.Root>
 
           <Divider />
 
@@ -195,7 +200,7 @@ const CvReviewDetail = ({ id, onBack }) => {
             Saving updates their results page immediately.
           </Typography>
         </Flex>
-      </ContentLayout>
+      </Layouts.Content>
     </Main>
   );
 };
