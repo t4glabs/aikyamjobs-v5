@@ -28,7 +28,7 @@ Read CLAUDE.md at the repo root for full technical detail.
 
 **`project_infra.md`** — type: project
 ```
-Next.js (port 3001) + Strapi (port 1338) on Hetzner VPS.
+Next.js (port 3001) + Strapi 5.59.0 (port 1338) on Hetzner VPS.
 Nginx proxies aikyamjobs.org — /api, /uploads, /admin → Strapi; rest → Next.js.
 DNS via Cloudflare. Process manager: PM2.
 Deployment: Jinso pulls on VPS manually via Termius SSH:
@@ -37,10 +37,11 @@ NEXT_PUBLIC_* vars baked at build time — changes require full rebuild.
 STRAPI_INTERNAL_URL is runtime-only (no prefix) — restart only.
 ```
 
-**`feedback_nvm20.md`** — type: feedback
+**`feedback_node22.md`** — type: feedback
 ```
-Always run `nvm use 20` before any npm or node commands in this project.
-Why: required for compatibility. Prepend to all npm/node commands.
+Always run `nvm use 22` before any npm or node commands in this project.
+Why: Strapi 5.59.0 (since the Oct 2026 migration) requires Node 22+ to boot
+at all; Node 20 is also EOL. Prepend to all npm/node commands.
 ```
 
 ## What this project is
@@ -125,7 +126,7 @@ Key content types:
 - Finds published jobs where `closingDate` is in the past
 - Adds the `expired-job` internal tag (looked up by exact name `expired-job`)
 - Sets `publishedAt: null` to move job to draft
-- Tag and unpublish are done as two separate DB calls to avoid Strapi entity service conflicts
+- Tag and unpublish are done as two separate Document Service calls to avoid conflicts
 
 **Stretched-link pattern** on job cards (both homepage and `/jobs`):
 - Card wrapper is a `<div className="relative">`, not a `<Link>`
@@ -140,5 +141,5 @@ Key content types:
 - Do not expose `internalTags` on the frontend — they are editorial-only
 - Do not push to GitHub without Jinso's approval — always stage changes locally first
 - Do not use `git push --force` or amend published commits
-- Always run `nvm use 20` before any `npm` or `node` commands
+- Always run `nvm use 22` before any `npm` or `node` commands (Strapi 5.59.0 requires Node 22+)
 - `NEXT_PUBLIC_*` env var changes require a full rebuild on the VPS, not just a restart
