@@ -32,7 +32,6 @@ function toBullets(text) {
 async function composeDecisionEmail({ application, job, applicant, reviewerFirstName, reviewerEmail }) {
   const readUrl = `${FRONTEND_URL}/apply/read/${application.id}`;
   const notifyEmail = await getNotifyEmail();
-  const settings = (await strapi.documents('api::site-setting.site-setting').findMany()) || {};
   const signedBy = reviewerFirstName || 'The aikyamjobs team';
   const firstName = (applicant.name || '').trim().split(/\s+/)[0] || 'there';
   const companySuffix = job.company?.name ? ` at ${job.company.name}` : '';

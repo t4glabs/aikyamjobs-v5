@@ -3,6 +3,7 @@
 const { scoreChecklist } = require('../../../../utils/apply');
 const { sendDecisionEmail } = require('../../../../utils/decisionEmail');
 const { idToDocumentId } = require('../../../../utils/resolveDocumentId');
+const { getSiteSettings } = require('../../../../utils/siteSettings');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -223,7 +224,7 @@ module.exports = {
     });
 
     let emailSent = false;
-    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+    const settings = await getSiteSettings(strapi);
     if (settings?.autoSendDecisionEmails) {
       try {
         await sendDecisionEmail({

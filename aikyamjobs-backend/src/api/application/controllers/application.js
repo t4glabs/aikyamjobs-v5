@@ -6,6 +6,7 @@ const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 const { findRecommendedJobs } = require('../../../utils/recommendations');
 const { sendDecisionEmail } = require('../../../utils/decisionEmail');
 const { idToDocumentId } = require('../../../utils/resolveDocumentId');
+const { getSiteSettings } = require('../../../utils/siteSettings');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -129,7 +130,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
     }
     if (!job) return ctx.notFound('Job not found');
 
-    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+    const settings = await getSiteSettings(strapi);
     if (resolveApplyMode(job, settings) !== 'gated') {
       return ctx.badRequest('This job is not accepting applications through aikyamjobs.');
     }
@@ -166,7 +167,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
         return;
       }
 
-      const settingsForRetry = await strapi.documents('api::site-setting.site-setting').findMany();
+      const settingsForRetry = await getSiteSettings(strapi);
       if (!settingsForRetry?.allowReapplyAfterRejection) {
         ctx.status = 409;
         ctx.body = {
@@ -340,7 +341,7 @@ module.exports = createCoreController('api::application.application', ({ strapi 
 
     let canReapply = false;
     if (isFinalNegative) {
-      const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+      const settings = await getSiteSettings(strapi);
       canReapply = !!settings?.allowReapplyAfterRejection;
     }
 

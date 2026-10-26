@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const { NodeCompiler } = require('@myriaddreamin/typst-ts-node-compiler');
+const { getSiteSettings } = require('./siteSettings');
 
 const WORKSPACE = __dirname;
 const TEMPLATE_PATH = path.join(WORKSPACE, 'cv-mindmap-template.typ');
@@ -102,7 +103,7 @@ async function regenerateApplicantCvMindmap(strapi, applicantId) {
   }
 
   const previousPdf = applicant.cvMindmapPdf;
-  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+  const settings = await getSiteSettings(strapi);
 
   // Slug-ish filename from the applicant's name/email -- applicants have no
   // real `slug` field (they're not public content), so this is cosmetic

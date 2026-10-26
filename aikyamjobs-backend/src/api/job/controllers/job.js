@@ -2,6 +2,7 @@
 
 const { createCoreController } = require('@strapi/strapi').factories;
 const { applyGateToJob } = require('../../../utils/apply');
+const { getSiteSettings } = require('../../../utils/siteSettings');
 
 /**
  * Force requirementChecklist into the populate set so we can always resolve
@@ -26,7 +27,7 @@ module.exports = createCoreController('api::job.job', ({ strapi }) => ({
   async find(ctx) {
     addChecklistPopulate(ctx);
     const { data, meta } = await super.find(ctx);
-    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+    const settings = await getSiteSettings(strapi);
     if (Array.isArray(data)) data.forEach((d) => applyGateToJob(d, settings));
     return { data, meta };
   },
@@ -35,7 +36,7 @@ module.exports = createCoreController('api::job.job', ({ strapi }) => ({
     addChecklistPopulate(ctx);
     const res = await super.findOne(ctx);
     if (!res || !res.data) return res;
-    const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+    const settings = await getSiteSettings(strapi);
     applyGateToJob(res.data, settings);
     return res;
   },

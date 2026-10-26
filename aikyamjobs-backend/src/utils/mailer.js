@@ -1,5 +1,7 @@
 'use strict';
 
+const { getSiteSettings } = require('./siteSettings');
+
 /**
  * Minimal Mailgun sender. We deliberately do NOT wire this as a Strapi email
  * provider — a direct HTTPS call keeps it dependency-free and easy to no-op
@@ -71,7 +73,7 @@ async function sendEmail({ to, subject, text, html, from, replyTo }) {
  * Reply-To), but nothing silently redirects to a specific hardcoded person.
  */
 async function getNotifyEmail() {
-  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+  const settings = await getSiteSettings(strapi);
   const email = settings && settings.applicationsNotifyEmail;
   if (!email) {
     strapi.log.warn('[mailer] Site Settings > applicationsNotifyEmail is not configured.');

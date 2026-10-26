@@ -4,6 +4,7 @@ const { createCoreService } = require('@strapi/strapi').factories;
 const { errors } = require('@strapi/utils');
 const { ApplicationError } = errors;
 const { idToDocumentId } = require('../../../utils/resolveDocumentId');
+const { getSiteSettings } = require('../../../utils/siteSettings');
 
 module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => ({
   /**
@@ -19,8 +20,7 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
    * Always repoints applicant.currentCv at the resulting record.
    */
   async recordUpload(applicantId, file) {
-    const settings =
-      (await strapi.documents('api::site-setting.site-setting').findMany()) || {};
+    const settings = await getSiteSettings(strapi);
     const maxN = settings.maxCvUploadsPer6Months || 3;
     const minGapHours =
       settings.cvUploadMinGapHours != null ? settings.cvUploadMinGapHours : 24;
@@ -122,8 +122,7 @@ module.exports = createCoreService('api::cv-upload.cv-upload', ({ strapi }) => (
    * what recordUpload actually enforces (same settings, same query).
    */
   async getLimitStatus(applicantId) {
-    const settings =
-      (await strapi.documents('api::site-setting.site-setting').findMany()) || {};
+    const settings = await getSiteSettings(strapi);
     const maxN = settings.maxCvUploadsPer6Months || 3;
     const windowDays = settings.cvUploadWindowDays || 180;
     const windowMs = windowDays * 24 * 3600 * 1000;

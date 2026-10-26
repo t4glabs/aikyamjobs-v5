@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { NodeCompiler } = require('@myriaddreamin/typst-ts-node-compiler');
 const { resolveApplyMode } = require('./apply');
 const { markdownToBlocks } = require('./markdownBlocks');
+const { getSiteSettings } = require('./siteSettings');
 
 const WORKSPACE = __dirname;
 const TEMPLATE_PATH = path.join(WORKSPACE, 'mindmap-template.typ');
@@ -205,7 +206,7 @@ async function regenerateJobMindmap(strapi, jobId) {
   }
 
   const previousPdf = job.mindmapPdf;
-  const settings = await strapi.documents('api::site-setting.site-setting').findMany();
+  const settings = await getSiteSettings(strapi);
 
   const company = job.company || null;
   let companyMindmap = null;
