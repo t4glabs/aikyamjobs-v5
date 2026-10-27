@@ -7,6 +7,7 @@ const { findRecommendedJobs } = require('../../../utils/recommendations');
 const { sendDecisionEmail } = require('../../../utils/decisionEmail');
 const { idToDocumentId } = require('../../../utils/resolveDocumentId');
 const { getSiteSettings } = require('../../../utils/siteSettings');
+const { syncApplicantToNewsletter } = require('../../../utils/listmonk');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -279,6 +280,13 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       isRetry,
       isStarAutoApprove,
     }).catch((err) => strapi.log.error('[apply] summary email failed', err));
+
+    // Add the applicant to the newsletter list (same public Listmonk list +
+    // opt-in flow as the website /subscribe form). Once per applicant, best
+    // effort — never blocks or breaks the apply flow.
+    syncApplicantToNewsletter(full).catch((err) =>
+      strapi.log.warn('[apply] newsletter sync failed', err)
+    );
 
     return { ok: true, applicationId: application.id, status: data.status };
   },

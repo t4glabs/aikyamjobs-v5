@@ -3,6 +3,7 @@
 const { createCoreController } = require('@strapi/strapi').factories;
 const { sendEmail, getNotifyEmail } = require('../../../utils/mailer');
 const { idToDocumentId } = require('../../../utils/resolveDocumentId');
+const { syncApplicantToNewsletter } = require('../../../utils/listmonk');
 
 const STRAPI_PUBLIC_URL =
   process.env.STRAPI_PUBLIC_URL || process.env.PUBLIC_URL || 'http://localhost:1337';
@@ -100,6 +101,13 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
       cvReview,
       cvUrl: absoluteMediaUrl(full.currentCv.file && full.currentCv.file.url),
     }).catch((err) => strapi.log.error('[cv-improver] notify failed', err));
+
+    // Add the applicant to the newsletter list (same public Listmonk list +
+    // opt-in flow as the website /subscribe form). Once per applicant, best
+    // effort — never blocks or breaks the CV-review flow.
+    syncApplicantToNewsletter(full).catch((err) =>
+      strapi.log.warn('[cv-improver] newsletter sync failed', err)
+    );
 
     return { ok: true, id: cvReview.id, status: 'submitted' };
   },

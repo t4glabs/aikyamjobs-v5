@@ -23,6 +23,12 @@
     "phone": {
       "type": "string"
     },
+    "listmonkSynced": {
+      "type": "boolean",
+      "default": false,
+      "private": true,
+      "description": "True once this applicant's email has been added to the Listmonk newsletter list (on their first application / CV Improver submission). Internal flag, never exposed via the API."
+    },
     "lastLoginAt": {
       "type": "datetime"
     },
