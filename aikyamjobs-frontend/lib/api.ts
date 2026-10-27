@@ -113,15 +113,26 @@ function normalizeSingle(response: AnyRecord, wrap: (item: AnyRecord) => AnyReco
   return { ...response, data: wrap(response.data) };
 }
 
+// Public content tolerates brief staleness, so cache every Strapi read in
+// Next's Data Cache. All public routes are `force-dynamic` (no Full Route
+// Cache), so without this each render — and each RSC prefetch — re-fanned out
+// ~15-20 live Strapi calls (categories ×3 pages, /pages ×8, jobs, etc.). Under
+// a prefetch burst that overwhelmed the single Strapi process and caused the
+// frontend to reset connections (the 503s). The Data Cache works independently
+// of route render mode, so dynamic renders now reuse cached data instead.
+// 300s keeps a curated board fresh enough; callers can override via `options`
+// (e.g. a mutation passing `cache: 'no-store'`). Tune via one constant here.
+const REVALIDATE_SECONDS = 300;
+
 export async function fetchAPI(path: string, options: RequestInit = {}) {
-  const defaultOptions: RequestInit = {
+  // Cache GET reads; never cache mutations (POST/PUT/DELETE) — setting both a
+  // revalidate and no-store would make Next throw, so pick one by method.
+  const isMutation = !!options.method && options.method.toUpperCase() !== 'GET';
+  const mergedOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
     },
-  };
-
-  const mergedOptions = {
-    ...defaultOptions,
+    ...(isMutation ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_SECONDS } }),
     ...options,
   };
 

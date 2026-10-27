@@ -120,6 +120,7 @@ export default async function TagPage({
               <Link
                 key={job.id}
                 href={`/jobs/${job.attributes.slug}`}
+                prefetch={false}
                 className="flex flex-col bg-white border border-gray-200 rounded-lg p-6 transition hover:border-gray-300 hover:shadow-sm"
               >
                 <div className="flex items-center justify-between gap-3 mb-3.5">
@@ -211,6 +212,7 @@ export default async function TagPage({
               <Link
                 key={cat.id}
                 href={`/tag/${cat.attributes.slug}`}
+                prefetch={false}
                 className={`inline-flex items-center h-9 px-4 rounded-md text-sm transition ${
                   cat.id === category.id
                     ? 'btn-brand'

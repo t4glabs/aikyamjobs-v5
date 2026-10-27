@@ -118,6 +118,7 @@ export default async function BlogsPage({
                 <Link
                   key={blog.id}
                   href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
+                  prefetch={false}
                   target={blog.attributes.externalLink ? "_blank" : undefined}
                   className="flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden transition hover:border-gray-300 hover:shadow-sm group"
                 >

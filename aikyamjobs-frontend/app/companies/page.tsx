@@ -47,6 +47,7 @@ export default async function CompaniesPage({
             <Link
               key={company.id}
               href={`/companies/${company.attributes.slug}`}
+              prefetch={false}
               className="bg-white border border-gray-200 rounded-lg p-6 transition hover:border-gray-300 hover:shadow-sm"
             >
               <div className="flex items-center gap-4 mb-3">

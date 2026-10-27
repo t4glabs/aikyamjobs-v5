@@ -208,6 +208,7 @@ export default async function CoursesPage({
                   >
                     <Link
                       href={`/courses/${course.attributes.slug}`}
+                      prefetch={false}
                       className="absolute inset-0 rounded-lg z-0"
                       aria-label={course.attributes.title}
                     />
@@ -273,6 +274,7 @@ export default async function CoursesPage({
                     <div className="relative z-10 mt-auto flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5">
                       <Link
                         href={`/courses?courseType=${encodeURIComponent(course.attributes.courseType)}`}
+                        prefetch={false}
                         className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                       >
                         {courseTypeLabel(course.attributes.courseType)}
@@ -280,6 +282,7 @@ export default async function CoursesPage({
                       {courseFieldOfStudy && (
                         <Link
                           href={`/courses?fieldOfStudy=${encodeURIComponent(courseFieldOfStudy.attributes.slug)}`}
+                          prefetch={false}
                           className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                         >
                           {courseFieldOfStudy.attributes.name}
@@ -289,6 +292,7 @@ export default async function CoursesPage({
                         <Link
                           key={index}
                           href={`/courses?search=${encodeURIComponent(skill)}`}
+                          prefetch={false}
                           className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                         >
                           {skill}

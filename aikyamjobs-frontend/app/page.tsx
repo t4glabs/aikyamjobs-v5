@@ -148,6 +148,7 @@ export default async function Home() {
                 <Link
                   key={category.id}
                   href={`/tag/${category.attributes.slug}`}
+                  prefetch={false}
                   className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
                 >
                   {category.attributes.name}
@@ -189,6 +190,7 @@ export default async function Home() {
                   >
                     <Link
                       href={`/jobs/${job.attributes.slug}`}
+                      prefetch={false}
                       className="absolute inset-0 rounded-lg z-0"
                       aria-label={job.attributes.title}
                     />
@@ -252,6 +254,7 @@ export default async function Home() {
                     <div className="relative z-10 mt-auto flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5">
                       <Link
                         href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
+                        prefetch={false}
                         className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                       >
                         {job.attributes.jobType}
@@ -260,6 +263,7 @@ export default async function Home() {
                         <Link
                           key={category.id}
                           href={`/tag/${category.attributes.slug}`}
+                          prefetch={false}
                           className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                         >
                           {category.attributes.name}
@@ -296,6 +300,7 @@ export default async function Home() {
                   <Link
                     key={blog.id}
                     href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
+                    prefetch={false}
                     target={blog.attributes.externalLink ? "_blank" : undefined}
                     className="flex items-center justify-between py-4 group"
                   >
@@ -312,6 +317,7 @@ export default async function Home() {
                   <Link
                     key={blog.id}
                     href={blog.attributes.externalLink || `/blogs/${blog.attributes.slug}`}
+                    prefetch={false}
                     target={blog.attributes.externalLink ? "_blank" : undefined}
                     className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition group"
                   >
