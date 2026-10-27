@@ -8,7 +8,8 @@
  *
  *   node scripts/test-application-review.js
  */
-const strapiFactory = require('@strapi/strapi');
+// Strapi 5 bootstrap (was v4's bare `require('@strapi/strapi')()`).
+const { createStrapi, compileStrapi } = require('@strapi/strapi');
 const assert = require('assert');
 
 if (process.env.NODE_ENV === 'production') {
@@ -36,7 +37,7 @@ function fakeCtx({ params = {}, body = {}, adminEmail = 'test-admin@local.dev', 
 }
 
 (async () => {
-  const app = await strapiFactory().load();
+  const app = await createStrapi(await compileStrapi()).load();
   const originalSettings = await app.entityService.findMany('api::site-setting.site-setting');
   const originalAutoSend = originalSettings.autoSendDecisionEmails;
 

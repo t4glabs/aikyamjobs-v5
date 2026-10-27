@@ -7,7 +7,10 @@
  *
  *   node scripts/seed-apply-test.js
  */
-const strapiFactory = require('@strapi/strapi');
+// Strapi 5 bootstrap: the package no longer exports a bare factory function
+// (that was v4's `require('@strapi/strapi')()`); build the app context with
+// compileStrapi() then createStrapi(ctx).load().
+const { createStrapi, compileStrapi } = require('@strapi/strapi');
 
 const SLUG = 'gated-test-role';
 
@@ -21,7 +24,7 @@ const SLUG = 'gated-test-role';
     process.exit(1);
   }
 
-  const app = await strapiFactory().load();
+  const app = await createStrapi(await compileStrapi()).load();
   try {
     const checklist = [
       { label: 'I have 2+ years of experience in the social impact sector', required: true, weight: 3 },

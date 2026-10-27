@@ -45,7 +45,7 @@ interface SearchHit {
 async function searchMeili(query: string, filter: FilterType): Promise<{ hits: SearchHit[]; processingTimeMs: number; estimatedTotalHits: number }> {
   const body: Record<string, unknown> = {
     q: query,
-    limit: 40,
+    limit: 100,
     attributesToHighlight: ['title', 'excerpt', 'company'],
     ...meiliHighlightTags,
   };
@@ -187,7 +187,10 @@ function SearchPageInner() {
     try {
       const { hits: h, processingTimeMs, estimatedTotalHits } = await searchMeili(trimmed, f);
       setHits(h);
-      setTotal(estimatedTotalHits);
+      // Show the count of results actually fetched/shown (what the type tabs
+      // also count) rather than Meili's estimatedTotalHits — the two diverged
+      // because the fetch is capped, making the header say more than the tabs.
+      setTotal(h.length);
       setTiming(processingTimeMs);
       setStatus('done');
       // Zero-result searches are the actionable signal here (unmet demand to

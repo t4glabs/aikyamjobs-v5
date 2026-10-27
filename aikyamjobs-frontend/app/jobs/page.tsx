@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { getJobs, getStrapiMediaUrl } from "@/lib/api";
 import { Job, StrapiResponse } from "@/lib/types";
 
@@ -28,6 +29,20 @@ export default async function JobsPage({
 
   const jobs = jobsResponse.data;
   const pagination = jobsResponse.meta.pagination;
+
+  // If a page beyond the last is requested directly (stale/hand-edited ?page=),
+  // send them to the last real page instead of a misleading "no jobs match"
+  // empty state. Only when there ARE matches — a genuine 0-result filter still
+  // shows the empty state.
+  if (pagination && pagination.total > 0 && page > pagination.pageCount) {
+    const qs = new URLSearchParams(
+      Object.entries(params).filter(
+        ([k, v]) => k !== 'page' && typeof v === 'string'
+      ) as [string, string][]
+    );
+    qs.set('page', String(pagination.pageCount));
+    redirect(`/jobs?${qs.toString()}`);
+  }
 
   // Active filters, as removable chips. Each href drops one key and resets paging.
   const activeFilters = [

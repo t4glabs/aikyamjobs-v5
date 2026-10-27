@@ -137,6 +137,10 @@ module.exports = {
         fixBeforeSending: fixBeforeSending || null,
         decisionByAdminEmail: ctx.state.user?.email || null,
         reviewedAt: new Date(),
+        // Reset on every decision so re-reviewing can't inherit a stale
+        // "already emailed" flag; set back to true below only if this
+        // review's email actually goes out.
+        decisionEmailSent: false,
       }
     });
 

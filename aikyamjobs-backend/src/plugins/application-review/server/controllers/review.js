@@ -220,6 +220,11 @@ module.exports = {
         decisionNote: decisionNote || null,
         decisionByAdminEmail: ctx.state.user?.email || null,
         decisionAt: new Date(),
+        // Reset on every decision so a re-decide/correction can't inherit a
+        // stale "already emailed" flag from a previous decision; the auto-send
+        // block below flips it back to true only if THIS decision's email
+        // actually goes out.
+        decisionEmailSent: false,
       }
     });
 
