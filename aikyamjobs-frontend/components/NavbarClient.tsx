@@ -63,6 +63,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
               <Link
                 key={link.url}
                 href={link.url}
+                prefetch={false}
                 target={link.external ? '_blank' : undefined}
                 rel={link.external ? 'noopener noreferrer' : undefined}
                 className="inline-flex items-center min-h-11 px-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
@@ -72,6 +73,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
             ))}
             <Link
               href="/subscribe"
+              prefetch={false}
               className="inline-flex items-center h-9 px-4 rounded-md text-sm font-medium transition hover:opacity-80"
               style={{ border: `1px solid ${brandColor}`, color: brandColor }}
             >
@@ -101,6 +103,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
             <Link
               key={link.url}
               href={link.url}
+              prefetch={false}
               target={link.external ? '_blank' : undefined}
               rel={link.external ? 'noopener noreferrer' : undefined}
               className="flex items-center min-h-11 text-[15px] text-gray-700 hover:text-gray-900 border-b border-gray-50 transition"
@@ -111,6 +114,7 @@ export default function NavbarClient({ logoUrl, siteName, brandColor, navLinks }
           ))}
           <Link
             href="/subscribe"
+            prefetch={false}
             className="flex items-center justify-center min-h-11 mt-3 mb-1 rounded-md text-[15px] font-medium transition hover:opacity-80"
             style={{ border: `1px solid ${brandColor}`, color: brandColor }}
             onClick={() => setOpen(false)}

@@ -73,36 +73,42 @@ export default async function Home() {
             <div className="flex flex-wrap gap-2 justify-center mb-6">
               <Link
                 href="/jobs"
+                prefetch={false}
                 className="btn-brand inline-flex items-center h-9 px-4 rounded-md text-sm"
               >
                 All
               </Link>
               <Link
                 href="/jobs?location=Remote"
+                prefetch={false}
                 className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Remote
               </Link>
               <Link
                 href="/jobs?location=Delhi"
+                prefetch={false}
                 className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Delhi
               </Link>
               <Link
                 href="/jobs?location=Mumbai"
+                prefetch={false}
                 className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Mumbai
               </Link>
               <Link
                 href="/jobs?location=Bangalore"
+                prefetch={false}
                 className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Bangalore
               </Link>
               <Link
                 href="/jobs?location=Hyderabad"
+                prefetch={false}
                 className="inline-flex items-center h-9 px-4 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200 transition"
               >
                 Hyderabad
@@ -115,6 +121,7 @@ export default async function Home() {
             <div className="text-center space-y-2">
               <Link
                 href="/subscribe"
+                prefetch={false}
                 className="link-brand text-sm font-medium block"
               >
                 Click here to join 3000+ others to get curated job alerts, skilling opportunities  →
