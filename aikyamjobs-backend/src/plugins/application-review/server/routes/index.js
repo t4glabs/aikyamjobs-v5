@@ -92,6 +92,14 @@ module.exports = {
         handler: 'applicantExport.cvExportZip',
         config: { policies: ['admin::isAuthenticatedAdmin'] },
       },
+      // CSV of applicant emails for newsletter / reach-out. Literal path, must
+      // stay above the generic GET /:id below (matched in declaration order).
+      {
+        method: 'GET',
+        path: '/applicants-export/csv',
+        handler: 'applicantExport.applicantsCsv',
+        config: { policies: ['admin::isAuthenticatedAdmin'] },
+      },
       {
         method: 'GET',
         path: '/:id',

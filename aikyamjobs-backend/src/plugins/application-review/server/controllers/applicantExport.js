@@ -15,6 +15,14 @@ function absoluteMediaUrl(url) {
   return url.startsWith('http') ? url : `${STRAPI_PUBLIC_URL}${url}`;
 }
 
+// Minimal RFC-4180 CSV cell quoting: wrap in quotes (and double any inner
+// quote) only when the value contains a comma, quote, or newline.
+function csvCell(value) {
+  if (value === null || value === undefined) return '';
+  const s = String(value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 /**
  * Bulk CV export for candidate-sourcing work that's independent of any one
  * job/application — e.g. building a standalone "resourceful people" pool.
@@ -156,5 +164,99 @@ module.exports = {
       archive.on('error', reject);
       archive.finalize();
     });
+  },
+
+  /**
+   * CSV of applicant emails for newsletter / reach-out work. Same consent scope
+   * as the CV export above — only people who actually submitted a job
+   * application or a CV Improver request, never a bare abandoned sign-in.
+   * Deduped by (lowercased) email, with per-person application / CV-review
+   * counts and last-activity date so reach-out can be prioritised. Streamed as
+   * a real file download (text/csv + Content-Disposition) so the admin button
+   * can save it directly, same as the zip export.
+   */
+  async applicantsCsv(ctx) {
+    const applicants = await strapi.documents('api::applicant.applicant').findMany({
+      filters: {
+        $or: [
+          { applications: { id: { $notNull: true } } },
+          { cvReviews: { id: { $notNull: true } } },
+        ],
+      },
+      populate: {
+        applications: { fields: ['submittedAt'] },
+        cvReviews: { fields: ['submittedAt'] },
+      },
+      limit: -1,
+    });
+
+    const byEmail = new Map();
+    for (const a of applicants) {
+      const email = (a.email || '').trim().toLowerCase();
+      if (!email) continue;
+      const appCount = (a.applications || []).length;
+      const cvCount = (a.cvReviews || []).length;
+      const dates = [
+        ...(a.applications || []).map((x) => x.submittedAt),
+        ...(a.cvReviews || []).map((x) => x.submittedAt),
+      ]
+        .filter(Boolean)
+        .map((d) => new Date(d));
+      const last = dates.length ? new Date(Math.max(...dates)) : null;
+
+      const existing = byEmail.get(email);
+      if (existing) {
+        existing.applications += appCount;
+        existing.cvReviews += cvCount;
+        if (!existing.name && a.name) existing.name = a.name;
+        if (!existing.phone && a.phone) existing.phone = a.phone;
+        if (last && (!existing.lastActivity || last > existing.lastActivity)) {
+          existing.lastActivity = last;
+        }
+      } else {
+        byEmail.set(email, {
+          email,
+          name: a.name || '',
+          phone: a.phone || '',
+          applications: appCount,
+          cvReviews: cvCount,
+          lastActivity: last,
+        });
+      }
+    }
+
+    const rows = [...byEmail.values()].sort(
+      (x, y) =>
+        y.applications - x.applications ||
+        y.cvReviews - x.cvReviews ||
+        (y.lastActivity || 0) - (x.lastActivity || 0)
+    );
+
+    const header = ['email', 'name', 'phone', 'applications', 'cv_reviews', 'last_activity'];
+    const lines = [header.join(',')];
+    for (const r of rows) {
+      lines.push(
+        [
+          r.email,
+          r.name,
+          r.phone,
+          r.applications,
+          r.cvReviews,
+          r.lastActivity ? r.lastActivity.toISOString().slice(0, 10) : '',
+        ]
+          .map(csvCell)
+          .join(',')
+      );
+    }
+    // Leading UTF-8 BOM + CRLF line endings so Excel/Sheets open non-ASCII
+    // names correctly.
+    const csv = '﻿' + lines.join('\r\n') + '\r\n';
+
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    ctx.status = 200;
+    ctx.set('Content-Type', 'text/csv; charset=utf-8');
+    ctx.set('Content-Disposition', `attachment; filename="aikyamjobs-applicants-${dateStamp}.csv"`);
+    ctx.body = csv;
+    strapi.log.info(`[applicants-export] CSV export: ${rows.length} applicants`);
   },
 };

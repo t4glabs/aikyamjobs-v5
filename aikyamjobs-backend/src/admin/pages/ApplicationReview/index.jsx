@@ -51,6 +51,42 @@ function DownloadCvsButton() {
   );
 }
 
+// CSV of applicant emails (name/phone/counts/last-activity) for newsletter /
+// reach-out — same authenticated-download pattern as the CVs button, same
+// consent scope (people who actually applied or used CV Improver).
+function ExportEmailsButton() {
+  const { get } = useFetchClient();
+  const { toggleNotification } = useNotification();
+  const [exporting, setExporting] = useState(false);
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const response = await get('/admin/application-review/applicants-export/csv', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `aikyamjobs-applicants-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toggleNotification({ type: 'warning', message: 'Could not export applicant emails.' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <Button variant="secondary" onClick={exportCsv} loading={exporting}>
+      Export emails (CSV)
+    </Button>
+  );
+}
+
 const ApplicationReview = () => {
   // Supports deep-linking from admin notification emails: ?id=123 opens that
   // record directly, and ?tab=cv-reviews picks which queue it belongs to.
@@ -102,7 +138,10 @@ const ApplicationReview = () => {
                 );
               })}
             </Flex>
-            <DownloadCvsButton />
+            <Flex gap={2}>
+              <ExportEmailsButton />
+              <DownloadCvsButton />
+            </Flex>
           </Flex>
         </Box>
       )}
