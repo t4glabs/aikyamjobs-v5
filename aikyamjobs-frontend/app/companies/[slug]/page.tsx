@@ -39,6 +39,10 @@ export default async function CompanyDetailPage({
   const facts = [company.attributes.location, company.attributes.size, company.attributes.industry].filter(
     (f): f is string => Boolean(f)
   );
+  // Newest first, same as /jobs.
+  const openJobs = [...(company.attributes.jobs?.data ?? [])].sort(
+    (a, b) => new Date(b.attributes.publishedAt).getTime() - new Date(a.attributes.publishedAt).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,18 +127,88 @@ export default async function CompanyDetailPage({
             )}
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Open Positions</h2>
-            <div className="space-y-4">
-              {/* Job listings will be populated when jobs are added */}
-              <p className="text-gray-600">
-                View all jobs from {company.attributes.name} on our{" "}
-                <Link href="/jobs" className="link-brand">
-                  jobs page
-                </Link>
-                .
-              </p>
+          {/* Only published jobs come back from the populate (expired ones are
+              unpublished by the cron), so this is the org's live openings. */}
+          <div id="open-positions" className="bg-white rounded-lg border border-gray-200 p-8">
+            <div className="mb-4 flex items-baseline justify-between gap-3">
+              <h2 className="text-lg font-semibold text-gray-900">Open Positions</h2>
+              {openJobs.length > 0 && (
+                <span className="text-sm text-gray-600">
+                  {openJobs.length} {openJobs.length === 1 ? 'role' : 'roles'}
+                </span>
+              )}
             </div>
+
+            {openJobs.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {openJobs.map((job) => {
+                  const facts = [job.attributes.location, job.attributes.salary, job.attributes.experienceLevel].filter(Boolean);
+                  return (
+                    <div
+                      key={job.id}
+                      className="relative flex flex-col rounded-lg border border-gray-200 p-5 transition hover:border-gray-300 hover:shadow-sm"
+                    >
+                      <Link
+                        href={`/jobs/${job.attributes.slug}`}
+                        prefetch={false}
+                        className="absolute inset-0 rounded-lg z-0"
+                        aria-label={job.attributes.title}
+                      />
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <h3 className="text-base font-semibold tracking-tight leading-snug text-gray-900">
+                          {job.attributes.title}
+                        </h3>
+                        {job.attributes.featured && (
+                          <span className="flex-none rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                      {facts.length > 0 && (
+                        <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                          {facts.map((fact, i) => (
+                            <Fragment key={i}>
+                              {i > 0 && <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />}
+                              <span>{fact}</span>
+                            </Fragment>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+                        {job.attributes.jobType && (
+                          <Link
+                            href={`/jobs?jobType=${encodeURIComponent(job.attributes.jobType)}`}
+                            prefetch={false}
+                            className="relative z-10 rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
+                          >
+                            {job.attributes.jobType}
+                          </Link>
+                        )}
+                        {job.attributes.closingDate && (
+                          <span className="text-[13px] text-gray-600">
+                            Closes {new Date(job.attributes.closingDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div>
+                <p className="text-gray-600">
+                  No open roles at {company.attributes.name} right now.
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                  <Link href="/jobs" className="inline-flex items-center h-10 rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-900 hover:bg-gray-50">
+                    Browse all jobs
+                  </Link>
+                  <Link href="/subscribe" className="btn-brand inline-flex items-center h-10 rounded-md px-4 text-sm">
+                    Get job alerts
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

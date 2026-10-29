@@ -95,6 +95,10 @@ export interface Company {
     createdAt: string;
     updatedAt: string;
     publishedAt: string;
+    // Only populated (with a reduced field set) by getCompany().
+    jobs?: {
+      data: Job[];
+    };
   };
 }
 

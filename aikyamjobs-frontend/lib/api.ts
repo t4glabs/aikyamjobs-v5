@@ -223,8 +223,14 @@ export async function getCompanies(page = 1, pageSize = 24) {
   return normalizeList(response, wrapCompany);
 }
 
+// The company page's "Open Positions" cards only need these job fields, so
+// don't pull every job's full description along with them.
+const COMPANY_JOB_FIELDS = ['title', 'slug', 'location', 'salary', 'experienceLevel', 'jobType', 'closingDate', 'featured', 'publishedAt']
+  .map((f, i) => `populate[jobs][fields][${i}]=${f}`)
+  .join('&');
+
 export async function getCompany(slug: string) {
-  const response = await fetchAPI(`/companies?filters[slug][$eq]=${slug}&populate[logo]=true&populate[jobs]=true`);
+  const response = await fetchAPI(`/companies?filters[slug][$eq]=${slug}&populate[logo]=true&${COMPANY_JOB_FIELDS}`);
   return normalizeList(response, wrapCompany);
 }
 
