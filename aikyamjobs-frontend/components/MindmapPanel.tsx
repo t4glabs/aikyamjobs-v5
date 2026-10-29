@@ -2,15 +2,17 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { track } from '@/lib/analytics';
-import type { JobMindmaps, MindmapNode } from '@/lib/types';
+import type { MindmapNode } from '@/lib/types';
 
 /**
- * "Role at a glance" -- the JD page's interactive version of the mindmap
- * that's already in the PDF, built from the same mindmapJson (sanitized by
- * the backend's GET /jobs/:slug/mindmap). Plain nested lists + disclosure
- * buttons rather than a diagram library: text wraps naturally at phone
- * widths, each +/- is a real <button aria-expanded>, and a collapsed
- * branch's children simply aren't rendered.
+ * "Role / Organisation at a glance" -- the interactive version of the
+ * mindmaps that are already in the JD PDF, built from the same mindmapJson
+ * (sanitized by the backend's GET /jobs/:slug/mindmap and
+ * /companies/:slug/mindmap). Used on the JD page (role + org views) and the
+ * company page (org view only). Plain nested lists + disclosure buttons
+ * rather than a diagram library: text wraps naturally at phone widths, each
+ * +/- is a real <button aria-expanded>, and a collapsed branch's children
+ * simply aren't rendered.
  *
  * Inline view: root + top-level branches, each expandable. "Full screen"
  * opens a native <dialog> with every branch laid out open side by side.
@@ -20,11 +22,23 @@ import type { JobMindmaps, MindmapNode } from '@/lib/types';
 // same artifact. All ≥4.5:1 on white.
 const PALETTE = ['#AE4634', '#2E6F5E', '#3F5D8A', '#8A5A3F', '#5A4F8A', '#3F7A8A', '#7A3F6E'];
 
-type View = 'job' | 'company';
+export interface MindmapView {
+  // Also sent to analytics as `mindmap_view` ('role' / 'org').
+  key: string;
+  heading: string;
+  // Switcher label; only shown when there's more than one view.
+  tab?: string;
+  tree: MindmapNode;
+}
 
 interface Props {
-  mindmaps: JobMindmaps;
-  jobSlug: string;
+  // First view is the default.
+  views: MindmapView[];
+  // Plausible event name + the props identifying the page (job_slug /
+  // company_slug); mindmap_* props are added per interaction.
+  event: string;
+  eventProps: Record<string, string>;
+  className?: string;
 }
 
 // Root details arrive as "Location: X | Organization: Y" -- shown as a small
@@ -166,25 +180,26 @@ function RootHeader({ root }: { root: MindmapNode }) {
   );
 }
 
-export default function JdMindmap({ mindmaps, jobSlug }: Props) {
+export default function MindmapPanel({ views, event, eventProps, className = 'mb-8' }: Props) {
   const headingId = useId();
   const dialogHeadingId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [view, setView] = useState<View>('job');
+  const [view, setView] = useState(views[0].key);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [fullScreen, setFullScreen] = useState(false);
 
-  const root = view === 'company' && mindmaps.company ? mindmaps.company : mindmaps.job;
+  const current = views.find((v) => v.key === view) ?? views[0];
+  const root = current.tree;
   const branches = root.children ?? [];
   const allIds = collectIds(root, view);
   const allOpen = allIds.length > 0 && allIds.every((id) => expanded.has(id));
 
   // Prop names are prefixed: Plausible custom properties are site-wide, and a
   // bare `action`/`branch` would be ambiguous next to other events' props.
-  const report = (action: string, branch?: string, map: View = view) =>
-    track('JD Mindmap Used', {
-      job_slug: jobSlug,
-      mindmap_view: map === 'company' ? 'org' : 'role',
+  const report = (action: string, branch?: string, map: string = view) =>
+    track(event, {
+      ...eventProps,
+      mindmap_view: map,
       mindmap_action: action,
       ...(branch ? { mindmap_branch: branch } : {}),
     });
@@ -209,10 +224,11 @@ export default function JdMindmap({ mindmaps, jobSlug }: Props) {
     }
   };
 
-  const switchView = (next: View) => {
+  const switchView = (next: string) => {
     if (next === view) return;
     setView(next);
-    if (next === 'company') report('org_tab', undefined, next);
+    // Only switching away from the default view is interesting ("org_tab").
+    if (next !== views[0].key) report(`${next}_tab`, undefined, next);
   };
 
   useEffect(() => {
@@ -222,17 +238,17 @@ export default function JdMindmap({ mindmaps, jobSlug }: Props) {
     if (!fullScreen && dialog.open) dialog.close();
   }, [fullScreen]);
 
-  const viewSwitch = mindmaps.company && (
+  const viewSwitch = views.length > 1 && (
     <div className="inline-flex rounded-md border border-gray-200 bg-white p-0.5 text-xs font-semibold" role="group" aria-label="Which map to show">
-      {(['job', 'company'] as const).map((v) => (
+      {views.map((v) => (
         <button
-          key={v}
+          key={v.key}
           type="button"
-          aria-pressed={view === v}
-          onClick={() => switchView(v)}
-          className={`rounded px-2.5 py-1 transition ${view === v ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+          aria-pressed={view === v.key}
+          onClick={() => switchView(v.key)}
+          className={`rounded px-2.5 py-1 transition ${view === v.key ? 'bg-gray-900 text-white' : 'text-gray-600 hover:text-gray-900'}`}
         >
-          {v === 'job' ? 'This role' : `About ${mindmaps.companyName || 'the org'}`}
+          {v.tab ?? v.heading}
         </button>
       ))}
     </div>
@@ -242,11 +258,11 @@ export default function JdMindmap({ mindmaps, jobSlug }: Props) {
     'inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-600 transition hover:bg-gray-100';
 
   return (
-    <section aria-labelledby={headingId} className="mb-8 rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+    <section aria-labelledby={headingId} className={`${className} rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5`}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div>
           <h2 id={headingId} className="text-base font-semibold text-gray-900">
-            {view === 'company' ? 'Organisation at a glance' : 'Role at a glance'}
+            {current.heading}
           </h2>
           <p className="text-xs text-gray-600">Tap a section to open it.</p>
         </div>
@@ -332,7 +348,7 @@ export default function JdMindmap({ mindmaps, jobSlug }: Props) {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 sm:px-6">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 id={dialogHeadingId} className="text-base font-semibold text-gray-900">
-                  {view === 'company' ? 'Organisation at a glance' : 'Role at a glance'}
+                  {current.heading}
                 </h2>
                 {viewSwitch}
               </div>

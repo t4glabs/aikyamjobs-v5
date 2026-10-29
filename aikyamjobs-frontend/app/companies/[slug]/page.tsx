@@ -2,11 +2,12 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
-import { getCompany, getStrapiMediaUrl } from "@/lib/api";
-import { Company, StrapiResponse } from "@/lib/types";
+import { getCompany, getCompanyMindmap, getStrapiMediaUrl } from "@/lib/api";
+import { Company, MindmapNode, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import Markdown from "@/components/Markdown";
 import CompanyWebsiteLink from "@/components/CompanyWebsiteLink";
+import MindmapPanel from "@/components/MindmapPanel";
 
 export default async function CompanyDetailPage({
   params,
@@ -14,7 +15,10 @@ export default async function CompanyDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const companyResponse: StrapiResponse<Company[]> = await getCompany(slug);
+  const [companyResponse, orgMap]: [StrapiResponse<Company[]>, MindmapNode | null] = await Promise.all([
+    getCompany(slug),
+    getCompanyMindmap(slug),
+  ]);
 
   if (!companyResponse.data || companyResponse.data.length === 0) {
     notFound();
@@ -74,6 +78,15 @@ export default async function CompanyDetailPage({
               >
                 Visit Website →
               </CompanyWebsiteLink>
+            )}
+
+            {orgMap && (
+              <MindmapPanel
+                views={[{ key: 'org', heading: 'Organisation at a glance', tree: orgMap }]}
+                event="Company Mindmap Used"
+                eventProps={{ company_slug: company.attributes.slug }}
+                className="mt-2"
+              />
             )}
 
             {company.attributes.description && (

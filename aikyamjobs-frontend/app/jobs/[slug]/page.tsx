@@ -12,7 +12,7 @@ import JobApplyStatus from "@/components/apply/JobApplyStatus";
 import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
-import JdMindmap from "@/components/JdMindmap";
+import MindmapPanel from "@/components/MindmapPanel";
 
 export async function generateMetadata({
   params,
@@ -157,7 +157,18 @@ export default async function JobDetailPage({
                 )}
               </div>
 
-              {mindmaps && <JdMindmap mindmaps={mindmaps} jobSlug={job.attributes.slug} />}
+              {mindmaps && (
+                <MindmapPanel
+                  views={[
+                    { key: 'role', tab: 'This role', heading: 'Role at a glance', tree: mindmaps.job },
+                    ...(mindmaps.company
+                      ? [{ key: 'org', tab: `About ${mindmaps.companyName || 'the org'}`, heading: 'Organisation at a glance', tree: mindmaps.company }]
+                      : []),
+                  ]}
+                  event="JD Mindmap Used"
+                  eventProps={{ job_slug: job.attributes.slug }}
+                />
+              )}
 
               {/* Render content as Markdown (converted from Ghost HTML) */}
               <Markdown

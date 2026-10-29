@@ -207,6 +207,17 @@ export async function getJobMindmaps(slug: string) {
   }
 }
 
+// Same idea for the company page's "Organisation at a glance": returns the
+// tree or null, never throws.
+export async function getCompanyMindmap(slug: string) {
+  try {
+    const response = await fetchAPI(`/companies/${encodeURIComponent(slug)}/mindmap`);
+    return response?.data?.company ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getCompanies(page = 1, pageSize = 24) {
   const response = await fetchAPI(`/companies?populate[logo]=true&sort=name:asc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`);
   return normalizeList(response, wrapCompany);
