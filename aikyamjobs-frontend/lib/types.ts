@@ -47,6 +47,20 @@ export interface Job {
   };
 }
 
+// Sanitized mindmap trees from GET /jobs/:slug/mindmap (see the backend's
+// utils/mindmapTree.js). The raw mindmapJson fields stay private.
+export interface MindmapNode {
+  label: string;
+  details?: string;
+  children?: MindmapNode[];
+}
+
+export interface JobMindmaps {
+  job: MindmapNode;
+  company: MindmapNode | null;
+  companyName: string | null;
+}
+
 export interface Staff {
   id: number;
   attributes: {

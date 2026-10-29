@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
-import { getJob, getStrapiMediaUrl } from "@/lib/api";
-import { Job, StrapiResponse } from "@/lib/types";
+import { getJob, getJobMindmaps, getStrapiMediaUrl } from "@/lib/api";
+import { Job, JobMindmaps, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
@@ -12,6 +12,7 @@ import JobApplyStatus from "@/components/apply/JobApplyStatus";
 import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
+import JdMindmap from "@/components/JdMindmap";
 
 export async function generateMetadata({
   params,
@@ -61,7 +62,10 @@ export default async function JobDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const jobResponse: StrapiResponse<Job[]> = await getJob(slug);
+  const [jobResponse, mindmaps]: [StrapiResponse<Job[]>, JobMindmaps | null] = await Promise.all([
+    getJob(slug),
+    getJobMindmaps(slug),
+  ]);
 
   if (!jobResponse.data || jobResponse.data.length === 0) {
     notFound();
@@ -152,6 +156,8 @@ export default async function JobDetailPage({
                   </span>
                 )}
               </div>
+
+              {mindmaps && <JdMindmap mindmaps={mindmaps} jobSlug={job.attributes.slug} />}
 
               {/* Render content as Markdown (converted from Ghost HTML) */}
               <Markdown

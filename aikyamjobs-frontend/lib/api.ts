@@ -195,6 +195,18 @@ export async function getJob(slug: string) {
   return normalizeList(response, wrapJob);
 }
 
+// Powers the JD page's "Role at a glance" mindmap. Optional by design: no
+// job mindmap, or any failure fetching it, just means no panel -- never a
+// broken JD page.
+export async function getJobMindmaps(slug: string) {
+  try {
+    const response = await fetchAPI(`/jobs/${encodeURIComponent(slug)}/mindmap`);
+    return response?.data?.job ? response.data : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getCompanies(page = 1, pageSize = 24) {
   const response = await fetchAPI(`/companies?populate[logo]=true&sort=name:asc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`);
   return normalizeList(response, wrapCompany);

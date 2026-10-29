@@ -175,3 +175,21 @@ body {
 @utility bg-brand-light {
   background-color: var(--brand-10);
 }
+
+/* ── JD mindmap tree connectors (components/JdMindmap.tsx) ──────────────
+   Each <li> draws its own spine segment + tick, so the spine stops at the
+   last child instead of running past it. --mm-line is the connector color,
+   --mm-tick-y how far down the row the tick sits. */
+.mm-tree { position: relative; margin-left: 5px; padding-left: 18px; }
+.mm-tree > li { position: relative; padding-bottom: 8px; }
+.mm-tree > li:last-child { padding-bottom: 0; }
+.mm-tree > li::before,
+.mm-tree > li::after {
+  content: '';
+  position: absolute;
+  left: -18px;
+  background: var(--mm-line, #D1D5DB);
+}
+.mm-tree > li::before { top: 0; bottom: 0; width: 2px; }
+.mm-tree > li:last-child::before { bottom: auto; height: var(--mm-tick-y, 20px); }
+.mm-tree > li::after { top: calc(var(--mm-tick-y, 20px) - 1px); width: 14px; height: 2px; }
