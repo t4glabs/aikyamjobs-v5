@@ -11,7 +11,7 @@ interface Props {
 }
 
 /**
- * The "Visit Website →" button on a company profile page. Plausible's script
+ * The website link (shown as the org's domain) on a company profile page. Plausible's script
  * already auto-tracks this as a generic, sitewide "Outbound Link: Click" goal
  * (any external link, no company context) -- this wrapper adds a
  * company-level custom event on top, the same pattern ExternalApplyLink and
