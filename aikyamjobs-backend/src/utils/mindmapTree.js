@@ -78,19 +78,4 @@ function toPublicTree(mindmapJson) {
   return tree && tree.children ? tree : null;
 }
 
-/**
- * The "Major Initiatives & Programmes" branch of a (normalized) company tree
- * -- the one part of a company map the site and the JD PDF show. Labels
- * vary across real maps ("Initiatives & Programmes", "Initiatives;
- * Programmes", "Major Programs & Global Impact", ...), so prefer
- * "initiative", then "programme/program". Mirrors the frontend's
- * components/InitiativeCards.tsx pickInitiatives().
- */
-function pickInitiatives(tree) {
-  const branches = (tree && tree.children) || [];
-  const branch =
-    branches.find((b) => /initiative/i.test(b.label)) || branches.find((b) => /programme|program/i.test(b.label));
-  return branch && branch.children ? branch.children : [];
-}
-
-module.exports = { toPublicTree, pickInitiatives };
+module.exports = { toPublicTree };

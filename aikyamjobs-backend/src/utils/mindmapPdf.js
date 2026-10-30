@@ -8,7 +8,7 @@ const { NodeCompiler } = require('@myriaddreamin/typst-ts-node-compiler');
 const { resolveApplyMode } = require('./apply');
 const { markdownToBlocks } = require('./markdownBlocks');
 const { getSiteSettings } = require('./siteSettings');
-const { toPublicTree, pickInitiatives } = require('./mindmapTree');
+const { toPublicTree } = require('./mindmapTree');
 
 const UID = 'api::job.job';
 const WORKSPACE = __dirname;
@@ -97,7 +97,7 @@ function buildCompanySection(company) {
  * data injected as an in-memory shadow file -- never writes to disk, so
  * concurrent calls can't collide on a shared temp path.
  */
-function generateMindmapPdf({ jobMap, job, company, companyInitiatives, brandColor }) {
+function generateMindmapPdf({ jobMap, job, company, companyMap, brandColor }) {
   const compiler = NodeCompiler.create({ workspace: WORKSPACE, fontArgs: [{ fontPaths: [FONT_DIR] }] });
   try {
     const shadowData = {
@@ -105,7 +105,7 @@ function generateMindmapPdf({ jobMap, job, company, companyInitiatives, brandCol
       job,
       jobMap: jobMap || null,
       company: company || null,
-      companyInitiatives: companyInitiatives && companyInitiatives.length ? companyInitiatives : null,
+      companyMap: companyMap || null,
     };
     compiler.mapShadow(DATA_SHADOW_PATH, Buffer.from(JSON.stringify(shadowData)));
     const pdf = compiler.pdf({ mainFilePath: TEMPLATE_PATH });
@@ -228,8 +228,7 @@ async function loadPdfInput(strapi, documentId, source) {
   if (job.company && job.company.documentId) {
     company = await strapi.documents('api::company.company').findOne({ documentId: job.company.documentId, status: 'published' });
   }
-  const companyTree = company ? toPublicTree(company.mindmapJson) : null;
-  const companyInitiatives = companyTree ? pickInitiatives(companyTree) : [];
+  const companyMap = company ? toPublicTree(company.mindmapJson) : null;
 
   const settings = await getSiteSettings(strapi);
   return {
@@ -240,7 +239,7 @@ async function loadPdfInput(strapi, documentId, source) {
       jobMap,
       job: buildJobSection(job, settings, company),
       company: buildCompanySection(company),
-      companyInitiatives,
+      companyMap,
       brandColor: settings?.primaryColor,
     },
   };
@@ -250,7 +249,6 @@ async function regenerateJobMindmap(strapi, documentId, { source = 'published' }
   const loaded = await loadPdfInput(strapi, documentId, source);
   if (!loaded) return null;
   const { job, status, company, input } = loaded;
-  const companyInitiatives = input.companyInitiatives;
 
   let uploaded;
   try {
@@ -272,7 +270,7 @@ async function regenerateJobMindmap(strapi, documentId, { source = 'published' }
 
   strapi.log.info(
     `[mindmap] job ${documentId} (${job.slug}) new PDF ${uploaded.id} from ${status}, attached to ${rows.length} row(s)` +
-      (company ? ` — company "${company.name}"${companyInitiatives.length ? ` + ${companyInitiatives.length} initiatives` : ''}` : ' — no published company')
+      (company ? ` — company "${company.name}"${input.companyMap ? ' + company map' : ' (no company map)'}` : ' — no published company')
   );
 
   if (source !== 'draft') await removeUnreferencedPdfs(strapi, previousIds);
