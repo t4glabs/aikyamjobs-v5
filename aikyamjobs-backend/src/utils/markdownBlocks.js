@@ -24,6 +24,9 @@ function flattenTokens(tokens) {
   return tokens
     .map((t) => {
       if (t.type === 'br') return ' ';
+      // Images are meaningless in plain text -- their alt text is usually
+      // just the uploaded file's name ("thanal (1).jpeg").
+      if (t.type === 'image') return '';
       if (Array.isArray(t.tokens)) return flattenTokens(t.tokens);
       return t.text || t.raw || '';
     })
@@ -60,6 +63,24 @@ function markdownToBlocks(markdown) {
         break;
       case 'paragraph':
         {
+          // Editors often write a bold label on its own line as a mini
+          // heading ("**Impact**" then the text on the next line). Markdown
+          // keeps that as one paragraph, which flattened into "Impact Thanal
+          // currently reaches..." -- split it back into a heading + text.
+          const inline = token.tokens || [];
+          const first = inline[0];
+          const next = inline[1];
+          const leadIsLabel =
+            first &&
+            first.type === 'strong' &&
+            (!next || next.type === 'br' || (next.type === 'text' && /^[ \t]*\n/.test(next.raw || '')));
+          const lead = leadIsLabel ? cleanText(flattenTokens(first.tokens)) : '';
+          if (lead && lead.length <= 80) {
+            blocks.push({ type: 'heading', level: 4, text: lead });
+            const rest = cleanText(flattenTokens(inline.slice(1)));
+            if (rest) blocks.push({ type: 'paragraph', text: rest });
+            break;
+          }
           const text = cleanText(flattenTokens(token.tokens));
           if (text) blocks.push({ type: 'paragraph', text });
         }

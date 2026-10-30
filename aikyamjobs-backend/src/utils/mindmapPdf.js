@@ -8,10 +8,16 @@ const { NodeCompiler } = require('@myriaddreamin/typst-ts-node-compiler');
 const { resolveApplyMode } = require('./apply');
 const { markdownToBlocks } = require('./markdownBlocks');
 const { getSiteSettings } = require('./siteSettings');
+const { toPublicTree, pickInitiatives } = require('./mindmapTree');
 
+const UID = 'api::job.job';
 const WORKSPACE = __dirname;
 const TEMPLATE_PATH = path.join(WORKSPACE, 'mindmap-template.typ');
 const DATA_SHADOW_PATH = path.join(WORKSPACE, 'mindmap-data.json');
+// Figtree (the site's typeface, OFL -- see fonts/OFL.txt), converted from
+// the frontend's @fontsource/figtree WOFF files. Typst's own embedded fonts
+// are serif/mono only.
+const FONT_DIR = path.join(WORKSPACE, 'fonts');
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3001';
 
 function formatDate(value) {
@@ -40,33 +46,33 @@ function resolveApplyCta(job, settings) {
   return null;
 }
 
-/**
- * mindmapJson has shown up in two real shapes so far: one with an explicit
- * `root: { label, ... }` object, and one with no `root` key at all where the
- * top-level object IS the root (its own text in `title`). Both are valid --
- * the Typst template renders either -- this just confirms *something*
- * tree-shaped is actually present before spending a compile on it. Shared
- * by both the job's own mindmap and its company's.
- */
-function looksLikeMindmapTree(mindmapJson) {
-  if (!mindmapJson || typeof mindmapJson !== 'object') return false;
-  const root = mindmapJson.root || mindmapJson;
-  if (!root || typeof root !== 'object') return false;
-  return typeof root.label === 'string' || typeof root.title === 'string';
+// Job.skills entries are plain strings today and may become ESCO-shaped
+// objects later (see the frontend's lib/skills.ts) -- the PDF only needs
+// the names either way.
+function skillLabels(skills) {
+  if (!Array.isArray(skills)) return [];
+  return skills
+    .map((s) => (typeof s === 'string' ? s : s && typeof s.label === 'string' ? s.label : ''))
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
-function buildJobSection(job, settings) {
+function withScheme(url) {
+  if (!url || typeof url !== 'string') return null;
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+function buildJobSection(job, settings, company) {
   return {
     title: job.title,
     url: job.slug ? `${SITE_URL}/jobs/${job.slug}` : null,
+    companyName: company?.name || null,
     location: job.location || null,
     jobType: job.jobType || null,
     experienceLevel: job.experienceLevel || null,
     salary: job.salary || null,
     closingDate: formatDate(job.closingDate),
-    impactArea: job.impactArea || null,
-    skills: Array.isArray(job.skills) ? job.skills : [],
-    categories: Array.isArray(job.categories) ? job.categories.map((c) => c.name).filter(Boolean) : [],
+    skills: skillLabels(job.skills),
     descriptionBlocks: markdownToBlocks(job.description),
     apply: resolveApplyCta(job, settings),
   };
@@ -80,31 +86,26 @@ function buildCompanySection(company) {
     location: company.location || null,
     size: company.size || null,
     industry: company.industry || null,
-    website: company.website || null,
+    website: withScheme(company.website),
     descriptionBlocks: markdownToBlocks(company.description),
   };
 }
 
 /**
- * Renders the full "JD as a PDF" document -- branded header, the JD
- * mindmap, the job description itself, then (only if the company has its
- * own mindmap set) the company's mindmap and profile, then a footer.
- * Compiles a fresh in-process compiler per call (cheap, sub-second) with
- * the data injected as an in-memory shadow file -- never writes to disk, so
- * concurrent calls (multiple jobs publishing at once) can't collide on a
- * shared temp path. Typst's own embedded default font is used deliberately
- * (covers ₹ and accented Latin text fine) so no font files need to be
- * bundled or installed on the server.
+ * Renders the "JD as a PDF" document (see mindmap-template.typ for the
+ * layout). Compiles a fresh in-process compiler per call (~20ms) with the
+ * data injected as an in-memory shadow file -- never writes to disk, so
+ * concurrent calls can't collide on a shared temp path.
  */
-function generateMindmapPdf({ jobMindmap, job, companyMindmap, company, brandColor }) {
-  const compiler = NodeCompiler.create({ workspace: WORKSPACE });
+function generateMindmapPdf({ jobMap, job, company, companyInitiatives, brandColor }) {
+  const compiler = NodeCompiler.create({ workspace: WORKSPACE, fontArgs: [{ fontPaths: [FONT_DIR] }] });
   try {
     const shadowData = {
       meta: { brandColor: brandColor || '#AE4634' },
-      jobMindmap: jobMindmap || null,
       job,
-      companyMindmap: companyMindmap || null,
+      jobMap: jobMap || null,
       company: company || null,
+      companyInitiatives: companyInitiatives && companyInitiatives.length ? companyInitiatives : null,
     };
     compiler.mapShadow(DATA_SHADOW_PATH, Buffer.from(JSON.stringify(shadowData)));
     const pdf = compiler.pdf({ mainFilePath: TEMPLATE_PATH });
@@ -118,10 +119,9 @@ function generateMindmapPdf({ jobMindmap, job, companyMindmap, company, brandCol
 /**
  * Generates the PDF and uploads it into Strapi's media library via the
  * upload plugin's own service (the same one CV uploads go through). The
- * upload service reads from a real file path (formidable convention:
- * file.path/name/type/size), so the in-memory buffer is written to a
- * uniquely-named temp file just for the upload call, then removed
- * regardless of outcome.
+ * upload service reads from a real file path, so the in-memory buffer is
+ * written to a uniquely-named temp file just for the upload call, then
+ * removed regardless of outcome.
  */
 async function uploadMindmapPdf(strapi, { slug, ...rest }) {
   const buffer = generateMindmapPdf(rest);
@@ -135,11 +135,8 @@ async function uploadMindmapPdf(strapi, { slug, ...rest }) {
         // Strapi 5's upload service (enhanceAndValidateFile in
         // @strapi/upload) reads `filepath`/`originalFilename`/`mimetype` off
         // the file object -- not v4's `path`/`name`/`type`. Without a real
-        // `mimetype`, it falls back to `detectedMimeType` (only set by the
-        // HTTP upload path's own content-sniffing, which a hand-built
-        // descriptor like this never goes through) and then to a hardcoded
-        // "application/octet-stream", which our own upload-mime-allowlist.js
-        // then rejects.
+        // `mimetype` it falls back to "application/octet-stream", which our
+        // own upload-mime-allowlist.js then rejects.
         filepath: tmpPath,
         originalFilename: `${slug || 'job'}-mindmap.pdf`,
         mimetype: 'application/pdf',
@@ -153,111 +150,133 @@ async function uploadMindmapPdf(strapi, { slug, ...rest }) {
 }
 
 /**
- * Full generate -> upload -> link -> clean-up-previous-file flow for one
- * job. Never throws -- logs and returns without touching the job on any
- * failure, since a Typst bug should never block saving the job itself
- * (this always runs from a lifecycle hook, after the job row is already
- * committed).
- *
- * Only the JOB's own mindmapJson gates whether a PDF gets built at all --
- * the company mindmap/profile sections are included opportunistically
- * when the job's company happens to have mindmapJson set at the moment of
- * generation, not required. Reasoning: the JD mindmap + JD text are a
- * complete, useful document on their own, and gating the whole feature on
- * an unrelated content type's optional field being filled in first would
- * block the common case (company mindmaps will lag behind job postings in
- * practice). One consequence: editing a company's mindmapJson does NOT
- * retroactively refresh PDFs for that company's already-published jobs --
- * re-saving the job (same as any other JD-mindmap edit) does.
+ * Deletes old PDF files once no job row points at them any more. Checked
+ * per file rather than assumed: during a publish the old published row
+ * still references the previous PDF until the publish itself completes.
  */
-async function regenerateJobMindmap(strapi, jobId) {
-  const job = await strapi.documents('api::job.job').findOne({
-    documentId: jobId,
-    status: 'published',
+async function removeUnreferencedPdfs(strapi, fileIds) {
+  for (const id of new Set(fileIds || [])) {
+    try {
+      const file = await strapi.db.query('plugin::upload.file').findOne({ where: { id }, populate: { related: true } });
+      if (!file) continue;
+      if (Array.isArray(file.related) && file.related.length > 0) continue;
+      await strapi.plugin('upload').service('upload').remove(file);
+    } catch (err) {
+      strapi.log.error(`[mindmap] failed to remove old PDF file ${id}`, err);
+    }
+  }
+}
 
-    populate: {
-      mindmapPdf: true,
-      requirementChecklist: true,
-      categories: { fields: ['name'] },
-      // No `fields` restriction on company -- mindmapJson is `private: true`,
-      // and Strapi 5's Document Service rejects explicitly selecting a
-      // private field via `fields` even for internal server-side calls
-      // (v4's entityService allowed it). Omitting `fields` returns
-      // everything, private fields included.
-      company: true,
-    },
-
-    // Same reasoning as above: job.mindmapJson is private, so this can't use
-    // a `fields` allowlist at all -- fetch the whole job instead.
-  });
+/**
+ * Generate -> upload -> attach for one job. Never throws on a Typst/upload
+ * failure (logs and returns null) -- a PDF problem must never block saving
+ * or publishing the job itself.
+ *
+ * `source` decides which version the PDF is built from and where it lands:
+ *   - 'draft'      the publish hook, called *before* publish runs: the draft
+ *                  is exactly what's about to go live. The PDF is attached
+ *                  to the draft row only and publish carries it onto the
+ *                  published row (so the admin's publish response already
+ *                  shows it). Old files are returned, not deleted -- the old
+ *                  published row still uses them until publish completes;
+ *                  the caller removes them afterwards.
+ *   - 'published'  out-of-band refreshes (company side panel, API publishes):
+ *                  built from the live version and attached directly to
+ *                  every row of the document, draft and published, with no
+ *                  republish -- so unrelated unpublished draft edits are
+ *                  never pushed live, and the live PDF is never left
+ *                  pointing at a deleted file. Old files are removed here.
+ *
+ * Only the JOB's own mindmap gates whether a PDF is built at all; the
+ * company section is included whenever the job's company is published.
+ */
+/**
+ * Everything generateMindmapPdf() needs for one job, read from the given
+ * version (falling back to the draft when a 'published' read finds none,
+ * i.e. a job that was never published). Null when there's no usable job
+ * mindmap. Separate from the upload so a dry run can render to a file.
+ */
+async function loadPdfInput(strapi, documentId, source) {
+  const populate = { requirementChecklist: true, categories: { fields: ['name'] }, company: true };
+  // No `fields` allowlist: mindmapJson is `private: true`, and Strapi 5's
+  // Document Service rejects selecting a private field via `fields`, even
+  // for internal server-side calls.
+  let status = source;
+  let job = await strapi.documents(UID).findOne({ documentId, status, populate });
+  if (!job && source === 'published') {
+    status = 'draft';
+    job = await strapi.documents(UID).findOne({ documentId, status, populate });
+  }
   if (!job) {
-    strapi.log.warn(`[mindmap] job ${jobId} not found when regenerating — skipping`);
-    return;
-  }
-  if (!job.mindmapJson) {
-    strapi.log.info(`[mindmap] job ${jobId} (${job.slug}) has no mindmapJson set — nothing to generate`);
-    return;
-  }
-  if (!looksLikeMindmapTree(job.mindmapJson)) {
-    strapi.log.warn(
-      `[mindmap] job ${jobId} (${job.slug}) has mindmapJson set but it doesn't look like a valid tree (no root/label/title found) — skipping generation`
-    );
-    return;
+    strapi.log.warn(`[mindmap] job ${documentId} not found (${source}) — skipping PDF`);
+    return null;
   }
 
-  const previousPdf = job.mindmapPdf;
-  const settings = await getSiteSettings(strapi);
-
-  const company = job.company || null;
-  let companyMindmap = null;
-  if (!company) {
-    strapi.log.info(`[mindmap] job ${jobId} (${job.slug}) has no company relation set — company section will be omitted`);
-  } else if (!company.mindmapJson) {
+  const jobMap = toPublicTree(job.mindmapJson);
+  if (!jobMap) {
     strapi.log.info(
-      `[mindmap] job ${jobId} (${job.slug}) company "${company.name}" (id ${company.id}) has no mindmapJson set — company section will be omitted`
+      `[mindmap] job ${documentId} (${job.slug}) ` +
+        (job.mindmapJson ? "has a mindmapJson that isn't a usable tree (needs a root with label/title/topic and children)" : 'has no mindmapJson') +
+        ' — no PDF'
     );
-  } else if (!looksLikeMindmapTree(company.mindmapJson)) {
-    strapi.log.warn(
-      `[mindmap] job ${jobId} (${job.slug}) company "${company.name}" (id ${company.id}) has mindmapJson set but it doesn't look like a valid tree — company section will be omitted`
-    );
-  } else {
-    companyMindmap = company.mindmapJson;
+    return null;
   }
+
+  // Always the *published* company -- what the site shows. The populated
+  // relation on a draft job would be the company's draft instead.
+  let company = null;
+  if (job.company && job.company.documentId) {
+    company = await strapi.documents('api::company.company').findOne({ documentId: job.company.documentId, status: 'published' });
+  }
+  const companyTree = company ? toPublicTree(company.mindmapJson) : null;
+  const companyInitiatives = companyTree ? pickInitiatives(companyTree) : [];
+
+  const settings = await getSiteSettings(strapi);
+  return {
+    job,
+    status,
+    company,
+    input: {
+      jobMap,
+      job: buildJobSection(job, settings, company),
+      company: buildCompanySection(company),
+      companyInitiatives,
+      brandColor: settings?.primaryColor,
+    },
+  };
+}
+
+async function regenerateJobMindmap(strapi, documentId, { source = 'published' } = {}) {
+  const loaded = await loadPdfInput(strapi, documentId, source);
+  if (!loaded) return null;
+  const { job, status, company, input } = loaded;
+  const companyInitiatives = input.companyInitiatives;
 
   let uploaded;
   try {
-    uploaded = await uploadMindmapPdf(strapi, {
-      slug: job.slug,
-      jobMindmap: job.mindmapJson,
-      job: buildJobSection(job, settings),
-      companyMindmap,
-      company: buildCompanySection(company),
-      brandColor: settings?.primaryColor,
-    });
+    uploaded = await uploadMindmapPdf(strapi, { slug: job.slug, ...input });
   } catch (err) {
-    strapi.log.error(`[mindmap] job ${jobId} (${job.slug}) PDF generation/upload failed`, err);
-    return;
+    strapi.log.error(`[mindmap] job ${documentId} (${job.slug}) PDF generation/upload failed`, err);
+    return null;
   }
 
-  await strapi.documents('api::job.job').update({
-    documentId: jobId,
-    data: { mindmapPdf: uploaded.id },
+  const attachToDraftOnly = source === 'draft' || status === 'draft';
+  const rows = await strapi.db.query(UID).findMany({
+    where: { documentId, ...(attachToDraftOnly ? { publishedAt: null } : {}) },
+    populate: { mindmapPdf: true },
   });
+  const previousIds = rows.map((r) => r.mindmapPdf && r.mindmapPdf.id).filter((id) => id && id !== uploaded.id);
+  for (const row of rows) {
+    await strapi.db.query(UID).update({ where: { id: row.id }, data: { mindmapPdf: uploaded.id } });
+  }
 
   strapi.log.info(
-    `[mindmap] job ${jobId} (${job.slug}) regenerated PDF (upload id ${uploaded.id}) — sections: JD mindmap + JD` +
-      (companyMindmap ? ' + company mindmap + company profile' : company ? ' (company profile only, no company mindmap)' : '')
+    `[mindmap] job ${documentId} (${job.slug}) new PDF ${uploaded.id} from ${status}, attached to ${rows.length} row(s)` +
+      (company ? ` — company "${company.name}"${companyInitiatives.length ? ` + ${companyInitiatives.length} initiatives` : ''}` : ' — no published company')
   );
 
-  if (previousPdf && previousPdf.id !== uploaded.id) {
-    await strapi
-      .plugin('upload')
-      .service('upload')
-      .remove(previousPdf)
-      .catch((err) => strapi.log.error('[mindmap] failed to remove previous mindmap PDF', err));
-  }
-
-  return true;
+  if (source !== 'draft') await removeUnreferencedPdfs(strapi, previousIds);
+  return { uploadedId: uploaded.id, previousIds };
 }
 
-module.exports = { generateMindmapPdf, regenerateJobMindmap };
+module.exports = { generateMindmapPdf, loadPdfInput, regenerateJobMindmap, removeUnreferencedPdfs };

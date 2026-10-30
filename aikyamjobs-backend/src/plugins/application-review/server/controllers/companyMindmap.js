@@ -78,12 +78,26 @@ module.exports = {
       documentId,
       data: { mindmapJson },
     });
+    // `update()` only writes the company's *draft*, but the site and the JD
+    // PDF read the *published* company -- so a map saved here never showed
+    // up anywhere until someone also published the company (and then
+    // re-published the job). Write it straight onto the published row too.
+    // Not a full publish on purpose: that would also push any other
+    // unpublished edits to the company live.
+    await strapi.db.query('api::company.company').updateMany({
+      where: { documentId, publishedAt: { $notNull: true } },
+      data: { mindmapJson },
+    });
 
     let jobMindmapRefreshed = false;
     if (jobIdToRefresh) {
       try {
-        await regenerateJobMindmap(strapi, jobIdToRefresh);
-        jobMindmapRefreshed = true;
+        // 'published': attach the new PDF to the live job as well as its
+        // draft (the old version put it on the draft only and deleted the
+        // live job's file, leaving the job page without a PDF until the next
+        // publish).
+        const pdf = await regenerateJobMindmap(strapi, jobIdToRefresh, { source: 'published' });
+        jobMindmapRefreshed = Boolean(pdf);
       } catch (err) {
         strapi.log.error('[company-mindmap] failed to refresh the job mindmap PDF after a company JSON save', err);
       }

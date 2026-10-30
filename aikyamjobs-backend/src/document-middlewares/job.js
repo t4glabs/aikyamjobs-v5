@@ -1,7 +1,7 @@
 'use strict';
 
 const { notifyJobPublished } = require('../telegram/bot');
-const { regenerateJobMindmap } = require('../utils/mindmapPdf');
+const { regenerateJobMindmap, removeUnreferencedPdfs } = require('../utils/mindmapPdf');
 const { errors } = require('@strapi/utils');
 const { ApplicationError } = errors;
 
@@ -59,15 +59,20 @@ async function assertGatedHasChecklist(ctx) {
  * afterUpdate/afterCreate now hang off the publish action instead -- the
  * only moment a job's content actually becomes the live, public version.
  * Editing mindmapJson via a plain Save (without Publish) intentionally does
- * NOT regenerate the PDF anymore, since the draft isn't public yet; publish
+ * NOT regenerate the PDF, since the draft isn't public yet; publish
  * (including a republish after such an edit) always does.
+ *
+ * Everything that must be part of the published version (the fresh PDF, the
+ * unpublishedAt/lastFollowUpAt reset) is written to the *draft before*
+ * publish runs, so publish itself carries it across. Writing it afterwards
+ * left the draft newer than the published row (the admin showed the job as
+ * "Modified"), needed a second synthetic publish to sync, and meant the
+ * admin's publish response never included the new PDF.
  */
-// `update()` only ever writes the draft -- the only way to push a computed
-// field (the regenerated PDF) onto the published row is to update the draft
-// then republish. That republish re-enters this same middleware's `publish`
-// branch, so this guards against regenerating a second time for that inner,
-// synthetic publish.
-const republishingForMindmap = new Set();
+const notifyInBackground = (strapi, documentId) => {
+  // Not awaited: a slow Telegram API must never hold up the editor's publish.
+  notifyJobPublished(documentId).catch((err) => strapi.log.error('[telegram-bot] notifyJobPublished failed', err));
+};
 
 module.exports = (strapi) => {
   strapi.documents.use(async (ctx, next) => {
@@ -75,47 +80,43 @@ module.exports = (strapi) => {
 
     if (ctx.action === 'create' || ctx.action === 'update') {
       await assertGatedHasChecklist(ctx);
-      return next();
+
+      // create/update with status "published" (an API client publishing in
+      // one call) publishes *inside* the Document Service, without going
+      // through this middleware's 'publish' action -- mirror its side
+      // effects here so those jobs get a PDF and a Telegram post too.
+      if (ctx.params?.status !== 'published') return next();
+      const existingDocumentId = ctx.params.documentId;
+      const wasPublished = existingDocumentId
+        ? await strapi.documents(UID).findOne({ documentId: existingDocumentId, status: 'published', fields: ['id'] })
+        : null;
+      const result = await next();
+      const documentId = result?.documentId || existingDocumentId;
+      if (documentId) {
+        await regenerateJobMindmap(strapi, documentId, { source: 'published' }).catch((err) =>
+          strapi.log.error('[mindmap] regenerateJobMindmap failed', err)
+        );
+        if (!wasPublished) notifyInBackground(strapi, documentId);
+      }
+      return result;
     }
 
     if (ctx.action === 'publish') {
-      if (republishingForMindmap.has(ctx.params.documentId)) {
-        return next();
-      }
+      const { documentId } = ctx.params;
+      const previouslyPublished = await strapi.documents(UID).findOne({ documentId, status: 'published', fields: ['id'] });
 
-      const previouslyPublished = await strapi
-        .documents(UID)
-        .findOne({ documentId: ctx.params.documentId, status: 'published', fields: ['id'] });
+      await strapi.documents(UID).update({ documentId, data: { unpublishedAt: null, lastFollowUpAt: null } });
+      const pdf = await regenerateJobMindmap(strapi, documentId, { source: 'draft' }).catch((err) => {
+        strapi.log.error('[mindmap] regenerateJobMindmap failed', err);
+        return null;
+      });
 
       const result = await next();
 
-      await strapi.documents(UID).update({
-        documentId: ctx.params.documentId,
-        data: { unpublishedAt: null, lastFollowUpAt: null },
-      });
-
-      if (!previouslyPublished) {
-        await notifyJobPublished(ctx.params.documentId).catch((err) =>
-          strapi.log.error('[telegram-bot] notifyJobPublished failed', err)
-        );
-      }
-
-      const regenerated = await regenerateJobMindmap(strapi, ctx.params.documentId).catch((err) => {
-        strapi.log.error('[mindmap] regenerateJobMindmap failed', err);
-        return false;
-      });
-
-      if (regenerated) {
-        republishingForMindmap.add(ctx.params.documentId);
-        try {
-          await strapi.documents(UID).publish({ documentId: ctx.params.documentId });
-        } catch (err) {
-          strapi.log.error('[mindmap] republish after regeneration failed', err);
-        } finally {
-          republishingForMindmap.delete(ctx.params.documentId);
-        }
-      }
-
+      // The replaced published row is gone now, so the previous PDF file
+      // is unreferenced and can go.
+      if (pdf?.previousIds?.length) await removeUnreferencedPdfs(strapi, pdf.previousIds);
+      if (!previouslyPublished) notifyInBackground(strapi, documentId);
       return result;
     }
 
