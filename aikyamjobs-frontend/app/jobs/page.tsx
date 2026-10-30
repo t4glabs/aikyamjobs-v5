@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getJobs, getStrapiMediaUrl } from "@/lib/api";
+import { skillLabels } from "@/lib/skills";
 import { Job, StrapiResponse } from "@/lib/types";
 
 export default async function JobsPage({
@@ -239,7 +240,7 @@ export default async function JobsPage({
                     >
                       {job.attributes.jobType}
                     </Link>
-                    {job.attributes.skills?.slice(0, 2).map((skill, index) => (
+                    {skillLabels(job.attributes.skills).slice(0, 2).map((skill, index) => (
                       <Link
                         key={index}
                         href={`/jobs?search=${encodeURIComponent(skill)}`}
@@ -249,9 +250,9 @@ export default async function JobsPage({
                         {skill}
                       </Link>
                     ))}
-                    {job.attributes.skills && job.attributes.skills.length > 2 && (
+                    {skillLabels(job.attributes.skills).length > 2 && (
                       <span className="px-1 text-[13px] text-gray-600">
-                        +{job.attributes.skills.length - 2}
+                        +{skillLabels(job.attributes.skills).length - 2}
                       </span>
                     )}
                   </div>

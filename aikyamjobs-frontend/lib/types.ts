@@ -1,3 +1,5 @@
+import type { SkillEntry } from './skills';
+
 export interface Job {
   id: number;
   attributes: {
@@ -9,7 +11,9 @@ export interface Job {
     jobType: 'full-time' | 'part-time' | 'contract' | 'internship' | 'fellowship';
     experienceLevel: 'entry' | 'mid' | 'senior' | 'lead';
     salary?: string;
-    skills?: string[];
+    // Plain strings today; may grow into ESCO-shaped objects -- always read
+    // through lib/skills.ts (normalizeSkills / skillLabels).
+    skills?: SkillEntry[];
     impactArea?: string;
     applicationUrl?: string;
     applicationEmail?: string;

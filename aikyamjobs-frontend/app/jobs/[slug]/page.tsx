@@ -13,6 +13,7 @@ import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
 import MindmapPanel from "@/components/MindmapPanel";
+import SkillCards from "@/components/SkillCards";
 
 export async function generateMetadata({
   params,
@@ -170,30 +171,16 @@ export default async function JobDetailPage({
                 />
               )}
 
+              <SkillCards skills={job.attributes.skills} />
+
               {/* Render content as Markdown (converted from Ghost HTML) */}
               <Markdown
                 content={description}
                 className="prose mb-8 text-gray-800 leading-relaxed"
               />
 
-              {job.attributes.skills && job.attributes.skills.length > 0 && (
-                <div className="mb-8 pb-8 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Required Skills</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {job.attributes.skills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {job.attributes.categories?.data && job.attributes.categories.data.length > 0 && (
-                <div>
+                <div className="pt-8 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {job.attributes.categories.data.map((category) => (

@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import Image from "next/image";
 import { getJobs, getCategories, getStrapiMediaUrl } from "@/lib/api";
+import { skillLabels } from "@/lib/skills";
 import { Job, Category, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 
@@ -181,7 +182,7 @@ export default async function TagPage({
                   <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800">
                     {job.attributes.jobType}
                   </span>
-                  {job.attributes.skills?.slice(0, 2).map((skill, index) => (
+                  {skillLabels(job.attributes.skills).slice(0, 2).map((skill, index) => (
                     <span
                       key={index}
                       className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800"
@@ -189,9 +190,9 @@ export default async function TagPage({
                       {skill}
                     </span>
                   ))}
-                  {job.attributes.skills && job.attributes.skills.length > 2 && (
+                  {skillLabels(job.attributes.skills).length > 2 && (
                     <span className="px-1 text-[13px] text-gray-600">
-                      +{job.attributes.skills.length - 2}
+                      +{skillLabels(job.attributes.skills).length - 2}
                     </span>
                   )}
                 </div>
