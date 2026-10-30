@@ -2,8 +2,12 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
-import { getJob, getJobMindmaps, getStrapiMediaUrl } from "@/lib/api";
-import { Job, JobMindmaps, StrapiResponse } from "@/lib/types";
+import { getJob, getStrapiMediaUrl } from "@/lib/api";
+import { Job, StrapiResponse } from "@/lib/types";
+// Mindmap tree (switched off, see JobDetailPage):
+// import { getJobMindmaps } from "@/lib/api";
+// import { JobMindmaps } from "@/lib/types";
+// import MindmapPanel from "@/components/MindmapPanel";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
@@ -12,7 +16,6 @@ import JobApplyStatus from "@/components/apply/JobApplyStatus";
 import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
-import MindmapPanel from "@/components/MindmapPanel";
 import SkillCards from "@/components/SkillCards";
 
 export async function generateMetadata({
@@ -63,10 +66,14 @@ export default async function JobDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [jobResponse, mindmaps]: [StrapiResponse<Job[]>, JobMindmaps | null] = await Promise.all([
-    getJob(slug),
-    getJobMindmaps(slug),
-  ]);
+  const jobResponse: StrapiResponse<Job[]> = await getJob(slug);
+  // "Role at a glance" mindmap tree switched off for now (2026-10-30) -- the
+  // skills tiles cover what candidates need. To bring it back, restore this
+  // fetch, the panel below, and the commented imports at the top:
+  // const [jobResponse, mindmaps]: [StrapiResponse<Job[]>, JobMindmaps | null] = await Promise.all([
+  //   getJob(slug),
+  //   getJobMindmaps(slug),
+  // ]);
 
   if (!jobResponse.data || jobResponse.data.length === 0) {
     notFound();
@@ -158,6 +165,8 @@ export default async function JobDetailPage({
                 )}
               </div>
 
+              {/* "Role at a glance" tree -- switched off for now, see the note
+                  at the top of this function.
               {mindmaps && (
                 <MindmapPanel
                   views={[
@@ -170,6 +179,7 @@ export default async function JobDetailPage({
                   eventProps={{ job_slug: job.attributes.slug }}
                 />
               )}
+              */}
 
               <SkillCards skills={job.attributes.skills} />
 

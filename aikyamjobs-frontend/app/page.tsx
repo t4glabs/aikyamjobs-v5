@@ -124,7 +124,7 @@ export default async function Home() {
                 prefetch={false}
                 className="link-brand text-sm font-medium block"
               >
-                Click here to join 3000+ others to get curated job alerts, skilling opportunities  →
+                Click here to join 9000+ others to get curated job alerts, skilling opportunities  →
               </Link>
               <Link
                 href="https://whatsapp.com/channel/0029Vb8DvZ5CxoAsvj0Oie2C"

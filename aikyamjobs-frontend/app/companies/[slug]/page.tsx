@@ -7,7 +7,7 @@ import { Company, MindmapNode, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 import Markdown from "@/components/Markdown";
 import CompanyWebsiteLink from "@/components/CompanyWebsiteLink";
-import MindmapPanel from "@/components/MindmapPanel";
+import InitiativeCards from "@/components/InitiativeCards";
 import { Fragment } from "react";
 
 // "https://www.ekjutindia.org/about" -> "ekjutindia.org"; falls back to a
@@ -108,13 +108,9 @@ export default async function CompanyDetailPage({
               )}
             </div>
 
-            {orgMap && (
-              <MindmapPanel
-                views={[{ key: 'org', heading: 'Organisation at a glance', tree: orgMap }]}
-                event="Company Mindmap Used"
-                eventProps={{ company_slug: company.attributes.slug }}
-              />
-            )}
+            {/* Only the "Major Initiatives & Programmes" part of the company's
+                mindmap, as cards (the full tree is left out on purpose). */}
+            <InitiativeCards tree={orgMap} />
 
             {company.attributes.description && (
               <div>

@@ -33,9 +33,19 @@ const MAX_DETAILS = 2000;
 // "[2, 3]"). Meaningless on the page without the sources list.
 const CITATION_RE = /\s*\[\d+(?:\s*,\s*\d+)*\]/g;
 
+// A few real mindmaps carry HTML entities in their text ("Initiatives &amp;
+// Programmes"). The frontend renders plain text (React escapes it), so these
+// would show literally -- decode the basic ones here.
+const ENTITIES = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&apos;': "'", '&nbsp;': ' ' };
+const ENTITY_RE = /&(?:amp|lt|gt|quot|#39|apos|nbsp);/g;
+
 function cleanText(value, max) {
   if (typeof value !== 'string') return null;
-  const text = value.replace(CITATION_RE, '').replace(/\s+/g, ' ').trim();
+  const text = value
+    .replace(ENTITY_RE, (e) => ENTITIES[e])
+    .replace(CITATION_RE, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!text) return null;
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
