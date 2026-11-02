@@ -69,10 +69,20 @@ async function assertGatedHasChecklist(ctx) {
  * "Modified"), needed a second synthetic publish to sync, and meant the
  * admin's publish response never included the new PDF.
  */
-const notifyInBackground = (strapi, documentId) => {
-  // Not awaited: a slow Telegram API must never hold up the editor's publish.
-  notifyJobPublished(documentId).catch((err) => strapi.log.error('[telegram-bot] notifyJobPublished failed', err));
-};
+// Not awaited: a slow Telegram API must never hold up the editor's publish.
+// But it must start only AFTER the surrounding transaction commits: the admin
+// Publish button runs inside strapi.db.transaction, and a background task
+// started here inherits that transaction (AsyncLocalStorage), so its queries
+// hit an already-committed transaction ("Transaction query already complete")
+// and the channel post silently never happened. onCommit fires once the
+// outermost transaction commits (immediately when there isn't one), and never
+// on rollback -- so a failed publish isn't announced either.
+const notifyInBackground = (strapi, documentId) =>
+  strapi.db.transaction(({ onCommit }) => {
+    onCommit(() => {
+      notifyJobPublished(documentId).catch((err) => strapi.log.error('[telegram-bot] notifyJobPublished failed', err));
+    });
+  });
 
 module.exports = (strapi) => {
   strapi.documents.use(async (ctx, next) => {
@@ -96,7 +106,7 @@ module.exports = (strapi) => {
         await regenerateJobMindmap(strapi, documentId, { source: 'published' }).catch((err) =>
           strapi.log.error('[mindmap] regenerateJobMindmap failed', err)
         );
-        if (!wasPublished) notifyInBackground(strapi, documentId);
+        if (!wasPublished) await notifyInBackground(strapi, documentId);
       }
       return result;
     }
@@ -116,7 +126,7 @@ module.exports = (strapi) => {
       // The replaced published row is gone now, so the previous PDF file
       // is unreferenced and can go.
       if (pdf?.previousIds?.length) await removeUnreferencedPdfs(strapi, pdf.previousIds);
-      if (!previouslyPublished) notifyInBackground(strapi, documentId);
+      if (!previouslyPublished) await notifyInBackground(strapi, documentId);
       return result;
     }
 
