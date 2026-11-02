@@ -235,6 +235,11 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       }
       data.leadWithThese = null;
       data.fixBeforeSending = null;
+      // Must be cleared too: a star candidate's retry is auto-approved below,
+      // and the approval email includes personalTouch — without this, the
+      // line written for their previous (e.g. rejected) application would
+      // land in the new acceptance email.
+      data.personalTouch = null;
       data.decisionBy = null;
       data.decisionByAdminEmail = null;
       data.decisionEmailSent = false;

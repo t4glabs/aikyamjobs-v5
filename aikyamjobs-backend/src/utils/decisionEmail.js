@@ -14,6 +14,12 @@ function toBullets(text) {
     .map((line) => `• ${line.replace(/^[•\-*]\s*/, '')}`);
 }
 
+/** Optional reviewer line, used in both outcome emails; [] when left blank. */
+function personalTouchLines(application) {
+  const text = (application.personalTouch || '').trim();
+  return text ? ['', `Oh, and by the way — ${text}`] : [];
+}
+
 /**
  * Builds the applicant-facing outcome email content. Pure and side-effect
  * free (no network call, no send) — deliberately split from sendDecisionEmail
@@ -51,6 +57,7 @@ async function composeDecisionEmail({ application, job, applicant, reviewerFirst
       '',
       'I spent some time going through the CV you shared, and a few things really stood out:',
       ...(strengths.length ? ['', ...strengths] : []),
+      ...personalTouchLines(application),
       '',
       'The shared CV could be a good fit for this role. You can submit your application directly to the team here:',
       `👉 ${applyTarget || "There's no apply link on file for this role just yet — reply to this email and we'll sort it out for you."}`,
@@ -100,11 +107,8 @@ async function composeDecisionEmail({ application, job, applicant, reviewerFirst
       '',
       'Three areas where the CV could be strengthened:',
       ...growthAreas,
+      ...personalTouchLines(application),
     ];
-
-    if (application.personalTouch && application.personalTouch.trim()) {
-      lines.push('', `Oh, and by the way — ${application.personalTouch.trim()}`);
-    }
 
     lines.push(
       '',

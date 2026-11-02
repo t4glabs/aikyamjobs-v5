@@ -304,7 +304,7 @@ const Detail = ({ id, onBack }) => {
             <Grid.Item col={12}>
               <Field.Root
                 name="personalTouch"
-                hint="A specific detail that shows you actually read their CV, e.g. 'I really liked reading about the certification course mentioned.' Only appears in the no-match email — leave blank to skip that line."
+                hint="A specific detail that shows you actually read their CV, e.g. 'I really liked reading about the certification course mentioned.' Added to both the approval and no-match emails as an 'Oh, and by the way —' line — leave blank to skip it."
               >
                 <Field.Label>Personal touch (optional)</Field.Label>
                 <Textarea value={personalTouch} onChange={(e) => setPersonalTouch(e.target.value)} />
