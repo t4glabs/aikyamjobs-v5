@@ -188,6 +188,7 @@ export interface Course {
     medium?: string;
     eligibility?: string;
     importantDates?: string;
+    applicationDeadline?: string;
     courseType: CourseType;
     skills?: string[];
     excerpt?: string;

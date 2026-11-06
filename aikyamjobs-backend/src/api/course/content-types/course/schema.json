@@ -56,6 +56,10 @@
       "type": "text",
       "description": "Application open/close dates, if published by the partner."
     },
+    "applicationDeadline": {
+      "type": "date",
+      "description": "Optional. Last day to apply. The course is auto-unpublished (and tagged expired-course) by the midnight cron once this date has passed."
+    },
     "fieldOfStudy": {
       "type": "relation",
       "relation": "manyToOne",

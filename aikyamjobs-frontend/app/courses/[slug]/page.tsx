@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCourse, getStrapiMediaUrl } from "@/lib/api";
 import { Course, StrapiResponse } from "@/lib/types";
-import { courseTypeLabel, modeLabel } from "@/lib/courseLabels";
+import { courseTypeLabel, modeLabel, formatDeadline } from "@/lib/courseLabels";
 import { isSafeHref } from "@/lib/url-safety";
 import { notFound } from "next/navigation";
 import { generateSEOMetadata } from "@/components/SEO";
@@ -134,6 +134,12 @@ export default async function CourseDetailPage({
                           <span>Intake: {course.attributes.intake}</span>
                         </>
                       )}
+                      {course.attributes.applicationDeadline && (
+                        <>
+                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                          <span>Apply by {formatDeadline(course.attributes.applicationDeadline)}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -217,6 +223,13 @@ export default async function CourseDetailPage({
               )}
 
               <div className="space-y-4 text-sm">
+                {course.attributes.applicationDeadline && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Application Deadline</h4>
+                    <p className="text-gray-700">{formatDeadline(course.attributes.applicationDeadline, 'long')}</p>
+                  </div>
+                )}
+
                 {course.attributes.eligibility && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Eligibility</h4>

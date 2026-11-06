@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCourses, getCourseProviders, getCourseFieldsOfStudy, getStrapiMediaUrl } from "@/lib/api";
 import { Course, CourseProvider, CourseFieldOfStudy, StrapiResponse } from "@/lib/types";
-import { COURSE_TYPE_OPTIONS, MODE_OPTIONS, courseTypeLabel, modeLabel } from "@/lib/courseLabels";
+import { COURSE_TYPE_OPTIONS, MODE_OPTIONS, courseTypeLabel, modeLabel, formatDeadline } from "@/lib/courseLabels";
 import { generateSEOMetadata } from "@/components/SEO";
 import { Metadata } from "next";
 
@@ -260,6 +260,12 @@ export default async function CoursesPage({
                         <>
                           <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
                           <span>{course.attributes.location}</span>
+                        </>
+                      )}
+                      {course.attributes.applicationDeadline && (
+                        <>
+                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                          <span>Apply by {formatDeadline(course.attributes.applicationDeadline)}</span>
                         </>
                       )}
                     </div>

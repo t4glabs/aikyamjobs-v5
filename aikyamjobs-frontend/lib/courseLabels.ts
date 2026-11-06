@@ -33,3 +33,14 @@ export function modeLabel(value?: string): string {
   if (!value) return '';
   return modeMap.get(value as any) || value;
 }
+
+// applicationDeadline is a Strapi date-only field ('YYYY-MM-DD'), which
+// `new Date()` parses as UTC midnight -- format in UTC so the day never
+// shifts by one depending on the server's or viewer's timezone.
+export function formatDeadline(value: string, style: 'short' | 'long' = 'short'): string {
+  const opts: Intl.DateTimeFormatOptions =
+    style === 'short'
+      ? { day: 'numeric', month: 'short', timeZone: 'UTC' }
+      : { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' };
+  return new Date(value).toLocaleDateString('en-IN', opts);
+}
