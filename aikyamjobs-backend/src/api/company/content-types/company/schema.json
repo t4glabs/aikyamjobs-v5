@@ -41,6 +41,11 @@
     "website": {
       "type": "string"
     },
+    "contactEmail": {
+      "type": "email",
+      "private": true,
+      "description": "Optional company / HR contact email, for engaging with the org (analytics reports on their JDs, profile page, applications). Editorial only -- private, never sent to the public API or shown on the site."
+    },
     "location": {
       "type": "string"
     },
