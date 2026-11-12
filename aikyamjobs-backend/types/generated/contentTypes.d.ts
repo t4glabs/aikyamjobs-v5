@@ -483,6 +483,9 @@ export interface ApiApplicantApplicant extends Struct.CollectionTypeSchema {
     isStarCandidate: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     lastLoginAt: Schema.Attribute.DateTime;
+    listmonkSynced: Schema.Attribute.Boolean &
+      Schema.Attribute.Private &
+      Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -659,6 +662,7 @@ export interface ApiCompanyCompany extends Struct.CollectionTypeSchema {
   };
   attributes: {
     author: Schema.Attribute.String;
+    contactEmail: Schema.Attribute.Email & Schema.Attribute.Private;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -784,6 +788,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    applicationDeadline: Schema.Attribute.Date;
     applicationEmail: Schema.Attribute.Email;
     applicationPhone: Schema.Attribute.String;
     applicationUrl: Schema.Attribute.String;
