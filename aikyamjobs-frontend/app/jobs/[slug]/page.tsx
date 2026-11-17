@@ -103,66 +103,67 @@ export default async function JobDetailPage({
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg border border-gray-200 p-8">
-              <div className="flex items-start justify-between gap-4 mb-6 pb-6 border-b border-gray-200">
-                <div className="flex gap-4 min-w-0">
-                  {company?.attributes.logo?.data ? (
-                    <Image
-                      src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
-                      alt=""
-                      width={44}
-                      height={44}
-                      className="w-11 h-11 flex-none object-contain rounded-md border border-gray-200"
-                    />
-                  ) : (
-                    <span className="w-11 h-11 flex-none flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-base font-semibold text-gray-500">
-                      {company?.attributes.name?.charAt(0) ?? '·'}
-                    </span>
-                  )}
-                  <div className="min-w-0">
-                    {company && (
-                      <Link
-                        href={`/companies/${company.attributes.slug}`}
-                        className="text-sm font-medium text-gray-600 hover:text-brand inline-block mb-1"
-                      >
-                        {company.attributes.name}
-                      </Link>
-                    )}
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
-                      {job.attributes.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
-                      {job.attributes.location && <span>{job.attributes.location}</span>}
-                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                      <span>{job.attributes.jobType}</span>
-                      {job.attributes.experienceLevel && (
-                        <>
-                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                          <span>{job.attributes.experienceLevel} level</span>
-                        </>
-                      )}
-                      {job.attributes.salary && (
-                        <>
-                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                          <span>{job.attributes.salary}</span>
-                        </>
-                      )}
-                      {job.attributes.closingDate && (
-                        <>
-                          <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                          <span>
-                            Closes {new Date(job.attributes.closingDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-5 sm:p-8">
+              {/* Header grid. Phones: logo + company + Featured share the
+                  first row and the title/meta run the full card width below
+                  (a logo column beside the title squeezed long titles to 1-2
+                  words per line). sm and up: logo spans all rows on the left,
+                  as before; title/meta can also use the space under Featured. */}
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 sm:gap-x-4 mb-6 pb-6 border-b border-gray-200">
+                {company?.attributes.logo?.data ? (
+                  <Image
+                    src={getStrapiMediaUrl(company.attributes.logo.data.attributes.url)}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className="col-start-1 row-start-1 sm:row-span-3 w-10 h-10 sm:w-11 sm:h-11 object-contain rounded-md border border-gray-200"
+                  />
+                ) : (
+                  <span className="col-start-1 row-start-1 sm:row-span-3 w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-base font-semibold text-gray-500">
+                    {company?.attributes.name?.charAt(0) ?? '·'}
+                  </span>
+                )}
+                {company && (
+                  <Link
+                    href={`/companies/${company.attributes.slug}`}
+                    className="col-start-2 row-start-1 self-center sm:self-start text-sm font-medium text-gray-600 hover:text-brand sm:mb-1 line-clamp-2"
+                  >
+                    {company.attributes.name}
+                  </Link>
+                )}
                 {job.attributes.featured && (
-                  <span className="flex-none rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
+                  <span className="col-start-3 row-start-1 self-center sm:self-start rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700">
                     Featured
                   </span>
                 )}
+                <h1 className="col-span-3 row-start-2 sm:col-start-2 sm:col-span-2 mt-3 sm:mt-0 mb-2 text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-gray-900 break-words">
+                  {job.attributes.title}
+                </h1>
+                <div className="col-span-3 row-start-3 sm:col-start-2 sm:col-span-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
+                  {job.attributes.location && <span>{job.attributes.location}</span>}
+                  <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                  <span>{job.attributes.jobType}</span>
+                  {job.attributes.experienceLevel && (
+                    <>
+                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                      <span>{job.attributes.experienceLevel} level</span>
+                    </>
+                  )}
+                  {job.attributes.salary && (
+                    <>
+                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                      <span>{job.attributes.salary}</span>
+                    </>
+                  )}
+                  {job.attributes.closingDate && (
+                    <>
+                      <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
+                      <span>
+                        Closes {new Date(job.attributes.closingDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* "Role at a glance" tree -- switched off for now, see the note
