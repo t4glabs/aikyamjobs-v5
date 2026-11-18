@@ -1,11 +1,128 @@
 'use client';
 
 import Link from "next/link";
+import Script from "next/script";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 
+// Sign-ups go through Strapi (/api/newsletter/subscribe), which checks a
+// Cloudflare Turnstile token before Listmonk sends any email. Turnstile runs
+// in "interaction-only" mode: most visitors see nothing, and a suspicious
+// browser gets a single checkbox, never an image puzzle.
+const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+type TurnstileApi = {
+  render: (el: HTMLElement, options: Record<string, unknown>) => string;
+  reset: (widgetId: string) => void;
+  remove: (widgetId: string) => void;
+};
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
+
+type Status = 'idle' | 'submitting' | 'done' | 'error';
+
 export default function SubscribePage() {
+  const widgetEl = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+  const token = useRef('');
+  const [scriptReady, setScriptReady] = useState(false);
+  const [status, setStatus] = useState<Status>('idle');
+  const [message, setMessage] = useState('');
+
+  const renderWidget = useCallback(() => {
+    if (!SITE_KEY || !window.turnstile || !widgetEl.current || widgetId.current) return;
+    widgetId.current = window.turnstile.render(widgetEl.current, {
+      sitekey: SITE_KEY,
+      action: 'subscribe',
+      appearance: 'interaction-only',
+      theme: 'light', // the site has no dark mode; 'auto' would follow the OS
+      size: 'flexible', // spans the form width (Turnstile's minimum is 300px)
+      callback: (t: string) => { token.current = t; },
+      'expired-callback': () => { token.current = ''; },
+      'error-callback': () => { token.current = ''; },
+    });
+  }, []);
+
+  // Covers both a fresh script load and coming back to the page with the
+  // script already on window.
+  useEffect(() => {
+    if (scriptReady || window.turnstile) renderWidget();
+    return () => {
+      if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current);
+      widgetId.current = null;
+    };
+  }, [scriptReady, renderWidget]);
+
+  // Tokens are single-use: get a fresh one after every attempt.
+  function resetWidget() {
+    token.current = '';
+    if (widgetId.current && window.turnstile) window.turnstile.reset(widgetId.current);
+  }
+
+  // Turnstile usually finishes within a second or two of page load; if the
+  // visitor is quicker than that, wait for it rather than failing.
+  async function waitForToken(timeoutMs = 20000): Promise<string> {
+    const start = Date.now();
+    while (!token.current && Date.now() - start < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    return token.current;
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (status === 'submitting') return;
+    const form = new FormData(e.currentTarget);
+    setStatus('submitting');
+    setMessage('');
+
+    const turnstileToken = await waitForToken();
+    if (!turnstileToken) {
+      setStatus('error');
+      setMessage("We couldn't verify you're human. If a checkbox appeared, tick it and try again; otherwise refresh the page.");
+      resetWidget();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${STRAPI_URL}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.get('email'),
+          website: form.get('website'),
+          token: turnstileToken,
+        }),
+      });
+      if (res.ok) {
+        setStatus('done');
+        track('Newsletter Subscribed');
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      setStatus('error');
+      setMessage(data?.error?.message || "We couldn't subscribe you right now. Please try again later.");
+    } catch {
+      setStatus('error');
+      setMessage("We couldn't reach the server. Please check your connection and try again.");
+    }
+    resetWidget();
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {SITE_KEY && (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+          onReady={() => setScriptReady(true)}
+        />
+      )}
       <div className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-4 py-4">
           <Link href="/" className="link-brand font-mono text-sm font-medium">
@@ -16,54 +133,73 @@ export default function SubscribePage() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg border border-gray-200 p-8">
+          <div className="bg-white rounded-lg border border-gray-200 p-5 sm:p-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               Subscribe for Job Alerts
             </h1>
-            <p className="text-gray-600 mb-6">
-              Join a community discovering meaningful careers in social impact.
-            </p>
-            <form
-              method="post"
-              action="https://mails.tinybridge.org/subscription/form"
-              className="space-y-4"
-              onSubmit={() => track('Newsletter Subscribed')}
-            >
-              <input type="hidden" name="nonce" />
-              <input
-                type="hidden"
-                name="l"
-                value="4ab2985e-c34e-41c3-9370-7024f8b27bae"
-              />
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-400"
-                  placeholder="your@email.com"
-                />
+            {status === 'done' ? (
+              <div role="status" className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <p className="font-semibold text-green-900">Almost done: check your inbox.</p>
+                <p className="mt-1 text-sm text-green-800">
+                  We&apos;ve sent you an email with a link to confirm your subscription. If it isn&apos;t
+                  there in a few minutes, check your spam folder. (If you&apos;re already subscribed,
+                  there&apos;s nothing more to do.)
+                </p>
               </div>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-6">
+                  Join a community discovering meaningful careers in social impact.
+                </p>
+                <form onSubmit={onSubmit} className="space-y-4">
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      autoComplete="email"
+                      maxLength={254}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400 font-mono text-sm text-gray-900 placeholder:text-gray-500"
+                      placeholder="your@email.com"
+                    />
+                  </div>
 
-              <button
-                type="submit"
-                className="btn-brand w-full px-6 py-3 rounded-lg font-mono text-sm font-semibold"
-              >
-                Subscribe
-              </button>
-            </form>
+                  {/* Honeypot: hidden from people and screen readers; bots that
+                      fill every field get silently dropped by the server. */}
+                  <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+                    <label htmlFor="website">Website</label>
+                    <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+                  </div>
+
+                  {/* Turnstile mounts here; it stays invisible unless it needs a click. */}
+                  <div ref={widgetEl} />
+
+                  <button
+                    type="submit"
+                    disabled={status === 'submitting'}
+                    className="btn-brand w-full px-6 py-3 rounded-lg font-mono text-sm font-semibold disabled:opacity-60"
+                  >
+                    {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
+                  </button>
+
+                  <p role="alert" aria-live="polite" className="text-sm text-red-700 empty:hidden">
+                    {status === 'error' ? message : ''}
+                  </p>
+                </form>
+              </>
+            )}
 
             <p className="text-sm text-gray-500 mt-4">
               By subscribing, you agree to receive job alerts and updates from aikyam jobs.
               You can unsubscribe from any email.
             </p>
             <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-              <p className="text-xs text-gray-400 mb-2">Prefer WhatsApp?</p>
+              <p className="text-xs text-gray-500 mb-2">Prefer WhatsApp?</p>
               <a
                 href="https://whatsapp.com/channel/0029Vb8DvZ5CxoAsvj0Oie2C"
                 target="_blank"

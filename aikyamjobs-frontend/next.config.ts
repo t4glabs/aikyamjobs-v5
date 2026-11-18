@@ -39,14 +39,18 @@ const nextConfig: NextConfig = {
     // specifically (not a gap found in this app, as of the last audit pass).
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://analytics.aikyamhq.com",
+      // challenges.cloudflare.com = Turnstile bot check on /subscribe (script + its iframe).
+      "script-src 'self' 'unsafe-inline' https://analytics.aikyamhq.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: http://localhost:1337 http://localhost:1338 https://beta.aikyamjobs.org https://aikyamjobs.org https://old.aikyamjobs.org",
       "font-src 'self'",
-      "connect-src 'self' https://analytics.aikyamhq.com https://search.aikyamfellows.org",
+      // localhost Strapi ports only matter in local dev (prod calls Strapi same-origin).
+      "connect-src 'self' https://analytics.aikyamhq.com https://search.aikyamfellows.org http://localhost:1337 http://localhost:1338",
+      "frame-src 'self' https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",
-      "form-action 'self' https://mails.tinybridge.org",
+      // The subscribe form no longer posts to Listmonk directly.
+      "form-action 'self'",
     ].join('; ');
 
     return [
