@@ -29,6 +29,11 @@
       "private": true,
       "description": "True once this applicant's email has been added to the Listmonk newsletter list (on their first application / CV Improver submission). Internal flag, never exposed via the API."
     },
+    "newsletterSubscribedAt": {
+      "type": "datetime",
+      "private": true,
+      "description": "When this applicant was added to the newsletter list as confirmed, under the consent they gave on their application / CV Improver submission. Empty = not added yet (retried on their next submission)."
+    },
     "lastLoginAt": {
       "type": "datetime"
     },

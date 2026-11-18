@@ -1,76 +1,58 @@
 'use strict';
 
+const listmonkApi = require('./listmonkApi');
+
 /**
- * Adds an email to the public "aikyamjobs Website Subscribers" Listmonk list
- * via the SAME public subscription-form endpoint the website /subscribe page
- * posts to — so applicants land in the same list, with whatever opt-in mode
- * that list is configured for (e.g. a double-opt-in confirmation email).
- * Deliberately uses the public form, not Listmonk's admin API, so no API
- * credentials are needed. Best-effort: logs on failure, never throws, so a
- * newsletter hiccup can never break the apply / CV-review flow.
+ * Adds an applicant to the newsletter list (the /subscribe list, now Private
+ * in Listmonk) when they submit an application or a CV Improver request.
+ * Job alerts are part of the consent they tick on those forms, so no
+ * separate opt-in step.
  *
- * Env (optional — defaults match the website subscribe form in
- * aikyamjobs-frontend/app/subscribe/page.tsx):
- *   LISTMONK_SUBSCRIBE_URL  default https://mails.tinybridge.org/subscription/form
- *   LISTMONK_LIST_UUID      default 4ab2985e-c34e-41c3-9370-7024f8b27bae
+ * No confirmation email: the applicant already proved they own the address
+ * with the magic link, so a double opt-in mail would be a pointless second
+ * loop. They're added as confirmed through the same admin-API client as the
+ * website form (./listmonkApi.js, preconfirm mode).
+ *
+ * Once per applicant: newsletterSubscribedAt is set on success and the sync
+ * is skipped from then on, so anyone who later unsubscribes is never re-added
+ * by a later application. Applicants added under the old public-form flow
+ * (listmonkSynced, but often never confirmed) are confirmed on their next
+ * submission.
+ *
+ * Best effort: logs on failure and never throws, so a newsletter hiccup can
+ * never break the apply or CV-review flow; a failure is retried on the next
+ * submission.
  */
-const SUBSCRIBE_URL =
-  process.env.LISTMONK_SUBSCRIBE_URL || 'https://mails.tinybridge.org/subscription/form';
-const LIST_UUID =
-  process.env.LISTMONK_LIST_UUID || '4ab2985e-c34e-41c3-9370-7024f8b27bae';
+const ADDED = new Set(['created-confirmed', 'added-confirmed', 'confirmed-was-unconfirmed', 'already-confirmed']);
 
-async function subscribeToNewsletter({ email, name } = {}) {
-  if (!email) return { skipped: true };
-
-  const form = new URLSearchParams();
-  form.set('email', email);
-  form.set('l', LIST_UUID);
-  // Listmonk's external-embed form sends an empty nonce (same as our /subscribe page).
-  form.set('nonce', '');
-  if (name) form.set('name', name);
-
-  try {
-    const res = await fetch(SUBSCRIBE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form.toString(),
-    });
-    // Listmonk's public form returns 200 (HTML) or a 3xx redirect on success
-    // (incl. "already subscribed"), and 4xx/5xx on a real rejection.
-    if (res.status >= 400) {
-      const body = await res.text().catch(() => '');
-      strapi.log.warn(`[listmonk] subscribe ${email} -> HTTP ${res.status}: ${body.slice(0, 200)}`);
-      return { ok: false, status: res.status };
-    }
-    return { ok: true };
-  } catch (err) {
-    strapi.log.warn(`[listmonk] subscribe failed for ${email}: ${err.message}`);
-    return { ok: false, error: err.message };
-  }
-}
-
-/**
- * Subscribe an applicant exactly once. Checks the applicant's listmonkSynced
- * flag, subscribes via the public form, then flips the flag ONLY on success —
- * so a transient failure just retries on their next submission instead of being
- * lost, and a confirmation email is never re-sent to someone already synced.
- * Takes an already-loaded applicant object ({ documentId, email, name,
- * listmonkSynced }). Call fire-and-forget from the submit controllers.
- */
 async function syncApplicantToNewsletter(applicant) {
-  if (!applicant || !applicant.email || applicant.listmonkSynced) return;
+  if (!applicant || !applicant.email || applicant.newsletterSubscribedAt) return;
 
-  const result = await subscribeToNewsletter({ email: applicant.email, name: applicant.name });
-  if (!result || !result.ok) return; // leave listmonkSynced false so it retries next time
+  if (!listmonkApi.isConfigured()) {
+    strapi.log.error('[listmonk] applicant newsletter sync skipped: LISTMONK_API_* env not set');
+    return;
+  }
+
+  const email = String(applicant.email).trim().toLowerCase();
+  const domain = email.split('@')[1];
+  let outcome;
+  try {
+    outcome = await listmonkApi.subscribe(email, { preconfirm: true, name: applicant.name });
+  } catch (err) {
+    strapi.log.warn(`[listmonk] applicant newsletter sync failed (@${domain}): ${err.message}`);
+    return;
+  }
+  strapi.log.info(`[listmonk] applicant newsletter sync: ${outcome} (@${domain})`);
+  if (!ADDED.has(outcome)) return; // unsubscribed / blocklisted: left alone
 
   try {
     await strapi.documents('api::applicant.applicant').update({
       documentId: applicant.documentId,
-      data: { listmonkSynced: true },
+      data: { newsletterSubscribedAt: new Date().toISOString(), listmonkSynced: true },
     });
   } catch (err) {
-    strapi.log.warn(`[listmonk] could not set listmonkSynced for ${applicant.email}: ${err.message}`);
+    strapi.log.warn(`[listmonk] could not record newsletter sync for applicant ${applicant.documentId}: ${err.message}`);
   }
 }
 
-module.exports = { subscribeToNewsletter, syncApplicantToNewsletter };
+module.exports = { syncApplicantToNewsletter };

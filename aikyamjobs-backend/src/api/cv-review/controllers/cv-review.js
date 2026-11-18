@@ -102,9 +102,10 @@ module.exports = createCoreController('api::cv-review.cv-review', ({ strapi }) =
       cvUrl: absoluteMediaUrl(full.currentCv.file && full.currentCv.file.url),
     }).catch((err) => strapi.log.error('[cv-improver] notify failed', err));
 
-    // Add the applicant to the newsletter list (same public Listmonk list +
-    // opt-in flow as the website /subscribe form). Once per applicant, best
-    // effort — never blocks or breaks the CV-review flow.
+    // Add them to the newsletter list (job alerts are part of the consent they
+    // just gave). Confirmed directly, no extra email: the magic link already
+    // verified the address. Once per applicant; best effort, never blocks or
+    // breaks the CV-review flow.
     syncApplicantToNewsletter(full).catch((err) =>
       strapi.log.warn('[cv-improver] newsletter sync failed', err)
     );

@@ -286,9 +286,10 @@ module.exports = createCoreController('api::application.application', ({ strapi 
       isStarAutoApprove,
     }).catch((err) => strapi.log.error('[apply] summary email failed', err));
 
-    // Add the applicant to the newsletter list (same public Listmonk list +
-    // opt-in flow as the website /subscribe form). Once per applicant, best
-    // effort — never blocks or breaks the apply flow.
+    // Add them to the newsletter list (job alerts are part of the consent they
+    // just gave). Confirmed directly, no extra email: the magic link already
+    // verified the address. Once per applicant; best effort, never blocks or
+    // breaks the apply flow.
     syncApplicantToNewsletter(full).catch((err) =>
       strapi.log.warn('[apply] newsletter sync failed', err)
     );

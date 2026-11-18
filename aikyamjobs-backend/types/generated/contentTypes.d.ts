@@ -495,6 +495,8 @@ export interface ApiApplicantApplicant extends Struct.CollectionTypeSchema {
     magicTokenExpiresAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
     magicTokenHash: Schema.Attribute.String & Schema.Attribute.Private;
     name: Schema.Attribute.String;
+    newsletterSubscribedAt: Schema.Attribute.DateTime &
+      Schema.Attribute.Private;
     phone: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     starCandidateMarkedAt: Schema.Attribute.DateTime;

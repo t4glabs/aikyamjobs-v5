@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * Listmonk admin-API client used ONLY by the website /subscribe form
- * (src/api/newsletter). The applicant newsletter sync in ./listmonk.js is
- * separate and deliberately untouched.
+ * Listmonk admin-API client for the /subscribe list. Used by the website
+ * /subscribe form (src/api/newsletter) and by the applicant opt-in in
+ * ./listmonk.js (preconfirm mode, below).
  *
  * Why the API and not Listmonk's public form: the public form has no bot
  * protection and its list ID is visible in the page, so bots posted to
@@ -80,8 +80,9 @@ function permissionError(listId) {
 //    which this API user shouldn't have.
 //  - v4: has no `search` param (it's ignored and returns the first page of
 //    everyone), so if that misses, fall back to `query`, which v4 allows
-//    without extra permissions. `email` is already restricted to characters
-//    that can't break out of the quoted literal; doubling quotes is a second guard.
+//    without extra permissions. Doubling single quotes keeps the value inside
+//    the SQL string literal (the search pattern above escapes every
+//    non-alphanumeric character and is a bound parameter anyway).
 async function findByEmail(email) {
   const pattern = `^${email.replace(/[^a-z0-9@]/gi, '\\$&')}$`;
   const bySearch = await call('GET', `/api/subscribers?per_page=20&search=${encodeURIComponent(pattern)}`);
@@ -98,20 +99,27 @@ async function findByEmail(email) {
 }
 
 // Returns the outcome string; throws if Listmonk rejects a step.
-async function subscribe(email) {
+//
+// preconfirm: false (website /subscribe): unverified address, so Listmonk's
+//   double opt-in email decides; an earlier unsubscribe is respected.
+// preconfirm: true (applicants): they proved they own the address via the
+//   magic link, and job alerts are part of the consent they gave on submit,
+//   so they go straight to "confirmed" with no second email. Someone who
+//   unsubscribed earlier is left alone, and so is an admin blocklist.
+async function subscribe(email, { preconfirm = false, name } = {}) {
   const { listId } = config();
 
-  // Same default name Listmonk's public form uses when none is given.
   const created = await call('POST', '/api/subscribers', {
     email,
-    name: email.split('@')[0],
+    // Same default name Listmonk's public form uses when none is given.
+    name: (name && String(name).trim()) || email.split('@')[0],
     status: 'enabled',
     lists: [listId],
-    preconfirm_subscriptions: false,
+    preconfirm_subscriptions: preconfirm,
   });
   if (created.status === 200) {
     if (!onList(created.json?.data, listId)) throw permissionError(listId);
-    return 'created';
+    return preconfirm ? 'created-confirmed' : 'created';
   }
   if (created.status !== 409) throw fail('create', created);
 
@@ -120,6 +128,23 @@ async function subscribe(email) {
 
   if (subscriber.status === 'blocklisted') return 'blocklisted';
   const membership = (subscriber.lists || []).find((l) => l.id === listId);
+
+  if (preconfirm) {
+    if (membership?.subscription_status === 'confirmed') return 'already-confirmed';
+    if (membership?.subscription_status === 'unsubscribed') return 'unsubscribed';
+    const set = await call('PUT', '/api/subscribers/lists', {
+      ids: [subscriber.id],
+      action: 'add',
+      target_list_ids: [listId],
+      status: 'confirmed',
+    });
+    if (set.status !== 200) throw fail('confirm-on-list', set);
+    const after = await call('GET', `/api/subscribers/${subscriber.id}`);
+    if (after.status !== 200) throw fail('re-check', after);
+    const now = (after.json?.data?.lists || []).find((l) => l.id === listId);
+    if (now?.subscription_status !== 'confirmed') throw permissionError(listId);
+    return membership ? `confirmed-was-${membership.subscription_status}` : 'added-confirmed';
+  }
   if (membership?.subscription_status === 'confirmed') return 'already-confirmed';
   // Respect an earlier unsubscribe, as Listmonk's own public form does.
   if (membership?.subscription_status === 'unsubscribed') return 'unsubscribed';
