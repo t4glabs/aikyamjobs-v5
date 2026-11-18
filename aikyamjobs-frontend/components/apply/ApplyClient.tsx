@@ -61,7 +61,10 @@ export default function ApplyClient({
 
   // application form
   const [checked, setChecked] = useState<boolean[]>(() => checklist.map(() => false));
-  const [consent, setConsent] = useState(false);
+  // Pre-ticked: consent is required to send anyway, and an empty box that
+  // blocks the button confused people. The consent text sits right above
+  // the send button, so sending is the clear yes.
+  const [consent, setConsent] = useState(true);
   const [cvBusy, setCvBusy] = useState(false);
   const [cvNote, setCvNote] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
