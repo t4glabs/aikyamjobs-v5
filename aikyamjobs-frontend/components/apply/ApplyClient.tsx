@@ -416,8 +416,8 @@ export default function ApplyClient({
                 className="mt-0.5 h-4 w-4 flex-none accent-[var(--brand)]"
               />
               <span className="text-sm text-gray-600">
-                I&rsquo;m happy for aikyamjobs to read my CV against this role and email me the
-                result.
+                I&rsquo;m happy for aikyamjobs to read my CV against this role, email me the
+                result, and send me job alerts. You can unsubscribe from alerts anytime.
               </span>
             </label>
 

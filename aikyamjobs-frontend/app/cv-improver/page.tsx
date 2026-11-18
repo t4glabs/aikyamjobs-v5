@@ -395,7 +395,8 @@ export default function CvImproverPage() {
                         className="mt-0.5 h-4 w-4 flex-none accent-[var(--brand)]"
                       />
                       <span className="text-sm text-gray-600">
-                        I&rsquo;m happy for aikyamjobs to read my CV and email me feedback.
+                        I&rsquo;m happy for aikyamjobs to read my CV, email me feedback, and send me
+                        job alerts. You can unsubscribe from alerts anytime.
                       </span>
                     </label>
 
