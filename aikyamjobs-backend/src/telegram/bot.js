@@ -60,22 +60,32 @@ async function findOrCreateSubscriber(chatId, from) {
   return { ...created, categories: [] };
 }
 
-async function getSubscribedIds(chatId) {
+// Strapi 5 stores every category twice: a draft row and a published row, with
+// different numeric ids but the same documentId. db.query() returns both, so
+// every category query here filters to published rows, and "is subscribed"
+// compares documentIds. Comparing documentIds matters because between the v5
+// move (2026-10-23) and this fix, the browse list offered both rows, so some
+// subscribers are linked to the draft row. Button ids stay numeric because
+// Telegram caps callback data and /start payloads at 64 characters.
+const CATEGORY_UID = 'api::category.category';
+const PUBLISHED = { publishedAt: { $notNull: true } };
+
+async function getSubscribedDocIds(chatId) {
   const subscriber = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findOne({
     where: { chatId },
     populate: ['categories'],
   });
-  return new Set((subscriber?.categories || []).map((c) => c.id));
+  return new Set((subscriber?.categories || []).map((c) => c.documentId));
 }
 
 // Renders a 2-per-row grid of toggle buttons with no stray empty rows.
-function buildToggleKeyboard(categories, subscribedIds, callbackDataFor) {
+function buildToggleKeyboard(categories, subscribedDocIds, callbackDataFor) {
   if (categories.length === 0) return new InlineKeyboard([]);
 
   const keyboard = new InlineKeyboard();
   categories.forEach((category, index) => {
     if (index > 0 && index % 2 === 0) keyboard.row();
-    const checked = subscribedIds.has(category.id) ? '✅ ' : '';
+    const checked = subscribedDocIds.has(category.documentId) ? '✅ ' : '';
     keyboard.text(`${checked}${category.name}`, callbackDataFor(category.id));
   });
   return keyboard;
@@ -94,41 +104,42 @@ function withBrowseMoreButton(keyboard) {
 // Fixed set of categories (a job's own tags) — same set shown before and after toggling.
 async function buildJobScopeKeyboard(chatId, categoryIds) {
   if (categoryIds.length === 0) return new InlineKeyboard([]);
-  const categories = await strapi.db.query('api::category.category').findMany({
-    select: ['id', 'name'],
-    where: { id: { $in: categoryIds } },
+  const categories = await strapi.db.query(CATEGORY_UID).findMany({
+    select: ['id', 'documentId', 'name'],
+    where: { ...PUBLISHED, id: { $in: categoryIds } },
     orderBy: { name: 'asc' },
   });
-  const subscribedIds = await getSubscribedIds(chatId);
+  const subscribedDocIds = await getSubscribedDocIds(chatId);
   const idsCsv = categoryIds.join('-');
-  return buildToggleKeyboard(categories, subscribedIds, (catId) => `t:j:${catId}:${idsCsv}`);
+  return buildToggleKeyboard(categories, subscribedDocIds, (catId) => `t:j:${catId}:${idsCsv}`);
 }
 
 // Dynamic set — always exactly what the user is currently subscribed to.
 async function buildSubscribedScopeKeyboard(chatId) {
-  const subscribedIds = await getSubscribedIds(chatId);
-  if (subscribedIds.size === 0) return new InlineKeyboard([]);
-  const categories = await strapi.db.query('api::category.category').findMany({
-    select: ['id', 'name'],
-    where: { id: { $in: Array.from(subscribedIds) } },
+  const subscribedDocIds = await getSubscribedDocIds(chatId);
+  if (subscribedDocIds.size === 0) return new InlineKeyboard([]);
+  const categories = await strapi.db.query(CATEGORY_UID).findMany({
+    select: ['id', 'documentId', 'name'],
+    where: { ...PUBLISHED, documentId: { $in: Array.from(subscribedDocIds) } },
     orderBy: { name: 'asc' },
   });
-  return buildToggleKeyboard(categories, subscribedIds, (catId) => `t:s:${catId}`);
+  return buildToggleKeyboard(categories, subscribedDocIds, (catId) => `t:s:${catId}`);
 }
 
 const BROWSE_PAGE_SIZE = 12;
 
 // Paginated browse of every category — opt-in only, never shown by default.
 async function buildBrowseKeyboard(chatId, page) {
-  const totalCount = await strapi.db.query('api::category.category').count();
-  const categories = await strapi.db.query('api::category.category').findMany({
-    select: ['id', 'name'],
+  const totalCount = await strapi.db.query(CATEGORY_UID).count({ where: PUBLISHED });
+  const categories = await strapi.db.query(CATEGORY_UID).findMany({
+    select: ['id', 'documentId', 'name'],
+    where: PUBLISHED,
     orderBy: { name: 'asc' },
     limit: BROWSE_PAGE_SIZE,
     offset: page * BROWSE_PAGE_SIZE,
   });
-  const subscribedIds = await getSubscribedIds(chatId);
-  const keyboard = buildToggleKeyboard(categories, subscribedIds, (catId) => `t:b:${catId}:${page}`);
+  const subscribedDocIds = await getSubscribedDocIds(chatId);
+  const keyboard = buildToggleKeyboard(categories, subscribedDocIds, (catId) => `t:b:${catId}:${page}`);
 
   const hasPrev = page > 0;
   const hasNext = (page + 1) * BROWSE_PAGE_SIZE < totalCount;
@@ -146,16 +157,16 @@ const INLINE_SEARCH_LIMIT = 30;
 // paging through 170+ categories. Requires inline mode enabled via @BotFather
 // (/setinline); Telegram silently drops the query otherwise.
 async function buildInlineSearchResults(query, chatId) {
-  const categories = await strapi.db.query('api::category.category').findMany({
-    select: ['id', 'name'],
-    where: query ? { name: { $containsi: query } } : {},
+  const categories = await strapi.db.query(CATEGORY_UID).findMany({
+    select: ['id', 'documentId', 'name'],
+    where: query ? { ...PUBLISHED, name: { $containsi: query } } : PUBLISHED,
     orderBy: { name: 'asc' },
     limit: INLINE_SEARCH_LIMIT,
   });
-  const subscribedIds = await getSubscribedIds(chatId);
+  const subscribedDocIds = await getSubscribedDocIds(chatId);
 
   return categories.map((category) => {
-    const checked = subscribedIds.has(category.id);
+    const checked = subscribedDocIds.has(category.documentId);
     return {
       type: 'article',
       id: String(category.id),
@@ -170,13 +181,34 @@ async function buildInlineSearchResults(query, chatId) {
   });
 }
 
+// The tapped id can be a draft row (buttons sent before the published-only
+// fix), so resolve it to the category's published row and link that one.
+// Published rows are what jobs link to, and Strapi re-points these links when
+// a category is re-published.
+async function resolvePublishedCategory(categoryId) {
+  const tapped = await strapi.db.query(CATEGORY_UID).findOne({
+    select: ['id', 'documentId', 'publishedAt'],
+    where: { id: categoryId },
+  });
+  if (!tapped || tapped.publishedAt) return tapped;
+  const published = await strapi.db.query(CATEGORY_UID).findOne({
+    select: ['id', 'documentId'],
+    where: { ...PUBLISHED, documentId: tapped.documentId },
+  });
+  return published || tapped;
+}
+
+// Returns true if now subscribed, false if now unsubscribed, null if the category is gone.
 async function toggleSubscription(chatId, from, categoryId) {
+  const category = await resolvePublishedCategory(categoryId);
+  if (!category) return null;
+
   const subscriber = await findOrCreateSubscriber(chatId, from);
-  const currentIds = (subscriber.categories || []).map((c) => c.id);
-  const isSubscribed = currentIds.includes(categoryId);
-  const nextIds = isSubscribed
-    ? currentIds.filter((id) => id !== categoryId)
-    : [...currentIds, categoryId];
+  const current = subscriber.categories || [];
+  const isSubscribed = current.some((c) => c.documentId === category.documentId);
+  // Unsubscribing drops every row of that category, draft-row links included.
+  const kept = current.filter((c) => c.documentId !== category.documentId).map((c) => c.id);
+  const nextIds = isSubscribed ? kept : [...kept, category.id];
 
   await strapi.documents('api::telegram-subscriber.telegram-subscriber').update({
     documentId: subscriber.documentId,
@@ -184,6 +216,11 @@ async function toggleSubscription(chatId, from, categoryId) {
   });
 
   return !isSubscribed;
+}
+
+function toggleToast(subscribed) {
+  if (subscribed === null) return 'That category no longer exists';
+  return subscribed ? 'Subscribed ✅' : 'Unsubscribed';
 }
 
 function getAdminIds() {
@@ -214,16 +251,20 @@ async function getSubscriberStats() {
     populate: ['categories'],
   });
 
-  const categoryCounts = new Map(); // categoryId -> { name, count }
+  const categoryCounts = new Map(); // category documentId -> { name, count }
   let activeSubscribers = 0;
 
   for (const subscriber of subscribers) {
     const categories = subscriber.categories || [];
     if (categories.length > 0) activeSubscribers += 1;
+    // One count per category per subscriber, even if linked to both its rows.
+    const seen = new Set();
     for (const category of categories) {
-      const entry = categoryCounts.get(category.id) || { name: category.name, count: 0 };
+      if (seen.has(category.documentId)) continue;
+      seen.add(category.documentId);
+      const entry = categoryCounts.get(category.documentId) || { name: category.name, count: 0 };
       entry.count += 1;
-      categoryCounts.set(category.id, entry);
+      categoryCounts.set(category.documentId, entry);
     }
   }
 
@@ -292,8 +333,8 @@ function registerHandlers(botInstance, strapiInstance) {
 
   botInstance.command('subscriptions', async (ctx) => {
     const chatId = String(ctx.chat.id);
-    const subscribedIds = await getSubscribedIds(chatId);
-    const summary = subscribedIds.size
+    const subscribedDocIds = await getSubscribedDocIds(chatId);
+    const summary = subscribedDocIds.size
       ? "You're currently subscribed to the categories below. Tap to unsubscribe, or see more to add:"
       : "You're not subscribed to any categories yet. Tap below to browse and subscribe:";
     const keyboard = withBrowseMoreButton(await buildSubscribedScopeKeyboard(chatId));
@@ -306,7 +347,7 @@ function registerHandlers(botInstance, strapiInstance) {
     const scopeIds = ctx.match[2].split('-').map(Number);
     const chatId = String(ctx.chat.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
-    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    await ctx.answerCallbackQuery({ text: toggleToast(subscribed) });
     const keyboard = withBrowseMoreButton(await buildJobScopeKeyboard(chatId, scopeIds));
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
   });
@@ -316,7 +357,7 @@ function registerHandlers(botInstance, strapiInstance) {
     const categoryId = Number(ctx.match[1]);
     const chatId = String(ctx.chat.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
-    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    await ctx.answerCallbackQuery({ text: toggleToast(subscribed) });
     const keyboard = withBrowseMoreButton(await buildSubscribedScopeKeyboard(chatId));
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
   });
@@ -327,7 +368,7 @@ function registerHandlers(botInstance, strapiInstance) {
     const page = Number(ctx.match[2]);
     const chatId = String(ctx.chat.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
-    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    await ctx.answerCallbackQuery({ text: toggleToast(subscribed) });
     const keyboard = await buildBrowseKeyboard(chatId, page);
     await ctx.editMessageReplyMarkup({ reply_markup: keyboard }).catch(() => {});
   });
@@ -350,7 +391,7 @@ function registerHandlers(botInstance, strapiInstance) {
     const categoryId = Number(ctx.match[1]);
     const chatId = String(ctx.from.id);
     const subscribed = await toggleSubscription(chatId, ctx.from, categoryId);
-    await ctx.answerCallbackQuery({ text: subscribed ? 'Subscribed ✅' : 'Unsubscribed' });
+    await ctx.answerCallbackQuery({ text: toggleToast(subscribed) });
     const keyboard = new InlineKeyboard().text(
       subscribed ? '✅ Subscribed' : '🔔 Subscribe',
       `t:q:${categoryId}`
@@ -463,9 +504,11 @@ async function notifyJobPublished(jobId) {
 
   if (categories.length === 0) return;
 
-  const categoryIds = categories.map((c) => c.id);
+  // Match on documentId, not row id, so subscribers linked to a category's
+  // draft row (see PUBLISHED above) still get the DM.
+  const categoryDocIds = categories.map((c) => c.documentId);
   const subscribers = await strapi.db.query('api::telegram-subscriber.telegram-subscriber').findMany({
-    where: { categories: { id: { $in: categoryIds } } },
+    where: { categories: { documentId: { $in: categoryDocIds } } },
   });
 
   const uniqueSubscribers = Array.from(new Map(subscribers.map((s) => [s.id, s])).values());
