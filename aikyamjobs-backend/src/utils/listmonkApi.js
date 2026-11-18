@@ -61,6 +61,42 @@ function fail(step, r) {
   return new Error(`${step} -> HTTP ${r.status}: ${String(r.text).slice(0, 200)}`);
 }
 
+const sameEmail = (email) => (s) => String(s.email).toLowerCase() === email.toLowerCase();
+const onList = (subscriber, listId) => (subscriber?.lists || []).some((l) => l.id === listId);
+
+// Listmonk silently drops lists the API user may not manage: it still
+// answers 200, creates the subscriber with no list and sends no email.
+// Seen in production on 2026-11-18, so check membership explicitly.
+function permissionError(listId) {
+  return new Error(
+    `subscriber not on list ${listId}: give the API user a list role with "Manage" on that list ` +
+      '(Listmonk → Users → List roles), and check LISTMONK_SUBSCRIBE_LIST_ID'
+  );
+}
+
+// Finds an existing subscriber by exact email, on any Listmonk version:
+//  - v5+: `search` (a bound, case-insensitive regex), anchored to the whole
+//    address. Their `query` (raw SQL) param needs subscribers:sql_query,
+//    which this API user shouldn't have.
+//  - v4: has no `search` param (it's ignored and returns the first page of
+//    everyone), so if that misses, fall back to `query`, which v4 allows
+//    without extra permissions. `email` is already restricted to characters
+//    that can't break out of the quoted literal; doubling quotes is a second guard.
+async function findByEmail(email) {
+  const pattern = `^${email.replace(/[^a-z0-9@]/gi, '\\$&')}$`;
+  const bySearch = await call('GET', `/api/subscribers?per_page=20&search=${encodeURIComponent(pattern)}`);
+  if (bySearch.status !== 200) throw fail('lookup', bySearch);
+  const hit = (bySearch.json?.data?.results || []).find(sameEmail(email));
+  if (hit) return hit;
+
+  const sql = `LOWER(subscribers.email) = '${email.toLowerCase().replace(/'/g, "''")}'`;
+  const byQuery = await call('GET', `/api/subscribers?per_page=20&query=${encodeURIComponent(sql)}`);
+  if (byQuery.status !== 200) throw fail('lookup (query fallback)', byQuery);
+  const viaQuery = (byQuery.json?.data?.results || []).find(sameEmail(email));
+  if (viaQuery) return viaQuery;
+  throw new Error('lookup -> exists but not visible to the API user (needs subscribers:get_all)');
+}
+
 // Returns the outcome string; throws if Listmonk rejects a step.
 async function subscribe(email) {
   const { listId } = config();
@@ -73,20 +109,14 @@ async function subscribe(email) {
     lists: [listId],
     preconfirm_subscriptions: false,
   });
-  if (created.status === 200) return 'created';
+  if (created.status === 200) {
+    if (!onList(created.json?.data, listId)) throw permissionError(listId);
+    return 'created';
+  }
   if (created.status !== 409) throw fail('create', created);
 
   // 409 = the address is already in Listmonk (possibly only on other lists).
-  // Find it with `search` (a bound, case-insensitive regex on name/email),
-  // anchored to the whole address, rather than the `query` SQL parameter,
-  // which would need the powerful subscribers:sql_query permission.
-  const pattern = `^${email.replace(/[^a-z0-9@]/gi, '\\$&')}$`;
-  const found = await call('GET', `/api/subscribers?per_page=20&search=${encodeURIComponent(pattern)}`);
-  if (found.status !== 200) throw fail('lookup', found);
-  const subscriber = (found.json?.data?.results || []).find(
-    (s) => String(s.email).toLowerCase() === email.toLowerCase()
-  );
-  if (!subscriber) throw new Error('lookup -> exists but not visible to the API user (needs subscribers:get_all)');
+  const subscriber = await findByEmail(email);
 
   if (subscriber.status === 'blocklisted') return 'blocklisted';
   const membership = (subscriber.lists || []).find((l) => l.id === listId);
@@ -102,6 +132,9 @@ async function subscribe(email) {
       status: 'unconfirmed',
     });
     if (added.status !== 200) throw fail('add-to-list', added);
+    const after = await call('GET', `/api/subscribers/${subscriber.id}`);
+    if (after.status !== 200) throw fail('re-check', after);
+    if (!onList(after.json?.data, listId)) throw permissionError(listId);
   }
 
   const optin = await call('POST', `/api/subscribers/${subscriber.id}/optin`);
