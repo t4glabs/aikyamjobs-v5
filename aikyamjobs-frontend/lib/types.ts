@@ -183,7 +183,7 @@ export interface Course {
     slug: string;
     duration?: string;
     location?: string;
-    mode?: 'full-time' | 'part-time' | 'online';
+    mode?: 'full-time' | 'part-time' | 'online' | 'hybrid';
     intake?: string;
     medium?: string;
     eligibility?: string;

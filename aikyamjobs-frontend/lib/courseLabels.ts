@@ -4,7 +4,8 @@ import { CourseType } from '@/lib/types';
 // without a code deploy — see lib/api.ts getCourseFieldsOfStudy(). Course Type
 // and Mode stay as fixed code-level enums: the Learn & Grow course authoring
 // spec treats Course Type as a fixed list by design, and Mode's vocabulary
-// (Full-time/Part-time/Online) isn't expected to grow.
+// (Full-time/Part-time/Online/Hybrid) rarely changes. Keep MODE_OPTIONS in
+// sync with the `mode` enum in the backend course schema.
 export const COURSE_TYPE_OPTIONS: { value: CourseType; label: string }[] = [
   { value: 'undergraduate', label: 'Undergraduate' },
   { value: 'postgraduate', label: 'Postgraduate' },
@@ -15,10 +16,11 @@ export const COURSE_TYPE_OPTIONS: { value: CourseType; label: string }[] = [
   { value: 'workshop', label: 'Workshop' },
 ];
 
-export const MODE_OPTIONS: { value: 'full-time' | 'part-time' | 'online'; label: string }[] = [
+export const MODE_OPTIONS: { value: 'full-time' | 'part-time' | 'online' | 'hybrid'; label: string }[] = [
   { value: 'full-time', label: 'Full-time' },
   { value: 'part-time', label: 'Part-time' },
   { value: 'online', label: 'Online' },
+  { value: 'hybrid', label: 'Hybrid' },
 ];
 
 const courseTypeMap = new Map(COURSE_TYPE_OPTIONS.map((o) => [o.value, o.label]));

@@ -38,7 +38,7 @@
     },
     "mode": {
       "type": "enumeration",
-      "enum": ["full-time", "part-time", "online"],
+      "enum": ["full-time", "part-time", "online", "hybrid"],
       "default": "full-time"
     },
     "intake": {
