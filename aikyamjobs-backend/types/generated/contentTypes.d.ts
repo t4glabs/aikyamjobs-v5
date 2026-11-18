@@ -843,7 +843,9 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 60;
       }>;
-    mode: Schema.Attribute.Enumeration<['full-time', 'part-time', 'online', 'hybrid']> &
+    mode: Schema.Attribute.Enumeration<
+      ['full-time', 'part-time', 'online', 'hybrid']
+    > &
       Schema.Attribute.DefaultTo<'full-time'>;
     provider: Schema.Attribute.Relation<
       'manyToOne',
