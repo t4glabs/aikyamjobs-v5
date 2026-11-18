@@ -234,6 +234,25 @@ export async function getCompany(slug: string) {
   return normalizeList(response, wrapCompany);
 }
 
+export type SitemapEntry = { slug: string; updatedAt: string };
+
+// The sitemap only needs each entry's slug and last-updated time. It used to
+// reuse getJobs/getCompanies/getBlogs, which pulled every job's description,
+// company and images (~13.6 MB, over Next's 2 MB Data Cache limit, so it was
+// refetched from Strapi on every sitemap render), and getCompanies' default
+// page size of 24 silently dropped most companies. This asks for slug and
+// updatedAt only and follows pageCount, so a REST maxLimit can't truncate it.
+export async function getSitemapEntries(collection: 'jobs' | 'companies' | 'blogs'): Promise<SitemapEntry[]> {
+  const query = (page: number) =>
+    `/${collection}?fields[0]=slug&fields[1]=updatedAt&sort=id:asc&pagination[pageSize]=1000&pagination[page]=${page}`;
+  const firstPage = await fetchAPI(query(1));
+  const pageCount = firstPage.meta?.pagination?.pageCount || 1;
+  const remainingPages = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, i) => fetchAPI(query(i + 2)))
+  );
+  return [firstPage, ...remainingPages].flatMap((page) => page.data as SitemapEntry[]);
+}
+
 export async function getCategories() {
   const pageSize = 200;
   const firstPage = await fetchAPI(`/categories?pagination[pageSize]=${pageSize}&pagination[page]=1&sort=name:asc`);

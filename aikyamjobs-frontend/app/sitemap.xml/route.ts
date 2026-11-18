@@ -1,19 +1,14 @@
-import { getJobs, getCompanies, getBlogs } from '@/lib/api';
-import { Job, Company, Blog } from '@/lib/types';
+import { getSitemapEntries } from '@/lib/api';
 
 export async function GET() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aikyamjobs.org';
 
   try {
-    const [jobsResponse, companiesResponse, blogsResponse] = await Promise.all([
-      getJobs({ pageSize: 1000 }),
-      getCompanies(),
-      getBlogs({ pageSize: 1000 }),
+    const [jobs, companies, blogs] = await Promise.all([
+      getSitemapEntries('jobs'),
+      getSitemapEntries('companies'),
+      getSitemapEntries('blogs'),
     ]);
-
-    const jobs = jobsResponse.data;
-    const companies = companiesResponse.data;
-    const blogs = blogsResponse.data;
 
     const staticPages = [
       '',
@@ -31,24 +26,24 @@ export async function GET() {
     <changefreq>daily</changefreq>
     <priority>${page === '' ? '1.0' : '0.8'}</priority>
   </url>`).join('')}
-  ${jobs.map((job: Job) => `
+  ${jobs.map((job) => `
   <url>
-    <loc>${siteUrl}/jobs/${job.attributes.slug}</loc>
-    <lastmod>${new Date(job.attributes.updatedAt).toISOString()}</lastmod>
+    <loc>${siteUrl}/jobs/${job.slug}</loc>
+    <lastmod>${new Date(job.updatedAt).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>`).join('')}
-  ${companies.map((company: Company) => `
+  ${companies.map((company) => `
   <url>
-    <loc>${siteUrl}/companies/${company.attributes.slug}</loc>
-    <lastmod>${new Date(company.attributes.updatedAt).toISOString()}</lastmod>
+    <loc>${siteUrl}/companies/${company.slug}</loc>
+    <lastmod>${new Date(company.updatedAt).toISOString()}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`).join('')}
-  ${blogs.map((blog: Blog) => `
+  ${blogs.map((blog) => `
   <url>
-    <loc>${siteUrl}/blogs/${blog.attributes.slug}</loc>
-    <lastmod>${new Date(blog.attributes.updatedAt).toISOString()}</lastmod>
+    <loc>${siteUrl}/blogs/${blog.slug}</loc>
+    <lastmod>${new Date(blog.updatedAt).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`).join('')}
