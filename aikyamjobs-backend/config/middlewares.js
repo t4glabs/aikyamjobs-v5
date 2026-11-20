@@ -33,7 +33,6 @@ module.exports = [
       origin: [
         'http://localhost:3000',
         'http://localhost:3001',
-        'https://beta.aikyamjobs.org',
         'https://aikyamjobs.org',
       ],
       credentials: true,
