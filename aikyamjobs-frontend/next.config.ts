@@ -1,28 +1,20 @@
 import type { NextConfig } from "next";
 
+// Local Strapi only exists in development. Keeping these hosts out of the
+// production build means the image optimizer and the CSP never reference
+// localhost on the live site. (beta.aikyamjobs.org was dropped 2026-11-20: it
+// has no DNS record and no stored content references it.)
+const isDev = process.env.NODE_ENV !== 'production';
+const LOCAL_STRAPI_ORIGINS = isDev ? ['http://localhost:1337', 'http://localhost:1338'] : [];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      ...LOCAL_STRAPI_ORIGINS.map((origin) => {
+        const { protocol, hostname, port } = new URL(origin);
+        return { protocol: protocol.replace(':', '') as 'http', hostname, port, pathname: '/uploads/**' };
+      }),
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '1337',
-        pathname: '/uploads/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '1338',
-        pathname: '/uploads/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'beta.aikyamjobs.org',
-        pathname: '/uploads/**',
-      },
-      {
-        // Covers the bare production domain in case PUBLIC_URL is ever
-        // pointed at it directly instead of beta.aikyamjobs.org.
         protocol: 'https',
         hostname: 'aikyamjobs.org',
         pathname: '/uploads/**',
@@ -42,10 +34,10 @@ const nextConfig: NextConfig = {
       // challenges.cloudflare.com = Turnstile bot check on /subscribe (script + its iframe).
       "script-src 'self' 'unsafe-inline' https://analytics.aikyamhq.com https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: http://localhost:1337 http://localhost:1338 https://beta.aikyamjobs.org https://aikyamjobs.org https://old.aikyamjobs.org",
+      ["img-src 'self' data:", ...LOCAL_STRAPI_ORIGINS, 'https://aikyamjobs.org https://old.aikyamjobs.org'].join(' '),
       "font-src 'self'",
-      // localhost Strapi ports only matter in local dev (prod calls Strapi same-origin).
-      "connect-src 'self' https://analytics.aikyamhq.com https://search.aikyamfellows.org http://localhost:1337 http://localhost:1338",
+      // Local Strapi origins are dev-only (prod calls Strapi same-origin).
+      ["connect-src 'self' https://analytics.aikyamhq.com https://search.aikyamfellows.org", ...LOCAL_STRAPI_ORIGINS].join(' '),
       "frame-src 'self' https://challenges.cloudflare.com",
       "frame-ancestors 'self'",
       "base-uri 'self'",

@@ -32,3 +32,12 @@ aikyamjobs*.json
 
 # generated checklist review files (do not commit)
 scripts/checklists/
+
+# Production data copies and backups (they contain applicant data). Never
+# commit these, and keep them out of the repo folder altogether: on the server,
+# move them to a root-only backups directory.
+*.db
+*.sqlite
+*.sqlite3
+*.tar.gz
+*.tgz
