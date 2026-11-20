@@ -1,7 +1,7 @@
 'use strict';
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { applyGateToJob } = require('../../../utils/apply');
+const { applyGateToJob, gateNestedJobs, isApplyContactOracleQuery } = require('../../../utils/apply');
 const { getSiteSettings } = require('../../../utils/siteSettings');
 const { toPublicTree } = require('../../../utils/mindmapTree');
 
@@ -25,20 +25,27 @@ function addChecklistPopulate(ctx) {
 }
 
 module.exports = createCoreController('api::job.job', ({ strapi }) => ({
+  // applyGateToJob handles the top-level jobs; gateNestedJobs covers jobs
+  // nested under them (job -> company -> jobs, job -> categories -> jobs),
+  // which used to come back with their real URLs. See utils/apply.js.
   async find(ctx) {
+    if (isApplyContactOracleQuery(ctx.query)) return ctx.badRequest('Invalid query');
     addChecklistPopulate(ctx);
     const { data, meta } = await super.find(ctx);
     const settings = await getSiteSettings(strapi);
     if (Array.isArray(data)) data.forEach((d) => applyGateToJob(d, settings));
+    gateNestedJobs(data);
     return { data, meta };
   },
 
   async findOne(ctx) {
+    if (isApplyContactOracleQuery(ctx.query)) return ctx.badRequest('Invalid query');
     addChecklistPopulate(ctx);
     const res = await super.findOne(ctx);
     if (!res || !res.data) return res;
     const settings = await getSiteSettings(strapi);
     applyGateToJob(res.data, settings);
+    gateNestedJobs(res.data);
     return res;
   },
 

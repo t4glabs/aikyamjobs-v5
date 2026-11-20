@@ -1,7 +1,7 @@
 'use strict';
 
 const { createCoreController } = require('@strapi/strapi').factories;
-const { gateNestedJobs } = require('../../../utils/apply');
+const { gateNestedJobs, isApplyContactOracleQuery } = require('../../../utils/apply');
 const { toPublicTree } = require('../../../utils/mindmapTree');
 
 /**
@@ -13,12 +13,14 @@ const { toPublicTree } = require('../../../utils/mindmapTree');
  */
 module.exports = createCoreController('api::company.company', ({ strapi }) => ({
   async find(ctx) {
+    if (isApplyContactOracleQuery(ctx.query)) return ctx.badRequest('Invalid query');
     const res = await super.find(ctx);
     if (Array.isArray(res.data)) gateNestedJobs(res.data);
     return res;
   },
 
   async findOne(ctx) {
+    if (isApplyContactOracleQuery(ctx.query)) return ctx.badRequest('Invalid query');
     const res = await super.findOne(ctx);
     if (res && res.data) gateNestedJobs(res.data);
     return res;
