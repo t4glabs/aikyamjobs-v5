@@ -117,7 +117,8 @@
     "internalTags": {
       "type": "relation",
       "relation": "manyToMany",
-      "target": "api::internal-tag.internal-tag"
+      "target": "api::internal-tag.internal-tag",
+      "private": true
     },
     "unpublishedAt": {
       "type": "datetime",
