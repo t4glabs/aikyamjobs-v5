@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import Image from "next/image";
-import { getJobs, getCategories, getStrapiMediaUrl } from "@/lib/api";
+import { getJobs, getJobCategoryIds, getCategories, getStrapiMediaUrl } from "@/lib/api";
 import { skillLabels } from "@/lib/skills";
 import { Job, Category, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
@@ -51,8 +51,8 @@ export default async function TagPage({
 
     // If not enough related tags, add popular tags
     if (displayCategories.length < 10) {
-      // Get all jobs to calculate tag popularity
-      const allJobsResponse: StrapiResponse<Job[]> = await getJobs({ pageSize: 200 });
+      // Get all jobs' category ids to calculate tag popularity
+      const allJobsResponse: StrapiResponse<Job[]> = await getJobCategoryIds(200);
       const allJobs = allJobsResponse.data;
 
       // Count jobs per category

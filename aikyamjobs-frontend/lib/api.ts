@@ -146,6 +146,20 @@ export async function fetchAPI(path: string, options: RequestInit = {}) {
   return response.json();
 }
 
+// Only the company fields each view actually reads. `populate[company][populate]=*`
+// used to drag in every company's full `jobs` list (with descriptions) under
+// every job: production /api/jobs responses hit 8-9 MB, over Next's 2 MB Data
+// Cache limit, so they were never cached and re-fetched from Strapi on every
+// render ("items over 2MB can not be cached"). Job cards + RSS need name, slug,
+// logo; the JD page adds excerpt, industry and featureImage (OG fallback).
+const companyPopulate = (fields: string[], media: string[]) =>
+  [
+    ...fields.map((f, i) => `populate[company][fields][${i}]=${f}`),
+    ...media.map((m) => `populate[company][populate][${m}]=true`),
+  ].join('&');
+const LIST_COMPANY_POPULATE = companyPopulate(['name', 'slug'], ['logo']);
+const DETAIL_COMPANY_POPULATE = companyPopulate(['name', 'slug', 'excerpt', 'industry'], ['logo', 'featureImage']);
+
 export async function getJobs(filters?: {
   search?: string;
   location?: string;
@@ -159,9 +173,8 @@ export async function getJobs(filters?: {
   // relation `x` (not "just populate `x`" like v4 did) -- it then trips on
   // `x`'s own back-relations/components ("Invalid key jobs at
   // categories.jobs", etc.). `populate[x]=true` is the v5-safe "populate
-  // this relation's own fields, no further nesting" form; `[populate]=*` is
-  // still fine when deliberately nesting one level deep (company below).
-  let query = '/jobs?populate[company][populate]=*&populate[categories]=true&populate[featureImage]=true&populate[socialImage]=true';
+  // this relation's own fields, no further nesting" form.
+  let query = `/jobs?${LIST_COMPANY_POPULATE}&populate[categories]=true&populate[featureImage]=true&populate[socialImage]=true`;
 
   if (filters?.search) {
     query += `&filters[title][$containsi]=${encodeURIComponent(filters.search)}`;
@@ -190,8 +203,17 @@ export async function getJobs(filters?: {
   return normalizeList(await fetchAPI(query), wrapJob);
 }
 
+// The tag page's "popular tags" fallback only counts category ids per job, so
+// fetch just that instead of `pageSize` full job cards.
+export async function getJobCategoryIds(pageSize = 200) {
+  const response = await fetchAPI(
+    `/jobs?fields[0]=slug&populate[categories][fields][0]=slug&pagination[pageSize]=${pageSize}&sort=createdAt:desc`
+  );
+  return normalizeList(response, wrapJob);
+}
+
 export async function getJob(slug: string) {
-  const response = await fetchAPI(`/jobs?filters[slug][$eq]=${slug}&populate[company][populate]=*&populate[categories]=true&populate[featureImage]=true&populate[socialImage]=true&populate[curatedBy][populate]=*&populate[mindmapPdf]=true`);
+  const response = await fetchAPI(`/jobs?filters[slug][$eq]=${slug}&${DETAIL_COMPANY_POPULATE}&populate[categories]=true&populate[featureImage]=true&populate[socialImage]=true&populate[curatedBy][populate]=*&populate[mindmapPdf]=true`);
   return normalizeList(response, wrapJob);
 }
 
