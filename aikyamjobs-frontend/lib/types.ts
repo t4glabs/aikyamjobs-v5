@@ -157,7 +157,8 @@ export type CourseType =
   | 'executive-education'
   | 'certificate'
   | 'fellowship'
-  | 'workshop';
+  | 'workshop'
+  | 'webinar';
 
 export interface CourseProvider {
   id: number;

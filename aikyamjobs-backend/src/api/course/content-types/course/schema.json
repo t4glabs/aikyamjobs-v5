@@ -75,7 +75,8 @@
         "executive-education",
         "certificate",
         "fellowship",
-        "workshop"
+        "workshop",
+        "webinar"
       ],
       "required": true
     },

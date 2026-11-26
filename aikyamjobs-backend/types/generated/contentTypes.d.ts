@@ -804,6 +804,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
         'certificate',
         'fellowship',
         'workshop',
+        'webinar',
       ]
     > &
       Schema.Attribute.Required;

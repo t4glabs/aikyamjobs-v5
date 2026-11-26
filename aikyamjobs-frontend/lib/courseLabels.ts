@@ -14,6 +14,7 @@ export const COURSE_TYPE_OPTIONS: { value: CourseType; label: string }[] = [
   { value: 'certificate', label: 'Certificate' },
   { value: 'fellowship', label: 'Fellowship' },
   { value: 'workshop', label: 'Workshop' },
+  { value: 'webinar', label: 'Webinar' },
 ];
 
 export const MODE_OPTIONS: { value: 'full-time' | 'part-time' | 'online' | 'hybrid'; label: string }[] = [
