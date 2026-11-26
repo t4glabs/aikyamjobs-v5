@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HomeSearch from "@/components/HomeSearch";
 import { getJobs, getCategories, getBlogs, getSiteSettings, getStrapiMediaUrl } from "@/lib/api";
+import { experienceLevelLabel, jobTypeLabel } from "@/lib/jobLabels";
 import { Job, Category, Blog, StrapiResponse, SiteSettings } from "@/lib/types";
 
 export default async function Home() {
@@ -239,7 +240,7 @@ export default async function Home() {
                       {job.attributes.experienceLevel && (
                         <>
                           <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                          <span>{job.attributes.experienceLevel}</span>
+                          <span>{experienceLevelLabel(job.attributes.experienceLevel)}</span>
                         </>
                       )}
                       {job.attributes.closingDate && (
@@ -264,7 +265,7 @@ export default async function Home() {
                         prefetch={false}
                         className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                       >
-                        {job.attributes.jobType}
+                        {jobTypeLabel(job.attributes.jobType)}
                       </Link>
                       {job.attributes.categories?.data?.slice(0, 2).map((category) => (
                         <Link

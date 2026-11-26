@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { track } from '@/lib/analytics';
 import { meiliHighlightTags, renderHighlighted } from '@/lib/highlight';
+import { jobTypeLabel } from '@/lib/jobLabels';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 // Set NEXT_PUBLIC_MEILISEARCH_URL and NEXT_PUBLIC_MEILISEARCH_KEY in .env.local
@@ -141,7 +142,7 @@ function ResultCard({ hit }: { hit: SearchHit }) {
               <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">{hit.location}</span>
             )}
             {hit.jobType && (
-              <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">{hit.jobType}</span>
+              <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full">{jobTypeLabel(hit.jobType)}</span>
             )}
             {(hit.categories || []).slice(0, 2).map(cat => (
               <span key={cat} className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-50 text-gray-500 rounded-full">{cat}</span>

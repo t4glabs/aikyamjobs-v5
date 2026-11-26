@@ -5,6 +5,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getJobs, getStrapiMediaUrl } from "@/lib/api";
 import { skillLabels } from "@/lib/skills";
+import { JOB_TYPE_OPTIONS, experienceLevelLabel, jobTypeLabel } from "@/lib/jobLabels";
 import { Job, StrapiResponse } from "@/lib/types";
 
 export default async function JobsPage({
@@ -49,7 +50,7 @@ export default async function JobsPage({
   const activeFilters = [
     search && { key: 'search', label: search },
     location && { key: 'location', label: location },
-    jobType && { key: 'jobType', label: jobType },
+    jobType && { key: 'jobType', label: jobTypeLabel(jobType) },
     category && { key: 'category', label: category },
   ].filter(Boolean) as { key: string; label: string }[];
 
@@ -103,11 +104,9 @@ export default async function JobsPage({
                   className="h-10 w-full rounded-md border border-gray-300 bg-white px-2.5 text-sm text-gray-900 transition focus-visible:outline-none focus-visible:border-gray-600 focus-visible:ring-2 focus-visible:ring-gray-900/15"
                 >
                   <option value="">All types</option>
-                  <option value="full-time">Full time</option>
-                  <option value="part-time">Part time</option>
-                  <option value="contract">Contract</option>
-                  <option value="internship">Internship</option>
-                  <option value="fellowship">Fellowship</option>
+                  {JOB_TYPE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
               </label>
 
@@ -220,7 +219,7 @@ export default async function JobsPage({
                     {job.attributes.experienceLevel && (
                       <>
                         <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                        <span>{job.attributes.experienceLevel}</span>
+                        <span>{experienceLevelLabel(job.attributes.experienceLevel)}</span>
                       </>
                     )}
                   </div>
@@ -238,7 +237,7 @@ export default async function JobsPage({
                       prefetch={false}
                       className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                     >
-                      {job.attributes.jobType}
+                      {jobTypeLabel(job.attributes.jobType)}
                     </Link>
                     {skillLabels(job.attributes.skills).slice(0, 2).map((skill, index) => (
                       <Link

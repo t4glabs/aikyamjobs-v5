@@ -1,5 +1,6 @@
 import { getJobs } from '@/lib/api';
 import { Job } from '@/lib/types';
+import { jobTypeLabel } from '@/lib/jobLabels';
 
 function escapeXml(unsafe: string): string {
   return unsafe.replace(/[<>&'"]/g, (c) => {
@@ -42,7 +43,7 @@ export async function GET() {
           job.attributes;
         const companyName = company?.data?.attributes?.name;
         const summary = stripMarkdown(excerpt || description || '').slice(0, 300);
-        const meta = [companyName, location, jobType].filter(Boolean).join(' · ');
+        const meta = [companyName, location, jobTypeLabel(jobType)].filter(Boolean).join(' · ');
         const link = `${siteUrl}/jobs/${slug}`;
         const pubDate = new Date(publishedAt || createdAt).toUTCString();
 

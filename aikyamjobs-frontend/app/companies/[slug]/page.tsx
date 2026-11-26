@@ -9,6 +9,7 @@ import Markdown from "@/components/Markdown";
 import CompanyWebsiteLink from "@/components/CompanyWebsiteLink";
 import InitiativeCards from "@/components/InitiativeCards";
 import { Fragment } from "react";
+import { experienceLevelLabel, jobTypeLabel } from "@/lib/jobLabels";
 
 // "https://www.ekjutindia.org/about" -> "ekjutindia.org"; falls back to a
 // plain label for anything that doesn't parse as a URL.
@@ -138,7 +139,7 @@ export default async function CompanyDetailPage({
             {openJobs.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {openJobs.map((job) => {
-                  const facts = [job.attributes.location, job.attributes.salary, job.attributes.experienceLevel].filter(Boolean);
+                  const facts = [job.attributes.location, job.attributes.salary, experienceLevelLabel(job.attributes.experienceLevel)].filter(Boolean);
                   return (
                     <div
                       key={job.id}
@@ -177,7 +178,7 @@ export default async function CompanyDetailPage({
                             prefetch={false}
                             className="relative z-10 rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800 transition hover:bg-gray-100 hover:border-gray-300"
                           >
-                            {job.attributes.jobType}
+                            {jobTypeLabel(job.attributes.jobType)}
                           </Link>
                         )}
                         {job.attributes.closingDate && (

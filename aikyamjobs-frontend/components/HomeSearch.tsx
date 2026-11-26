@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { meiliHighlightTags, renderHighlighted } from '@/lib/highlight';
+import { jobTypeLabel } from '@/lib/jobLabels';
 
 const MEILI_URL = process.env.NEXT_PUBLIC_MEILISEARCH_URL || 'https://search.aikyamfellows.org';
 const MEILI_KEY = process.env.NEXT_PUBLIC_MEILISEARCH_KEY || '';
@@ -146,7 +147,7 @@ export default function HomeSearch() {
                     {renderHighlighted(hit._formatted?.title, hit.title, 'bg-[#F7E7E2] text-[#8E3527]')}
                   </span>
                   <span className="text-xs text-gray-400 mt-0.5 truncate">
-                    {type === 'job'     && [hit.company, hit.location, hit.jobType].filter(Boolean).join(' · ')}
+                    {type === 'job'     && [hit.company, hit.location, jobTypeLabel(hit.jobType)].filter(Boolean).join(' · ')}
                     {type === 'company' && [hit.industry, hit.location].filter(Boolean).join(' · ')}
                     {type === 'blog'    && hit.author ? `by ${hit.author}` : ''}
                   </span>

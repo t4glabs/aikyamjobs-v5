@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getJobs, getJobCategoryIds, getCategories, getStrapiMediaUrl } from "@/lib/api";
 import { skillLabels } from "@/lib/skills";
+import { experienceLevelLabel, jobTypeLabel } from "@/lib/jobLabels";
 import { Job, Category, StrapiResponse } from "@/lib/types";
 import { notFound } from "next/navigation";
 
@@ -167,7 +168,7 @@ export default async function TagPage({
                   {job.attributes.experienceLevel && (
                     <>
                       <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                      <span>{job.attributes.experienceLevel}</span>
+                      <span>{experienceLevelLabel(job.attributes.experienceLevel)}</span>
                     </>
                   )}
                 </div>
@@ -180,7 +181,7 @@ export default async function TagPage({
 
                 <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3.5">
                   <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-[13px] font-medium text-gray-800">
-                    {job.attributes.jobType}
+                    {jobTypeLabel(job.attributes.jobType)}
                   </span>
                   {skillLabels(job.attributes.skills).slice(0, 2).map((skill, index) => (
                     <span

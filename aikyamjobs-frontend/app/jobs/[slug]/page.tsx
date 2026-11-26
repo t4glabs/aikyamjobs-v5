@@ -17,6 +17,7 @@ import SaveJobButton from "@/components/apply/SaveJobButton";
 import ExternalApplyLink from "@/components/apply/ExternalApplyLink";
 import DownloadPdfLink from "@/components/apply/DownloadPdfLink";
 import SkillCards from "@/components/SkillCards";
+import { experienceLevelLabel, jobTypeLabel } from "@/lib/jobLabels";
 
 export async function generateMetadata({
   params,
@@ -142,11 +143,11 @@ export default async function JobDetailPage({
                 <div className="col-span-3 row-start-3 sm:col-start-2 sm:col-span-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600">
                   {job.attributes.location && <span>{job.attributes.location}</span>}
                   <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                  <span>{job.attributes.jobType}</span>
+                  <span>{jobTypeLabel(job.attributes.jobType)}</span>
                   {job.attributes.experienceLevel && (
                     <>
                       <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                      <span>{job.attributes.experienceLevel} level</span>
+                      <span>{experienceLevelLabel(job.attributes.experienceLevel)} level</span>
                     </>
                   )}
                   {job.attributes.salary && (
@@ -286,14 +287,14 @@ export default async function JobDetailPage({
                 {job.attributes.jobType && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Job Type</h4>
-                    <p className="text-gray-700 capitalize">{job.attributes.jobType}</p>
+                    <p className="text-gray-700">{jobTypeLabel(job.attributes.jobType)}</p>
                   </div>
                 )}
 
                 {job.attributes.experienceLevel && (
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Experience Level</h4>
-                    <p className="text-gray-700 capitalize">{job.attributes.experienceLevel}</p>
+                    <p className="text-gray-700">{experienceLevelLabel(job.attributes.experienceLevel)}</p>
                   </div>
                 )}
 
